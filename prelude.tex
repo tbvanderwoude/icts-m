@@ -1,0 +1,65 @@
+%Universal prelude for everything sciency, mathy, and what have you
+%Make semantic macros, not syntactic macros!
+%maths stuff
+\usepackage[stretch=10]{microtype}
+\usepackage{todonotes}
+\usepackage{amsfonts,amsmath, amssymb,amsthm,steinmetz}
+\usepackage[utf8]{inputenc}
+%nice tables
+\usepackage{booktabs}
+\usepackage{multicol}
+\usepackage{chemfig}
+\usepackage{lmodern}
+\usepackage{enumitem}
+%units for doing a science. allowlitunits means things like 20\milli\meter in math mode without \SI{}{}
+\usepackage[allowlitunits]{siunitx}
+%time, you always need time
+\usepackage{datetime}
+%semi-nice karnaugh maps which can be defined using minterms, maxterms etc.
+\usepackage{karnaugh-map}
+\newtheorem{theorem}{Theorem}
+\usepackage{marginnote}
+\usepackage{tikz}
+\usepackage{subcaption}
+\usepackage[normalem]{ulem}
+\usepackage{graphicx} 
+\usetikzlibrary{quotes,angles}
+%\dv <3
+\usepackage{physics}
+%bra-ket notation for quantum stuff
+\usepackage{braket}
+%for surface and volume integrals
+\usepackage{esint}
+\usepackage{enumitem}
+%Specific hackery/macros to save time/make latex more semantic less syntactic
+\DeclareMathOperator{\sinc}{sinc}
+\newcommand{\conj}[1]{\,\overline{\!{#1}}}
+\newcommand{\phasor}[1]{\,\widetilde{\!{#1}}}
+\newcommand{\risingfac}[1]{%
+	^{\overline{#1}}%
+}
+%for sets generating groups
+\newcommand{\gen}[1]{%
+	\langle #1\rangle
+}
+\newcommand{\fallingfac}[1]{%
+	^{\underline{#1}}%
+}
+%Theorem style for "[Name of famous mathematician]'s Theorem" type of theorems, of which there are a surprising number.
+\theoremstyle{named}
+\newtheoremstyle{named}{}{}{\itshape}{}{\bfseries}{.}{.5em}{\thmnote{#3's }#1}
+\newcommand{\bitvector}[2]{
+	\underline{#1} = (#1_{#2-1},#1_{#2-2},...,#1_0)
+}
+\newcommand{\code}[1]{
+	\texttt{#1}
+}
+\usepackage[leqno]{mathtools}
+\usepackage{chngcntr}
+\counterwithin{equation}{section}
+\usepackage[roman, thin, thinp, thinc]{esdiff}
+
+\usepackage{bm}
+\usepackage{marginnote}
+\usepackage{epigraph}
+\usepackage{hyperref}
