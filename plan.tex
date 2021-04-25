@@ -2,80 +2,200 @@
 \usepackage[T1]{fontenc}
 \usepackage{geometry}
 \geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=3cm,rmargin=3cm}
-\usepackage[backend=bibtex]{biblatex}
+\usepackage[backend=biber,style=ieee]{biblatex}
 \addbibresource{sources.bib}
 \usepackage{babel}
 
 
-\title{Research Plan for MAPF with matching using ICTS (draft)}
+\title{Research Plan for MAPF with matching using ICTS}
 \author{Thom van der Woude}
 \date{\today}
 
 \begin{document}
-\maketitle
-
-
-\section*{Background of the research}
-The Dutch Railways (NS) company needs to clean and service their fleet of trains during the night in shunting yards so that they can properly bring passengers from A to B during the day. The problem of scheduling the trains to achieve this is the Train Unit Shunting and Servicing (TUSS) problem \cite{mulderij2020} and it is a typical NP-hard problem. To gain more insight into the characteristics of this many-sided problem and in particular the feasibility of its instances, a relaxation is considered: the multi-agent path finding problem extended with a matching sub-problem or matching multi-agent pathfinding (hereafter MMAPF). 
-\paragraph{Multi-agent pathfinding} MAPF is a well-studied problem, a general overview is given in \cite{stern2019}. Somewhat informally, it is the problem of routing multiple agents on a graph (often a 4-connected grid) to multiple distinct destinations without any conflicts, with definitions of what constitutes a conflict varying; in this project, conflict is taken to mean 'occupy the same node' or 'traverse the same edge in opposite directions at the same time-step'. Typically one of two things is minimized: the sum of individual costs (SIC), or the length of the longest path (also known as \textit{makespan}). Algorithms for MAPF are often designed to find optimal solutions so that for instance the SIC is minimal.
-
-\paragraph{Matching Multi-agent pathfinding as TUSS relaxation}
-For a problem to be a relaxation of TUSS, it has to be at most as difficult as TUSS for each instance assuming some suitable mapping from the original problem to the relaxation. In one respect TUSS is somewhat easier to solve than classical MAPF: trains are partitioned into types (equivalence classes, often denoted by colours) and destinations are labelled as destinations for trains of one specific type. This means that as far as this matching is concerned, for any valid matching there can be many equivalent permutations, so that in different optimal solutions a single train might have different destinations. As a consequence, this matching has to be modelled in the relaxed problem, resulting in MMAPF. Contrast this variation with both normal MAPF where each agent only has one target and anonymous MAPF where agents can be assigned to any target. See \cite{ma2016} for a discussion of MAPF with matching.
-
-\paragraph{Solving MAPF with matching}
-There exist many different algorithms for solving the MAPF problem. 
-Some current examples include conflict-based search\cite{sharon2015}, branch-and-cut-and-price\cite{lam2019}, A* with Independence detection and Operator Decomposition\cite{standley2010}, M*\cite{wagner2011} and Increasing Cost Tree Search\cite{sharon2011}. 
-None of these are designed to work with matching out-of-the-box, so a naive way to incorperate matching into MAPF would be to generate legal matchings in preprocessing and enumerate these until one is found for which MAPF finds a solution. 
-However, the challenge of this research project is to find ways using heuristics, preprocessing or other methods to generate good matchings that result in feasible MAPF problems and ideally efficient MAPF solutions. 
-Similar to a previous iteration of this research project, we each chose an algorithm to work with as a start of our respective subprojects: I will be working on incorperating matching into Increasing Cost Tree Search MAPF-solving. 
-
-\paragraph{TUSS to MAPF with matching}
-Finding a suitable mapping between TUSS and MMAPF instances is an unsolved problem: intuitively it is desirable to preserve feasibility so that there can never be a feasible TUSS instance mapped to an infeasible MMAPF instance, but perhaps it should be acceptable for the mapping to turn infeasible TUSS instances into feasible MMAPF instances, as the latter problem is a relaxation of the former. In any case, a good mapping that preserves key instance properties is important for MMAPF to be practically useful as a relaxation of TUSS so should time allow this would be interesting to consider.
-
-
-\section*{Research Question}
-The key research question that I aim to answer in this subproject is this: How can the Increasing Cost Tree Search method be used or adapted to efficiently find solutions to Multi-agent path-finding with matching? Relevant subquestions are as follows, where matching is to be understood as a single legal matching of trains to targets (departures) of their respective types:\footnote{These subquestions were taken from the initial project proposal at \url{https://projectforum.tudelft.nl/course_editions/39/projects/977}}
-\begin{enumerate}
-	\item Can we use a heuristic or preprocessing step to calculate a matching? And can we do so such that the resulting instance with the fixed matching is feasible?
-	\item Can we use instance features to (help) determine an efficient matching?
-	\item How can we improve upon a matching once one has been found?
-\end{enumerate}
-
-\section*{Method}
-As a first step, an existing implementation of Increasing Cost Tree Search has to be found or a new one has to be implemented following the paper if no algorithm is publicly available. Next, the generation of agent-target matchings is to be implemented, which are translated into MAPF instances to be solved using ICTS. It might be possible to collaborate within the peer group here as we all have to do this step. Once this task has been completed, the project takes a more theoretical turn and I intend to study literature specific to MAPF with colours/teams or similar problems with the additional matching constraint in order to work towards answering the subquestions. Here also I hope to collaborate with my peer group and exchange ideas, perhaps about how properties of instances might be exploited in finding matchings or similar concepts.
-
-\section*{Planning of the (first week of the) research project} 
-For now I assume that reading a paper, looking into relevant citations and making a summary for comprehension takes around 3-4 hours which is also reflected in my planning. Also note that I take the tasks this first week to be seperate from those to be described by the end of this week in Method.
-\begin{enumerate}
-	\item[19-4 ] 
+	\maketitle
+	
+	
+	\section*{Background of the research}
+	The Dutch Railways (NS) company\footnote{\url{https://www.ns.nl/}} needs to clean and service their fleet of trains during the night in shunting yards so that they can properly bring passengers from A to B during the day. The problem of scheduling the trains to achieve this is called the Train Unit Shunting and Servicing (TUSS) problem \cite{mulderij2020}. It is an NP-hard problem with many different subproblems such as the scheduling of personnel, the coupling and decoupling of train units entering and leaving the yard, etc. The company is interested in learning tighter upper-bounds for the capacity of their shunting yards but a problem is that in practical scenarios, only heuristics can solve TUSS instances (as was shown by Geiger et al. \cite{geiger2018}), leaving the company in the dark about what optimal solutions would look like and what could still be achieved using existing shunting infrastructure. To gain more insight into the capacity of shunting yards and the feasibility of problem instances, a relaxation of TUSS is considered: the multi-agent pathfinding problem extended with a matching subproblem (hereafter MAPFM). The idea of this research project is to develop and compare different algorithms for solving the MAPFM problem so that assuming a suitable translation from a TUSS instance to a MAPFM instance, such algorithms could be used to learn about the TUSS instance by solving or attempting to solve the corresponding MAPFM instance.
+	\subsection*{Multi-agent pathfinding} MAPF is a well-studied problem, a general overview is given in \cite{stern2019}. Somewhat informally, it is the problem of routing multiple agents on a graph (often a 4-connected grid) to multiple distinct destinations without any conflicts, with definitions of what constitutes a conflict varying; in this project, conflict is taken to mean 'occupy the same node' (vertex conflict) or 'traverse the same edge in opposite directions at the same time-step' (edge conflict). Typically one of two things is minimized: the sum of individual costs (SIC), or the length of the longest path (also known as \textit{makespan}). In the context of this project, the goal is to find an optimal solution to MAPF instances if one exists, where the optimal solution is the solution with the lowest SIC. The graph is assumed to be a 4-connected grid.
+	
+	\subsection*{Matching Multi-agent pathfinding as TUSS relaxation}
+	For a problem to be a relaxation of TUSS, it has to be at most as difficult as TUSS for each instance assuming some suitable mapping from the original problem to the relaxation. In one respect TUSS is somewhat easier to solve than classical MAPF: trains are partitioned into types and destinations are labelled as destinations for trains of one specific type. This means that as far as this matching is concerned, for any valid matching there can be many equivalent permutations so that in different optimal solutions a single train might have different destinations. As a consequence, this matching has to be modelled in the relaxed problem, resulting in MAPFM. MAPFM is a generalization of both classical and anonymous MAPF, a variation where agents can be assigned to any target: the classical version corresponds to MAPFM with $k$ singleton types (classes) for $k$ agents and the anonymous variant is MAPFM with just $1$ type for $k$ agents\cite{ma2016}.
+	
+	\subsection*{Solving MAPF with matching}
+	There exist many different algorithms for solving the MAPF problem: some examples include conflict-based search\cite{sharon2015}, branch-and-cut-and-price\cite{lam2019}, A* with Independence detection and Operator Decomposition\cite{standley2010}, M*\cite{wagner2011} and Increasing Cost Tree Search\cite{sharon2011}. Comparatively, little research has been done on MAPF with matching however and the Conflict-Based Min-Cost-Flow algorithm by Ma and Koenig \cite{ma2016} appears to be one of the few existing approaches to solving this more general problem along with the somewhat similar one described in \cite{henkel2019}. Ma and Koenig's method builds upon the conflict-based search method and in particular on the Meta-Agent variation thereof also discussed in \cite{sharon2015} as a high-level search framework, while exploiting the connection between MAPF problems and max-flow problems (as discussed in \cite{yu2013}) in the low-level search. All-in-all, it is an interesting method that by the reported experimental results seems to be a practical solver even for certain instances with a few hundred agents, which is also why a member of the peer group will be taking this approach as a starting point. This subproject, however, will instead take the Increasing Cost Tree Search method as the starting point for developing a novel algorithm for MAPFM, the performance of which can then be compared to other solvers based on different MAPF algorithms.
+	
+	
+	\section*{Research Question}
+	The key research question that I aim to answer in this subproject is this:\begin{center}
+		Can an efficient algorithm be derived for optimally solving MAPFM based on the Increasing Cost Tree Search algorithm for MAPF? 
+	\end{center} 
+	To define what is meant by efficient, consider a naïve ICTS-based MAPFM solver and let $n_1,\ldots,n_l$ denote the number of agents (and therefore targets) of each of the $l$ types. There are $N = \prod_{i = 1}^l n_i!$ legal matchings that can all be translated into MAPF instances which can be solved by regular ICTS or perhaps a variation with pruning and/or independence detection. Let the chosen ICTS variant be $O(X)$ (for the analysis of ICTS and its variants, see \cite{sharon2011}). To find the matching with the lowest sum of individual costs, in the worst-case, all matchings would have to be considered, so that this approach is $O(N\times X)$. 
+	
+	Formally then, an efficient algorithm for optimally solving MAPFM is asymptotically better than the above assuming regular ICTS. Ideally, it should also perform better (empirically) than the approach described in \cite{ma2016} and algorithms derived in parallel subprojects within the peer group on certain classes of MAPFM instances, similarly to how ICTS outperforms alternative algorithms like A* + OD on specific instances \cite{sharon2011}. Although this is a bit harder to formalize, comparing the algorithm to alternative algorithms is therefore also an important part of determining its significance.
+	\subsection*{Sub-questions}
+	As part of answering this research question, there will be an effort to develop candidate ICTS-based algorithms for MAPFM which appear to have desirable properties, and assuming at least one such candidate is found, for each the following sub-questions will be answered
 	\begin{enumerate}
-		\item[10:45] Start of research project
-		\item[12:45] Meeting with peer group
-		\item[13:45] Assignment of subproject (ICTS)
-		\item[15:45] Planning of first week (deadline at 19-4 23:59).
-	\end{enumerate}
-	\item[20-4] 
-	\begin{enumerate}
-	\item[9:00] Revise information literacy, find relevant conferences/journals for this research project
-	\item[10:00] Read and summarize \cite{stern2019}
-	\item[15:00] Read and summarize \cite{mulderij2020}
-	\end{enumerate}
-	\item[21-4]
+		\item What is the time complexity of the algorithm and can it be shown to be asymptotically better than the naïve approach?
+		\item Is the algorithm optimal?
+		\item What is the experimental run-time performance of the algorithm in different scenarios?
 		\begin{enumerate}
-		\item[9:00] Read and summarize \cite{sharon2011}, the original ICTS paper.
-		\item[13:00] Read and summarize \cite{standley2010}
-		\item[15:00] Look into other important citations in \cite{sharon2011}
+			\item How does it compare to the naïve approach?
+			\item How does it compare to CBM, the algorithm by Ma and Koenig \cite{ma2016}?\footnote{Planning-wise, it is assumed that there will be an implementation of this available within the peer group as there will be someone taking this algorithm as a starting point} 
+			\item How does it compare to the other algorithms developed within the peer group?
+		\end{enumerate}
+		\item Is the algorithm complete or can it be made complete by incorporating a polynomial-time feasibility check\footnote{The latter is the case for ICTS so it would be interesting to see what this means for a proposed ICTS-based algorithm} such as that described in \cite{yu2015}?
 	\end{enumerate}
-	\item[22-4] \begin{enumerate}
-		\item[9:00] Look into possible existing ICTS implementations that can be used (important for planning).
-		\item[10:00] Survey MAPF literature in a breadth-first way in order to flesh out background of research. Also think about research question formulation and corresponding methods.
-		\item[13:00] Meet with group and supervisor on Teams.
-		\item[14:00] Continue planning the research.
+	If sub-questions 1 and 2 are answered in the affirmative for any candidate algorithm, then yes, an efficient and optimal algorithm based on ICTS could be derived so the next question is how it compares to the alternatives. Comparison with alternative algorithms is done in the first place by comparing both benchmark performance and computational complexity and in the second place by considering the completeness of the algorithm. Completeness is relevant because in ICTS and CBS this is something that is not always guaranteed \cite{sharon2015} and it might be important if MAPFM as TUSS relaxation is to be used for checking the feasibility of relaxed TUSS instances \cite{mulderij2020}. The completeness subquestion does have relatively low priority and is something to work on if there is time left.
+	\subsection*{Candidate algorithm}
+	\label{candidate}
+	In preparing for the meeting in the first week with the peer group and supervisor, a simple variation of ICTS came to mind: Consider $k$ agents $a_1,a_2,\ldots,a_k$ and goals $g_1,g_2,\ldots,g_k$. Let $t_{g_i}$ denote the type of goal $g_i$ and let $t_{a_i}$ denote the type of agent $a_i$. With $opt(i,j)$ being the cost shortest path from the starting position of agent $a_i$ to target $g_j$, let $C_i$ in $(C_1,C_2,\ldots,C_k)$  be defined as the minimal $opt(i,j)$ with $j$ such that $t_{a_i} = t_{g_j}$. Let this $(C_1,C_2,\ldots,C_k)$ be the root node of the Increasing Cost Tree. Now modify the generation of the MDDs for each $a_i$ in the low-level search to include any $g_j$ such that $t_{a_i} = t_{g_j}$ as goal node, otherwise keeping the low-level search the same. 
+	
+	The hypothesis is that this modification of ICTS is optimal and could be asymptotically better than the naïve approach with some refinements. It is not difficult to find pathological cases for the definition above without any enhancements. Consider the case wherein agents $a_x,a_y$ have the same type with there being goals $g_a,g_b$ of the corresponding type such that $opt(x,a) = 1,opt(y,a) = 1$ and $opt(x,b) = 10000,opt(y,b) = 10000$; due to the BFS expansion of the ICT tree, this instance would require the construction of an ICT that cannot possibly fit in memory. Possibly, exploiting properties of legal agent-goal matchings could help for such cases, as intuitively for any solution, either $a_x$ or $a_y$ will have to take at least $10000$ steps to get to the assigned goal.
+	
+	The plan is to use this ICTS variation as starting point in the search for ICTS-based MAPFM algorithms, as the first possible candidate to consider, analyse, extend and so on.
+	\section*{Method}
+	The following gives an outline of the steps that will be taken to answer the research question and corresponding sub-questions above. This does not include some of the mandatory activities related to the Academic Communication Skills, Information Literacy and Responsible Research modules but these are incorporated into the planning in the next section.
+	\begin{enumerate}
+		\item \textbf{Implement the ICTS algorithm in Python} \footnote{\url{https://github.com/vikikkdi/icts} and \url{https://github.com/AdamBignell/ICTS-vs-EPEA} have come to my attention as a possible existing implementations of ICTS. I still aim to go through the motions of implementing ICTS myself with these as a reference to gain the understanding that is needed to be able to extend it confidently.} --- \textit{3 -- 5 days}
+		\begin{enumerate}
+			\item Implement the low-level search and the MDD datastructure with joins, unfolds and search. --- \textit{1 -- 2 days}
+			\item Implement the high-level ICT search and test the resulting base algorithm.--- \textit{1 day}
+			\item Implement pruning techniques (simple and advanced pruning for both pairs and triples following \cite{sharon2011}). --- \textit{1 day}
+			\item Optional: integrate algorithm into independence detection framework. --- \textit{1 day}
+		\end{enumerate} 
+		\item \textbf{Implement naïve MAPFM algorithm}: Enumerating all possible matchings and solve these --- \textit{Half a day}
+		\item \textbf{Research MAPF with matching}: read \cite{ma2016},\cite{henkel2019} and related work. --- \textit{3 -- 4 days}
+		\item \textbf{Create ICTS-based MAPFM algorithms}: start with the candidate described above and experiment with different ideas such as max-flows, the meta-agent framework, pruning, use of heuristics\ldots. Each idea that is tried out is to be documented.  --- \textit{5 -- 7 days}
+		\item \textbf{Evaluate algorithms}: for each  --- \textit{3 -- 5 days}
+		\begin{enumerate}
+			\item Analyse time complexity, determine if the algorithm is an improvement over naïve approach
+			\item Show optimality or give a counterexample
+			\item Benchmark and compare to other algorithms using website\footnote{\url{https://dev.mapf.nl/}} that was set up for this purpose. Perhaps also run local benchmarks using experimental setup similar to that described in \cite{stern2019}. Record results for later use in paper. --- \textit{1 -- 2 days}
+			\item Optional: Consider completeness of algorithm
+		\end{enumerate} 
+		If I came up with multiple algorithms before, I aim to also select one to proceed with at this point unless there is a good argument for choosing two (e.g. neither being strictly better than the other)
+		\item \textbf{Process experimental data and analyze results}: the performance of the algorithm(s) should be characterized as a function of various parameters like agent-vertex density, number of teams, size of largest team and number of agents and in this way compared to alternative algorithms. Data should also be translated into tables, graphs, diagrams etc. that can later be used in the poster and paper. --- \textit{4 -- 6 days} 
+		\item \textbf{Try to improve on found algorithm}: if there is time left, it would be good to spend more time looking for ways to improve on the performance of the found ICTS-based solution, again recording experimental data and considering its complexity.
+		%\item If there is time: study work on feasibility-checking \cite{yu2015} and see if concepts can be used to optimize search for good matchings and ensuring algorithm completeness.--- \textit{3+ days}  
+		\item \textbf{Write the draft of the paper} --- \textit{6 -- 8 days}
+		\item \textbf{Finish final paper} --- \textit{2 -- 4 days}
+		\item \textbf{Compile results into poster} --- \textit{3 days}
+		
 	\end{enumerate}
-	\item[23-4]\begin{enumerate}
-		\item[9:00]  Finish research plan (official deadline is at 25-4 23:59 but target deadline at 23-4 23:59). If there is time remaining, start familiarizing with the MAPF web API that our peer group 'inherited' from the previous instance of this project, and start implementing ICTS if no suitable existing implementation was found the previous day. (note: this is just one block as I am not sure how long this will take given that planning is rather hard)
+	\section*{Planning} 
+	\paragraph{Week 1}
+	\textbf{This week: draft research plan (19-4 23:59) and final research plan (25-4 23:59)}\footnote{This was the planning of the week leading up to the deadline of the research plan. It is included for completeness.}
+	\begin{enumerate}
+		\item[19-4 ] 
+		\begin{enumerate}
+			\item[10:45] Start of research project
+			\item[12:45] Meeting with peer group
+			\item[13:45] Assignment of subproject (ICTS)
+			\item[15:45] Planning of first week (deadline at 19-4 23:59).
+		\end{enumerate}
+		\item[20-4] 
+		\begin{enumerate}
+			\item[9:00] Revise information literacy, find relevant conferences/journals for this research project
+			\item[10:00] Read and summarize \cite{stern2019}
+			\item[15:00] Read and summarize \cite{mulderij2020}
+		\end{enumerate}
+		\item[21-4]
+		\begin{enumerate}
+			\item[9:00] Read and summarize \cite{sharon2011}, the original ICTS paper.
+			\item[13:00] Read and summarize \cite{standley2010}
+			\item[15:00] Look into other important citations in \cite{sharon2011}
+		\end{enumerate}
+		\item[22-4] \begin{enumerate}
+			\item[9:00] Look into possible existing ICTS implementations that can be used (important for planning).
+			\item[10:00] Survey MAPF literature in a breadth-first way in order to flesh out background of research. Also think about research question formulation and corresponding methods.
+			\item[13:00] Meet with group and supervisor on Teams.
+			\item[14:00] Continue planning the research.
+		\end{enumerate}
+		\item[23-4]\begin{enumerate}
+			\item[9:00]  Finish research plan. If there is time remaining, start familiarizing with the MAPF web API that our peer group 'inherited' from the previous instance of this project, and start implementing ICTS if no suitable existing implementation was found the previous day.
+		\end{enumerate}
 	\end{enumerate}
-\end{enumerate}
-\printbibliography
-
+	\paragraph{Week 2} \textbf{This week: Research plan presentation (29-4 13:00), slides should be uploaded (deadline 2-5 23:59), Responsible Research readings.}
+	\begin{enumerate}
+		\item[26-4 ] Implement MDD datastructure with all operations and $k$-agent search.
+		\item[27-4 ] Finish MDD, test it and start working on high-level ICT search
+		\item[28-4 ] Finish implementing high-level ICT search, test it, and prepare research plan presentation.
+		\item[29-4 ] Read Responsible Research material (see Brightspace). Prepare presentation and present research plan to project group at 13:00. Process feedback on research plan.
+		\item[30-4 ] Implement simple and enhanced pruning for both pairs and triples. Test it and try out full ICTS algorithm with and without pruning using \url{www.mapf.nl} problem sets.
+	\end{enumerate}
+	\paragraph{Week 3} \textbf{This week: First ACS session (7-5 8:45-10:45)}
+	\begin{enumerate}
+		\item[3-5 ] Implement naïve MAPFM algorithm using ICTS and experiment a bit with MAPF Python API that was inherited from the previous instance of this research project (and further developed by Jonathan). Read \cite{ma2016}
+		\item[4-5 ] Read \cite{henkel2019}
+		\item[5-5 ] (Liberation day)
+		\item[6-5 ] Look into papers cited in \cite{ma2016}, \cite{henkel2019}. Meeting with peer group and supervisor at 13:00, discuss ideas for algorithmic extensions for matching.
+		\item[7-5 ] Scientific writing session at 8:45. Implement ICTS variation for MAPFM outlined above, run some first benchmarks.
+	\end{enumerate}
+	\paragraph{Week 4} \textbf{This week: Responsible Research session for discussing literature (10-5)}
+	\begin{enumerate}
+		\item[10-5 ] Attend responsible research session. Continue Friday's work.
+		\item[11-5 ] Create ICTS-based MAPFM algorithms
+		\item[12-5 ] Create ICTS-based MAPFM algorithms
+		\item[13-5 ] (Ascension Day)
+		\item[14-5 ] Create ICTS-based MAPFM algorithms
+	\end{enumerate}
+	\paragraph{Week 5} \textbf{This week: second ACS session (17-5 15:45-17:45) and midterm presentation (19-5). Midterm poster deadline at (19-5 23:59)}
+	\begin{enumerate}
+		\item[17-5 ] Second scientific writing session. Start evaluation of algorithm(s) derived in previous week
+		\item[18-5 ] Prepare midterm presentation.
+		\item[19-5 ] Midterm presentation. Process feedback and continue evaluation of algorithm(s)
+		\item[20-5 ] Evaluate algorithms. Meet with peer group and supervisor, perhaps discuss how midterm feedback is being implemented.
+		\item[21-5 ] Evaluate algorithms
+	\end{enumerate}
+	\paragraph{Week 6} \textbf{This week: third ACS session (28-5 8:45-10:45)}
+	\begin{enumerate}
+		\item[24-5 ] (Whit monday)
+		\item[25-5 ] Aim to finish up evaluation of algorithms, in particular comparison with algorithms derived within peer group.
+		\item[26-5 ] Start processing of experimental data and analysis of results
+		\item[27-5 ] Meeting with peer-group and continue processing and analysis
+		\item[28-5 ] Scientific writing session at 8:45. Try to schedule Responsible Research coaching for this day if necessary (i.e. mandatory). Process experimental data and analyze results
+	\end{enumerate}
+	\paragraph{Week 7} \textbf{This week: ACS coaching (4-6)}
+	\begin{enumerate}
+		\item[31-5 ] Buffer: These three days, I will either catch up if I am behind, do some algorithmic optimizations or start writing the paper draft early.
+		\item[1-6 ] Buffer
+		\item[2-6 ] Buffer
+		\item[3-6 ] Meeting with peer-group and supervisor. Work on paper draft
+		\item[4-6 ] ACS coaching (register for this). Work on paper draft 
+	\end{enumerate}
+	\paragraph{Week 8} \textbf{This week: Submit paper draft v1 (7-6 23:59), peer review before meeting (10-6 13:00) }
+	\begin{enumerate}
+		\item[7-6 ] Finish and submit draft v1
+		\item[8-6 ] Do peer review
+		\item[9-6 ] Do peer review
+		\item[10-6 ] Finish peer review prior to meeting with peer-group and supervisor. Process peer review feedback
+		\item[11-6 ] Work on paper draft
+	\end{enumerate}
+	\paragraph{Week 9} \textbf{This week: Submit paper draft v2 (16-6 23:59)}
+	\begin{enumerate}
+		\item[14-6 ] Work on paper draft
+		\item[15-6 ] Work on paper draft
+		\item[16-6 ] Submit paper draft v2.
+		\item[17-6 ] Meeting with peer-group and supervisor. Write paper
+		\item[18-6 ] Write paper
+	\end{enumerate}
+	\paragraph{Week 10} \textbf{This week: Submit final paper (27-6 23:59)}
+	\begin{enumerate}
+		\item[21-6 ] Finish paper
+		\item[22-6 ] Finish paper
+		\item[23-6 ] Start work on poster.
+		\item[24-6 ] Meeting with peer-group and supervisor.
+		\item[25-6 ] Finish and submit final version of paper
+	\end{enumerate}
+	\paragraph{Week 11} \textbf{This week: Submit poster (29-6 23:59) and final presentation (1-7 or 2-7)}
+	\begin{enumerate}
+		\item[28-6 ] Work on poster
+		\item[29-6 ] Submit poster and prepare presentation
+		\item[30-6 ] Practice presentation
+		\item[1-7 ] Present work
+		\item[2-7 ] Present work
+	\end{enumerate}
+	\printbibliography
+	
 \end{document}

@@ -22,6 +22,7 @@
 	biburl    = {https://dblp.org/rec/journals/corr/abs-1906-08291.bib},
 	bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+@INPROCEEDINGS{henkel2019,  author={Henkel, Christian and Abbenseth, Jannik and Toussaint, Marc},  booktitle={2019 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},   title={An Optimal Algorithm to Solve the Combined Task Allocation and Path Finding Problem},   year={2019},  volume={},  number={},  pages={4140-4146},  doi={10.1109/IROS40897.2019.8968096}}
 @misc{mulderij2020,
 	title={Train Unit Shunting and Servicing: a Real-Life Application of Multi-Agent Path Finding}, 
 	author={Jesse Mulderij and Bob Huisman and Denise Tönissen and Koos van der Linden and Mathijs de Weerdt},
@@ -29,6 +30,16 @@
 	eprint={2006.10422},
 	archivePrefix={arXiv},
 	primaryClass={cs.MA}
+}
+@article{geiger2018,
+	author = {Geiger, Martin and Huber, Sandra and Langton, Sebastian and Leschik, Marius and Lindorf, Christian and Tüshaus, Ulrich},
+	year = {2018},
+	month = {12},
+	pages = {},
+	title = {Multi-attribute assignment of trains to departures in rolling stock management: A contribution to the EURO/ROADEF 2014 Challenge},
+	volume = {271},
+	journal = {Annals of Operations Research},
+	doi = {10.1007/s10479-017-2501-8}
 }
 @article{sharon2015,
 	title = {Conflict-based search for optimal multi-agent pathfinding},
@@ -43,6 +54,26 @@
 	keywords = {Heuristic search, Multi-agent, Pathfinding},
 	abstract = {In the multi-agent pathfinding problem (MAPF) we are given a set of agents each with respective start and goal positions. The task is to find paths for all agents while avoiding collisions. Most previous work on solving this problem optimally has treated the individual agents as a single ‘joint agent’ and then applied single-agent search variants of the A* algorithm. In this paper we present the Conflict Based Search (CBS) a new optimal multi-agent pathfinding algorithm. CBS is a two-level algorithm that does not convert the problem into the single ‘joint agent’ model. At the high level, a search is performed on a Conflict Tree (CT) which is a tree based on conflicts between individual agents. Each node in the CT represents a set of constraints on the motion of the agents. At the low level, fast single-agent searches are performed to satisfy the constraints imposed by the high level CT node. In many cases this two-level formulation enables CBS to examine fewer states than A* while still maintaining optimality. We analyze CBS and show its benefits and drawbacks. Additionally we present the Meta-Agent CBS (MA-CBS) algorithm. MA-CBS is a generalization of CBS. Unlike basic CBS, MA-CBS is not restricted to single-agent searches at the low level. Instead, MA-CBS allows agents to be merged into small groups of joint agents. This mitigates some of the drawbacks of basic CBS and further improves performance. In fact, MA-CBS is a framework that can be built on top of any optimal and complete MAPF solver in order to enhance its performance. Experimental results on various problems show a speedup of up to an order of magnitude over previous approaches.}
 }
+@Inbook{yu2015,
+	author="Yu, Jingjin
+	and Rus, Daniela",
+	editor="Akin, H. Levent
+	and Amato, Nancy M.
+	and Isler, Volkan
+	and van der Stappen, A. Frank",
+	title="Pebble Motion on Graphs with Rotations: Efficient Feasibility Tests and Planning Algorithms",
+	bookTitle="Algorithmic Foundations of Robotics XI: Selected Contributions of the Eleventh International Workshop on the Algorithmic Foundations of Robotics",
+	year="2015",
+	publisher="Springer International Publishing",
+	address="Cham",
+	pages="729--746",
+	abstract="We study the problemRus, Danielaof planningYu, Jingjinpaths for {\$}{\$}p{\$}{\$}pdistinguishable pebbles (robots) residing on the vertices of an {\$}{\$}n{\$}{\$}n-vertex connected graph with {\$}{\$}p {\backslash}le n{\$}{\$}p≤n. A pebble may move from a vertex to an adjacent one in a time step provided that it does not collide with other pebbles. When {\$}{\$}p = n{\$}{\$}p=n, the only collision free moves are synchronous rotations of pebbles on disjoint cycles of the graph. We show that the feasibility of such problems is intrinsically determined by the diameter of a (unique) permutation group induced by the underlying graph. Roughly speaking, the diameter of a group {\$}{\$}{\backslash}mathbf G{\$}{\$}Gis the minimum length of the generator product required to reach an arbitrary element of {\$}{\$}{\backslash}mathbf G{\$}{\$}Gfrom the identity element. Through bounding the diameter of this associated permutation group, which assumes a maximum value of {\$}{\$}O(n^2){\$}{\$}O(n2), we establish a linear time algorithm for deciding the feasibility of such problems and an {\$}{\$}O(n^3){\$}{\$}O(n3)algorithm for planning complete paths.",
+	isbn="978-3-319-16595-0",
+	doi="10.1007/978-3-319-16595-0_42",
+	url="https://doi.org/10.1007/978-3-319-16595-0_42"
+}
+
+
 @inproceedings{lam2019,
 	title     = {Branch-and-Cut-and-Price for Multi-Agent Pathfinding},
 	author    = {Lam, Edward and Le Bodic, Pierre and Harabor, Daniel D. and Stuckey, Peter J.},
@@ -134,4 +165,20 @@
 	volume = {32},
 	journal = {J. ACM},
 	doi = {10.1145/3828.3830}
+}
+@InProceedings{yu2013,
+	author="Yu, Jingjin
+	and LaValle, Steven M.",
+	editor="Frazzoli, Emilio
+	and Lozano-Perez, Tomas
+	and Roy, Nicholas
+	and Rus, Daniela",
+	title="Multi-agent Path Planning and Network Flow",
+	booktitle="Algorithmic Foundations of Robotics X",
+	year="2013",
+	publisher="Springer Berlin Heidelberg",
+	address="Berlin, Heidelberg",
+	pages="157--173",
+	abstract="This paper connects multi-agent path planning on graphs (roadmaps) to network flow problems, showing that the former can be reduced to the latter, therefore enabling the application of combinatorial network flow algorithms, as well as general linear program techniques, tomulti-agent path planning problems on graphs. Exploiting this connection, we show that when the goals are permutation invariant, the problem always has a feasible solution path set with a longest finish time of no more than n + V - 1 steps, in which n is the number of agents and V is the number of vertices of the underlying graph.We then give a complete algorithm that finds such a solution in O(nVE) time, with E being the number of edges of the graph. Taking a further step, we study time and distance optimality of the feasible solutions, show that they have a pairwise Pareto optimal structure, and again provide efficient algorithms for optimizing two of these practical objectives.",
+	isbn="978-3-642-36279-8"
 }
