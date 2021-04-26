@@ -1,5 +1,5 @@
 import heapq
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
 
 
@@ -73,8 +73,8 @@ class Maze:
 
     def get_valid_children(self, loc: Location) -> List[Location]:
         x, y = loc.x, loc.y
-        all_children = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1), (x, y)]
-        good_children = []
+        all_children: List[Tuple[int,int]] = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1), (x, y)]
+        good_children: List[Tuple[int,int]] = []
         for c in all_children:
             if c[0] >= 0 and c[0] < self.height and c[1] >= 0 and c[1] < self.width:
                 if not self.grid[c[1]][c[0]]:
@@ -89,7 +89,7 @@ def heuristic(node: Location, goal: Location) -> int:
 def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int,int]]:
     ls: List[Node] = [Node(None, start, 0, heuristic(start, goal))]
     heapq.heapify(ls)
-    seen = set()
+    seen: Set[Location] = set()
     while ls:
         n: Node = heapq.heappop(ls)
         if (n.loc) not in seen:
@@ -102,23 +102,17 @@ def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int,int]]:
 
 
 def solve(problem: Problem) -> Solution:
-    maze = Maze(problem.grid, problem.width, problem.height)
-    paths = []
+    maze: Maze = Maze(problem.grid, problem.width, problem.height)
+    paths: List[List[Tuple[int,int]]] = []
 
     assert len(problem.starts) == 1
     assert len(problem.goals) == 1
 
-    start = problem.starts[0]
-    goal = problem.goals[0]
-    path = astar(maze,Location(start.x,start.y),Location(goal.x,goal.y))
+    start: MarkedLocation = problem.starts[0]
+    goal: MarkedLocation = problem.goals[0]
+    path: List[Tuple[int,int]] = astar(maze,Location(start.x,start.y),Location(goal.x,goal.y))
     print("Length of found solution: {}".format(len(path)))
     paths.append(path)
-    """
-    Now paths looks like:
-
-    paths = list[Path]
-    Path = List[(x, y)]
-    """
     return Solution.from_paths(paths)
 
 
@@ -135,7 +129,7 @@ if __name__ == '__main__':
     benchmark = MapfBenchmarker(
         token="FXJ8wNVeWh4syRdh", problem_id=2,
         algorithm="A*", version="test",
-        debug=False, solver=solve,
+        debug=True, solver=solve,
         cores=8
     )
     benchmark.run()
