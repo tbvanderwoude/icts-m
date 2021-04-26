@@ -91,15 +91,43 @@ class MDD:
         self.goal: Location = goal
         self.depth: int = depth
         tree = construct_bfs_tree(maze,start,depth)
+        self.mdd: Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]] = mdd_from_tree(tree,goal,depth)
+"""
+Constructs a top-down MDD structure in the form of a dictionary of parent-children mappings representing all the ways to
+get to the goal-node. This is done by tracing paths back to the start through the bottom-up DAG that was constructed
+when doing the breadth-first traversal. This is similar to tracing a single path back up as in path-finding (consider
+the get_directions function in the A* Node class), but here there are typically many paths that can be taken, resulting 
+in an MDD.
+TLDR: turns a child-parents structure into a parent-children structure with some filtering along the way
+"""
+def mdd_from_tree(tree: DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]], goal: Location, depth: int) \
+        -> Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]]:
+    goal_at_depth = (goal,depth)
+    # If the goal node is not in the DAG, return the empty MDD represented by None
+    if not tree[goal_at_depth]:
+        return None
+    visited = set()
+    mdd = defaultdict(set)
+    trace_list = deque()
+    for parent in tree[goal_at_depth]:
+        trace_list.append((parent,goal_at_depth))
+        visited.add((parent,goal_at_depth))
+    while trace_list:
+        current, child = trace_list.popleft()
+        mdd[current].add(child)
+        for parent in tree[current]:
+            if (parent,current) not in visited:
+                trace_list.append((parent,current))
+                visited.add((parent,current))
+    return mdd
 
 
 def construct_bfs_tree(maze: Maze, start: Location, depth: int) -> DefaultDict[
     Tuple[Location, int], Set[Tuple[Location, int]]]:
     fringe = deque()
     fringe.append((start, 0))
-    # This fully describes the DAG: for each node, it is known which other nodes point to it, which is equivalent to the
-    # formulation where you describe which other nodes a given node points to
-    # but this formulation makes checking whether the goal is reached more easy
+    # DAG represented by child-parents map. This formulation makes it easier to construct the path(s) from the parents
+    # to the child later, similar to the get_directions function in the A* Node class
     prev_dict = defaultdict(set)
     visited = set()
     while fringe:
