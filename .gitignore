@@ -1,4 +1,5 @@
 *.log
+.ipynb_checkpoints/
 *.aux
 *.out
 *.bbl
