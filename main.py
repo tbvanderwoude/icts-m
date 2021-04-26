@@ -1,5 +1,6 @@
 import heapq
-from typing import List, Optional, Tuple, Set
+from collections import deque, defaultdict
+from typing import List, Optional, Tuple, Set, DefaultDict
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
 
 
@@ -12,7 +13,7 @@ class Location:
         return self.x == other.x and self.y == other.y
 
     def __hash__(self):
-        return hash((self.x,self.y))
+        return hash((self.x, self.y))
 
     @classmethod
     def from_dict(cls, dct) -> "Location":
@@ -25,9 +26,6 @@ class Node:
         self.loc: Location = loc
         self.cost: int = cost
         self.heuristic: int = heuristic
-
-    def __key(self):
-        return (self.attr_a, self.attr_b, self.attr_c)
 
     def __hash__(self):
         return hash(self.loc)
@@ -73,10 +71,10 @@ class Maze:
 
     def get_valid_children(self, loc: Location) -> List[Location]:
         x, y = loc.x, loc.y
-        all_children: List[Tuple[int,int]] = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1), (x, y)]
-        good_children: List[Tuple[int,int]] = []
+        all_children: List[Tuple[int, int]] = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1), (x, y)]
+        good_children: List[Tuple[int, int]] = []
         for c in all_children:
-            if c[0] >= 0 and c[0] < self.height and c[1] >= 0 and c[1] < self.width:
+            if 0 <= c[0] < self.height and 0 <= c[1] < self.width:
                 if not self.grid[c[1]][c[0]]:
                     good_children.append(c)
         return list(map(lambda x: Location(x[0], x[1]), good_children))
@@ -86,7 +84,38 @@ def heuristic(node: Location, goal: Location) -> int:
     return abs(goal.x - node.x) + abs(goal.y - node.y)
 
 
-def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int,int]]:
+class MDD:
+    def __init__(self, maze: Maze, agent: int, start: Location, goal: Location, depth: int):
+        self.agent: int = agent
+        self.start: Location = start
+        self.goal: Location = goal
+        self.depth: int = depth
+        tree = construct_bfs_tree(maze,start,depth)
+
+
+def construct_bfs_tree(maze: Maze, start: Location, depth: int) -> DefaultDict[
+    Tuple[Location, int], Set[Tuple[Location, int]]]:
+    fringe = deque()
+    fringe.append((start, 0))
+    # This fully describes the DAG: for each node, it is known which other nodes point to it, which is equivalent to the
+    # formulation where you describe which other nodes a given node points to
+    # but this formulation makes checking whether the goal is reached more easy
+    prev_dict = defaultdict(set)
+    visited = set()
+    while fringe:
+        current: Tuple[Location, int] = fringe.popleft()
+        loc, d = current
+        children: List[Tuple[Location, int]] = list(map(lambda c: (c, d + 1), maze.get_valid_children(loc)))
+        for c in children:
+            if c[1] <= depth:
+                prev_dict[c].add(current)
+                if not c in visited:
+                    fringe.append(c)
+                    visited.add(c)
+    return prev_dict
+
+
+def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int, int]]:
     ls: List[Node] = [Node(None, start, 0, heuristic(start, goal))]
     heapq.heapify(ls)
     seen: Set[Location] = set()
@@ -95,7 +124,7 @@ def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int,int]]:
         if (n.loc) not in seen:
             seen.add(n.loc)
             if n.is_goal(goal):
-                return list(map(lambda loc: (loc.x,loc.y),n.get_directions()))
+                return list(map(lambda loc: (loc.x, loc.y), n.get_directions()))
             for c in maze.get_valid_children(n.loc):
                 heapq.heappush(ls, Node(n, c, n.cost + 1, heuristic(c, goal)))
     return []
@@ -103,33 +132,33 @@ def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int,int]]:
 
 def solve(problem: Problem) -> Solution:
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
-    paths: List[List[Tuple[int,int]]] = []
+    paths: List[List[Tuple[int, int]]] = []
 
     assert len(problem.starts) == 1
     assert len(problem.goals) == 1
 
     start: MarkedLocation = problem.starts[0]
     goal: MarkedLocation = problem.goals[0]
-    path: List[Tuple[int,int]] = astar(maze,Location(start.x,start.y),Location(goal.x,goal.y))
+    path: List[Tuple[int, int]] = astar(maze, Location(start.x, start.y), Location(goal.x, goal.y))
     print("Length of found solution: {}".format(len(path)))
     paths.append(path)
     return Solution.from_paths(paths)
 
 
 if __name__ == '__main__':
-    # start: MarkedLocation = MarkedLocation(0,1,1)
-    # goal: MarkedLocation = MarkedLocation(0,2,1)
-    # problem: Problem = Problem([
-    #     [1,1,1,1],
-    #     [1,0,0,1],
-    #     [1,1,1,1]
-    # ],4,3,[start],[goal],0,1,1)
-    # solution = solve(problem)
-    # print(solution.serialize())
-    benchmark = MapfBenchmarker(
-        token="FXJ8wNVeWh4syRdh", problem_id=2,
-        algorithm="A*", version="test",
-        debug=True, solver=solve,
-        cores=8
-    )
-    benchmark.run()
+    start: MarkedLocation = MarkedLocation(0, 1, 1)
+    goal: MarkedLocation = MarkedLocation(0, 2, 1)
+    problem: Problem = Problem([
+        [1, 1, 1, 1],
+        [1, 0, 0, 1],
+        [1, 1, 1, 1]
+    ], 4, 3, [start], [goal], 0, 1, 1)
+    solution = solve(problem)
+    print(solution.serialize())
+    # benchmark = MapfBenchmarker(
+    #     token="FXJ8wNVeWh4syRdh", problem_id=2,
+    #     algorithm="A*", version="test",
+    #     debug=True, solver=solve,
+    #     cores=8
+    # )
+    # benchmark.run()
