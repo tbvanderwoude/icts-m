@@ -1,4 +1,5 @@
 import heapq
+from pprint import pprint
 from collections import deque, defaultdict
 from typing import List, Optional, Tuple, Set, DefaultDict
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
@@ -14,6 +15,9 @@ class Location:
 
     def __hash__(self):
         return hash((self.x, self.y))
+
+    def __str__(self):
+        return '<'+str(self.x)+','+str(self.y)+'>'
 
     @classmethod
     def from_dict(cls, dct) -> "Location":
@@ -165,10 +169,19 @@ def solve(problem: Problem) -> Solution:
     assert len(problem.starts) == 1
     assert len(problem.goals) == 1
 
-    start: MarkedLocation = problem.starts[0]
-    goal: MarkedLocation = problem.goals[0]
-    path: List[Tuple[int, int]] = astar(maze, Location(start.x, start.y), Location(goal.x, goal.y))
-    print("Length of found solution: {}".format(len(path)))
+    start_m: MarkedLocation = problem.starts[0]
+    goal_m: MarkedLocation = problem.goals[0]
+    start = Location(start_m.x, start_m.y)
+    goal = Location(goal_m.x,goal_m.y)
+    mdd: MDD = MDD(maze,0,start,goal,4)
+    items = list(sorted(mdd.mdd.items(),key = lambda x : x[0][1]))
+    for ((loc,depth),v) in items:
+        print(loc,depth,'->')
+        for (c_loc,c_depth) in v:
+            print('\t',c_loc, c_depth)
+
+    path: List[Tuple[int, int]] = astar(maze, start, goal)
+    pprint("Length of found solution: {}".format(len(path)))
     paths.append(path)
     return Solution.from_paths(paths)
 
@@ -182,7 +195,7 @@ if __name__ == '__main__':
         [1, 1, 1, 1]
     ], 4, 3, [start], [goal], 0, 1, 1)
     solution = solve(problem)
-    print(solution.serialize())
+    pprint(solution.serialize())
     # benchmark = MapfBenchmarker(
     #     token="FXJ8wNVeWh4syRdh", problem_id=2,
     #     algorithm="A*", version="test",
