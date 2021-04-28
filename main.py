@@ -4,7 +4,7 @@ import itertools
 from matplotlib import pyplot as plt
 from pprint import pprint
 from collections import deque, defaultdict
-from typing import List, Optional, Tuple, Set, DefaultDict
+from typing import List, Optional, Tuple, Set, DefaultDict, Any
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
 from graphviz import Digraph
 
@@ -154,6 +154,12 @@ class MDD:
             return {self.goal}
         return self.level[i]
 
+    def get_children_at_node(self, node: Location, curr_depth: int) -> List[Location]:
+        if self.goal == node and curr_depth >= self.depth:
+            return [self.goal]
+        else:
+            return list(map(lambda p: p[0], self.mdd[(node, curr_depth)]))
+
 
 """
 Constructs a top-down MDD structure in the form of a dictionary of parent-children mappings representing all the ways to
@@ -215,21 +221,11 @@ def is_goal_state(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) 
     return True
 
 
-"""Generates the locations you choose from a given location at a given depth for an MDD."""
-
-
-def get_children_per_mdd(mdd: MDD, node: Location, curr_depth: int) -> List[Location]:
-    if mdd.goal == node and curr_depth >= mdd.depth:
-        return [mdd.goal]
-    else:
-        return list(map(lambda p: p[0], mdd.mdd[(node, curr_depth)]))
-
-
 """Generates locations to choose for each (MDD,Location) pair."""
 
 
 def get_children_for_mdds(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) -> List[List[Location]]:
-    return list(map(lambda x: get_children_per_mdd(x[0], x[1], curr_depth), zip(mdds, curr_nodes)))
+    return list(map(lambda x: x[0].get_children_at_node(x[1], curr_depth), zip(mdds, curr_nodes)))
 
 
 def has_edge_collisions(curr_nodes: List[Location], next_nodes: List[Location]) -> bool:
@@ -250,6 +246,16 @@ def get_valid_children(mdds: List[MDD], curr_nodes: List[Location], curr_depth: 
     return prune_joint_children(all_joint_child_nodes,curr_nodes)
 
 
+def seek_solution_in_joint_mdd(mdds: List[MDD]) -> bool:
+    for mdd in mdds:
+        if not mdd.mdd:
+            return False
+    roots: Tuple[Any] = tuple(map(lambda mdd: mdd.start,mdds))
+    depths: List[int] = list(map(lambda mdd: mdd.depth,mdds))
+    visited = set()
+    found_path, visited = joint_mdd_dfs(mdds,(roots,0),max(depths), visited)
+    return found_path
+
 def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[List[Location], int], max_depth: int,
                   visited: Set[Tuple[List[Location], int]]) \
         -> Tuple[bool, Set[Tuple[List[Location], int]]]:
@@ -260,9 +266,7 @@ def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[List[Location], int], max_depth: 
     visited.add(curr)
     if is_goal_state(mdds, curr_nodes, curr_depth):
         return True, visited
-    # TODO: implement logic for generating valid children using curr_nodes locations and the mdds
-    children = []
-    # children = get_valid_children(mdds,curr_nodes,curr_depth)
+    children = get_valid_children(mdds,curr_nodes,curr_depth)
     for node in children:
         child = (node, curr_depth + 1)
         found_path, visited = joint_mdd_dfs(mdds, child, max_depth, visited)
@@ -270,22 +274,57 @@ def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[List[Location], int], max_depth: 
             return found_path, visited
     return False, visited
 
+def ict_search(maze: Maze, subproblems: List[Tuple[Location,Location]],root: Tuple[Any]) -> bool:
+    frontier = deque()
+    frontier.append(root)
+    visited = set()
+    while frontier:
+        node = frontier.popleft()
+        if not node in visited:
+            visited.add(node)
+            mdds = []
+            for (i,c) in enumerate(node):
+                mdds.append(MDD(maze,i,subproblems[i][0],subproblems[i][1],c))
+                node_list = list(node)
+                node_list[i] +=1
+                frontier.append(tuple(node_list))
+            has_solution = seek_solution_in_joint_mdd(mdds)
+            if has_solution:
+                print("There is a solution for {}".format(node))
+                return True
+    # Strictly speaking unreachable
+    return False
 
 def solve(problem: Problem) -> Solution:
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
     paths: List[List[Tuple[int, int]]] = []
 
-    assert len(problem.starts) == 1
-    assert len(problem.goals) == 1
+    subproblems = []
+    root_list = []
 
-    start_m: MarkedLocation = problem.starts[0]
-    goal_m: MarkedLocation = problem.goals[0]
-    start = Location(start_m.x, start_m.y)
-    goal = Location(goal_m.x, goal_m.y)
-    mdd: MDD = MDD(maze, 0, start, goal, 4)
-    for level in sorted(mdd.level.items()):
-        print(len(level[1]))
-    # display(mdd.show())
+    for (start_m,goal_m) in zip(problem.starts,problem.goals):
+        start = Location(start_m.x, start_m.y)
+        goal = Location(goal_m.x, goal_m.y)
+        subproblems.append((start,goal))
+        root_list.append(len(astar(maze,start,goal))-2)
+    root = tuple(root_list)
+    frontier = deque()
+    frontier.append(root)
+    visited = set()
+    while frontier:
+        node = frontier.popleft()
+        if not node in visited:
+            visited.add(node)
+            mdds = []
+            for (i,c) in enumerate(node):
+                mdds.append(MDD(maze,i,subproblems[i][0],subproblems[i][1],c))
+                node_list = list(node)
+                node_list[i] +=1
+                frontier.append(tuple(node_list))
+            has_solution = seek_solution_in_joint_mdd(mdds)
+            if has_solution:
+                print("There is a solution for {}".format(node))
+                break
 
     path: List[Tuple[int, int]] = astar(maze, start, goal)
     pprint("Length of found solution: {}".format(len(path)))
@@ -294,14 +333,16 @@ def solve(problem: Problem) -> Solution:
 
 
 if __name__ == '__main__':
-    start: MarkedLocation = MarkedLocation(0, 1, 1)
-    goal: MarkedLocation = MarkedLocation(0, 2, 1)
+    start1: MarkedLocation = MarkedLocation(0, 1, 1)
+    start2: MarkedLocation = MarkedLocation(0, 1, 2)
+    goal1: MarkedLocation = MarkedLocation(0, 3, 1)
+    goal2: MarkedLocation = MarkedLocation(0, 3, 2)
     problem: Problem = Problem([
-        [1, 1, 1, 1],
-        [1, 0, 0, 1],
-        [1, 0, 0, 1],
-        [1, 1, 1, 1]
-    ], 4, 4, [start], [goal], 0, 1, 1)
+        [1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1]
+    ], 5, 4, [start1,start2], [goal1,goal2], 0, 1, 1)
     solution = solve(problem)
     pprint(solution.serialize())
     # benchmark = MapfBenchmarker(
