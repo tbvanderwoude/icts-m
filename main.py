@@ -89,6 +89,9 @@ def heuristic(node: Location, goal: Location) -> int:
     return abs(goal.x - node.x) + abs(goal.y - node.y)
 
 
+# type alias for graph structure of MDD
+MDDGraph = Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]]
+
 class MDD:
     def __init__(self, maze: Maze, agent: int, start: Location, goal: Location, depth: int):
         self.agent: int = agent
@@ -98,7 +101,7 @@ class MDD:
         self.level: DefaultDict[int, Location] = defaultdict(set)
         tree = construct_bfs_tree(maze, start, depth)
         mdd = mdd_from_tree(tree, goal, depth)
-        self.mdd: Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]] = mdd
+        self.mdd: MDDGraph = mdd
         if mdd:
             self.populate_levels(self.mdd)
 
@@ -118,7 +121,7 @@ class MDD:
                 g.edge(node_str, child_str)
         return g
 
-    def populate_levels(self, mdd):
+    def populate_levels(self, mdd: MDDGraph):
         # all nodes except the start are children of other nodes at a level given by the depth
         self.level[0] = {self.start}
         for children_sets in mdd.values():
@@ -143,7 +146,7 @@ TLDR: turns a child-parents structure into a parent-children structure with some
 
 
 def mdd_from_tree(tree: DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]], goal: Location, depth: int) \
-        -> Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]]:
+        -> MDDGraph:
     goal_at_depth = (goal, depth)
     # If the goal node is not in the DAG, return the empty MDD represented by None
     if not tree[goal_at_depth]:
