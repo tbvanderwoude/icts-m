@@ -1,10 +1,11 @@
 import heapq
 import itertools
+from copy import copy
 
 from matplotlib import pyplot as plt
 from pprint import pprint
 from collections import deque, defaultdict
-from typing import List, Optional, Tuple, Set, DefaultDict, Any, Union
+from typing import List, Optional, Tuple, Set, DefaultDict, Any, Union, Deque
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
 from graphviz import Digraph
 
@@ -113,16 +114,27 @@ MDDGraph = Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]
 JointSolution = List[Tuple[Tuple[Location,...], int]]
 
 class MDD:
-    def __init__(self, maze: Maze, agent: int, start: Location, goal: Location, depth: int):
+    def __init__(self, maze: Maze, agent: int, start: Location, goal: Location, depth: int,last_mdd = None):
         self.agent: int = agent
         self.start: Location = start
         self.goal: Location = goal
         self.depth: int = depth
+        self.bfs_tree = {}
+        self.mdd: MDDGraph = None
         self.level: DefaultDict[int, Set[Location]] = defaultdict(set)
-        tree = construct_bfs_tree(maze, start, depth)
-        self.tree = tree
-        mdd = mdd_from_tree(tree, goal, depth)
-        self.mdd: MDDGraph = mdd
+        if last_mdd and last_mdd.depth < depth and last_mdd.agent == agent:
+            self.generate_mdd(maze, last_mdd)
+        else:
+            self.generate_mdd(maze)
+
+    def generate_mdd(self,maze,last_mdd = None):
+        if last_mdd:
+            bfs_tree = bootstrap_depth_d_bfs_tree(maze,self.depth,last_mdd.bfs_tree)
+        else:
+            bfs_tree = construct_bfs_tree(maze, self.start, self.depth)
+        self.bfs_tree = bfs_tree
+        mdd = mdd_from_tree(self.bfs_tree['tree'], self.goal, self.depth)
+        self.mdd = mdd
         if mdd:
             self.populate_levels(self.mdd)
 
@@ -194,25 +206,46 @@ def mdd_from_tree(tree: DefaultDict[Tuple[Location, int], Set[Tuple[Location, in
     return mdd
 
 
-def construct_bfs_tree(maze: Maze, start: Location, depth: int) -> DefaultDict[
-    Tuple[Location, int], Set[Tuple[Location, int]]]:
+def construct_bfs_tree(maze: Maze, start: Location, depth: int):
     fringe = deque()
     fringe.append((start, 0))
     # DAG represented by child-parents map. This formulation makes it easier to construct the path(s) from the parents
     # to the child later, similar to the get_directions function in the A* Node class
     prev_dict = defaultdict(set)
     visited = set()
+    return main_bfs_loop(maze,depth,fringe,prev_dict,visited)
+
+def bootstrap_depth_d_bfs_tree(maze: Maze, depth: int,old_tree):
+    fringe = deque()
+    old_fringe = list(old_tree['fringe'])
+    old_fringe.sort(key=lambda x: x[0].x + x[0].y)
+    fringe.extend(old_fringe)
+    prev_dict = old_tree['tree']
+    for node in old_fringe:
+        node_prevs = old_tree['fringe_prevs'][node]
+        prev_dict[node].update(node_prevs)
+    visited = old_tree['visited']
+    new_bfs_tree = main_bfs_loop(maze, depth, fringe, prev_dict, visited)
+    return new_bfs_tree
+
+def main_bfs_loop(maze: Maze, depth: int, fringe: Deque[Tuple[Location,int]], prev_dict, visited):
+    depth_d_plus_one_fringe = set()
+    fringe_prevs = defaultdict(set)
     while fringe:
-        current: Tuple[Location, int] = fringe.popleft()
-        loc, d = current
+        curr = fringe.popleft()
+        loc, d = curr
         children: List[Tuple[Location, int]] = list(map(lambda c: (c, d + 1), maze.get_valid_children(loc)))
         for c in children:
             if c[1] <= depth:
-                prev_dict[c].add(current)
+                prev_dict[c].add(curr)
                 if not c in visited:
                     fringe.append(c)
                     visited.add(c)
-    return prev_dict
+            if c[1] == depth + 1:
+                depth_d_plus_one_fringe.add(c)
+                fringe_prevs[c].add(curr)
+    return {'tree': prev_dict, 'visited': visited, 'depth': depth, 'fringe': depth_d_plus_one_fringe,
+            'fringe_prevs': fringe_prevs}
 
 
 def is_goal_state(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) -> bool:
@@ -334,7 +367,10 @@ def ict_search(maze: Maze, subproblems: List[Tuple[Location, Location]], root: T
                 if not tuple(node_list) in visited:
                     frontier.append(tuple(node_list))
                 if not (i, c) in mdd_cache:
-                    mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c)
+                    if (i,c-1) in mdd_cache:
+                        mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c,mdd_cache[(i, c-1)])
+                    else:
+                        mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c)
                 mdds.append(mdd_cache[(i, c)])
             solution: JointSolution = seek_solution_in_joint_mdd(mdds,True)
             if solution:
@@ -344,25 +380,51 @@ def ict_search(maze: Maze, subproblems: List[Tuple[Location, Location]], root: T
     return []
 
 
+
+def enumerate_matchings(agents,tasks):
+    if agents:
+        (name,type), *tail = agents
+        # print(name,type)
+        results = []
+        # print(tail)
+        for (i,(task_name,task_type)) in enumerate(tasks):
+            if type == task_type:
+                tasks_cp = copy(tasks)
+                tasks_cp.pop(i)
+                if tail:
+                    results.extend(list(map(lambda rs: [(name,task_name)] + rs,enumerate_matchings(tail,tasks_cp))))
+                else:
+                    results.append([(name, task_name)])
+        return results
+    else:
+        return []
+
 def solve(problem: Problem) -> Solution:
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
     paths: List[List[Tuple[int, int]]] = []
+    agents = list(map(lambda marked: (Location(marked.x,marked.y),marked.color),problem.starts))
+    goals = list(map(lambda marked: (Location(marked.x,marked.y),marked.color),problem.goals))
+    matchings = enumerate_matchings(agents,goals)
+    min_sic = None
+    min_sol = None
+    for matching in matchings:
+        subproblems = []
+        root_list = []
+        for (start, goal) in matching:
+            subproblems.append((start, goal))
+            shortest = astar(maze, start, goal)
+            assert len(shortest) > 0
+            root_list.append(len(shortest)-1)
+        root = tuple(root_list)
+        sol = ict_search(maze, subproblems, root)
+        # print(sol)
+        stripped_sol = list(map(lambda x: x[0],sol))
+        sic = len(stripped_sol)
+        if not min_sic or min_sic > sic:
+            min_sic = sic
+            min_sol = stripped_sol
 
-    subproblems = []
-    root_list = []
-    for (start_m, goal_m) in zip(problem.starts, problem.goals):
-        start = Location(start_m.x, start_m.y)
-        goal = Location(goal_m.x, goal_m.y)
-        subproblems.append((start, goal))
-        print(start,goal)
-        shortest = astar(maze, start, goal)
-        assert len(shortest) > 0
-        root_list.append(len(shortest)-1)
-    root = tuple(root_list)
-    sol = ict_search(maze, subproblems, root)
-    # print(sol)
-    stripped_sol = list(map(lambda x: x[0],sol))
-    subsols = list(zip(*stripped_sol))
+    subsols = list(zip(*min_sol))
     for subsol in subsols:
         paths.append(list(map(lambda loc: (loc.x, loc.y), subsol)))
     return Solution.from_paths(paths)
@@ -382,9 +444,14 @@ if __name__ == '__main__':
     # ], 5, 5, [start1, start2], [goal1, goal2], 0, 1, 1)
     # solution = solve(problem)
     # pprint(solution.serialize())
+    # agents = [("alice",1),("bob",1),("eve",2)]
+    # tasks = [("encrypt",1),("decrypt",1),("eavesdrop",2)]
+    # print(enumerate_matchings(agents,tasks))
+    # print(enumerate_matchings(agents[1:],tasks[1:]))
+    # print(enumerate_matchings(agents[2:],tasks[2:]))
     benchmark = MapfBenchmarker(
-        token="FXJ8wNVeWh4syRdh", problem_id=3,
-        algorithm="ICTS", version="Without tree bootstrapping",
+        token="FXJ8wNVeWh4syRdh", problem_id=8,
+        algorithm="ICTS", version="0.1.0",
         debug=True, solver=solve,
         cores=8
     )
