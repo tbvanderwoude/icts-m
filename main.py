@@ -6,6 +6,7 @@ from typing import List, Optional, Tuple, Set, DefaultDict
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
 from graphviz import Digraph
 
+
 class Location:
     def __init__(self, x: int, y: int):
         self.x: int = x
@@ -92,14 +93,16 @@ def heuristic(node: Location, goal: Location) -> int:
 # type alias for graph structure of MDD
 MDDGraph = Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]]
 
+
 class MDD:
     def __init__(self, maze: Maze, agent: int, start: Location, goal: Location, depth: int):
         self.agent: int = agent
         self.start: Location = start
         self.goal: Location = goal
         self.depth: int = depth
-        self.level: DefaultDict[int, Location] = defaultdict(set)
+        self.level: DefaultDict[int, Set[Location]] = defaultdict(set)
         tree = construct_bfs_tree(maze, start, depth)
+        self.tree = tree
         mdd = mdd_from_tree(tree, goal, depth)
         self.mdd: MDDGraph = mdd
         if mdd:
