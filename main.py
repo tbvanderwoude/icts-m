@@ -1,6 +1,8 @@
 import heapq
 import itertools
+from itertools import combinations
 from copy import copy
+import sys
 
 from matplotlib import pyplot as plt
 from pprint import pprint
@@ -355,13 +357,12 @@ def all_different(xs):
 
 
 def find_number_of_open_spaces(maze: Maze):
-    return sum([sum(row) for row in maze.grid])
+    return sum([sum([x^1 for x in row]) for row in maze.grid])
 
 
 def calculate_upper_bound_cost(agents: int, maze: Maze):
     number_of_open_spaces = find_number_of_open_spaces(maze)
-    upper_bound = (agents ** 2) * number_of_open_spaces
-    return upper_bound
+    return (agents ** 2) * number_of_open_spaces
 
 
 def ict_search(maze: Maze, subproblems: List[Tuple[Location, Location]], root: Tuple[int, ...]) -> Optional[
@@ -370,10 +371,12 @@ def ict_search(maze: Maze, subproblems: List[Tuple[Location, Location]], root: T
     frontier.append(root)
     visited = set()
     mdd_cache = dict()
+    k = len(subproblems)
+    upper = calculate_upper_bound_cost(k, maze)
+    print(k,upper,root)
     while frontier:
         node = frontier.popleft()
-
-        if sum(node) > calculate_upper_bound_cost(len(subproblems), maze) and not node in visited:
+        if sum(node) <= upper and not node in visited:
             visited.add(node)
             mdds = []
             for (i, c) in enumerate(node):
@@ -387,19 +390,22 @@ def ict_search(maze: Maze, subproblems: List[Tuple[Location, Location]], root: T
                     else:
                         mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c)
                 mdds.append(mdd_cache[(i, c)])
-            solution: JointSolution = seek_solution_in_joint_mdd(mdds, True)
-            if solution:
-                # print("There is a solution for {}".format(node))
-                return solution
+            if k <= 2 or check_pairs(mdds,k):
+                solution: JointSolution = seek_solution_in_joint_mdd(mdds, True)
+                if solution:
+                    return solution
     return []
 
+def check_pairs(mdds: List[MDD],k: int):
+    for (i,j,k) in combinations(range(k), 3):
+        if not seek_solution_in_joint_mdd([mdds[i],mdds[j],mdds[k]], False):
+            return False
+    return True
 
 def enumerate_matchings(agents, tasks):
     if agents:
         (name, type), *tail = agents
-        # print(name,type)
         results = []
-        # print(tail)
         for (i, (task_name, task_type)) in enumerate(tasks):
             if type == task_type:
                 tasks_cp = copy(tasks)
@@ -431,13 +437,12 @@ def solve(problem: Problem) -> Solution:
             root_list.append(len(shortest) - 1)
         root = tuple(root_list)
         sol = ict_search(maze, subproblems, root)
-        # print(sol)
         stripped_sol = list(map(lambda x: x[0], sol))
         sic = len(stripped_sol)
         if not min_sic or min_sic > sic:
             min_sic = sic
             min_sol = stripped_sol
-
+    print(min_sic)
     subsols = list(zip(*min_sol))
     for subsol in subsols:
         paths.append(list(map(lambda loc: (loc.x, loc.y), subsol)))
@@ -464,9 +469,9 @@ if __name__ == '__main__':
     # print(enumerate_matchings(agents[1:],tasks[1:]))
     # print(enumerate_matchings(agents[2:],tasks[2:]))
     benchmark = MapfBenchmarker(
-        token="FXJ8wNVeWh4syRdh", problem_id=16,
-        algorithm="ICTS", version="0.1.0",
-        debug=True, solver=solve,
+        token="FXJ8wNVeWh4syRdh", problem_id=int(sys.argv[1]),
+        algorithm="ICTS", version="0.1.1",
+        debug=False, solver=solve,
         cores=8
     )
     benchmark.run()
