@@ -1,4 +1,6 @@
 import heapq
+import itertools
+
 from matplotlib import pyplot as plt
 from pprint import pprint
 from collections import deque, defaultdict
@@ -88,6 +90,21 @@ class Maze:
 
 def heuristic(node: Location, goal: Location) -> int:
     return abs(goal.x - node.x) + abs(goal.y - node.y)
+
+
+def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int, int]]:
+    ls: List[Node] = [Node(None, start, 0, heuristic(start, goal))]
+    heapq.heapify(ls)
+    seen: Set[Location] = set()
+    while ls:
+        n: Node = heapq.heappop(ls)
+        if (n.loc) not in seen:
+            seen.add(n.loc)
+            if n.is_goal(goal):
+                return list(map(lambda loc: (loc.x, loc.y), n.get_directions()))
+            for c in maze.get_valid_children(n.loc):
+                heapq.heappush(ls, Node(n, c, n.cost + 1, heuristic(c, goal)))
+    return []
 
 
 # type alias for graph structure of MDD
@@ -191,19 +208,67 @@ def construct_bfs_tree(maze: Maze, start: Location, depth: int) -> DefaultDict[
     return prev_dict
 
 
-def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int, int]]:
-    ls: List[Node] = [Node(None, start, 0, heuristic(start, goal))]
-    heapq.heapify(ls)
-    seen: Set[Location] = set()
-    while ls:
-        n: Node = heapq.heappop(ls)
-        if (n.loc) not in seen:
-            seen.add(n.loc)
-            if n.is_goal(goal):
-                return list(map(lambda loc: (loc.x, loc.y), n.get_directions()))
-            for c in maze.get_valid_children(n.loc):
-                heapq.heappush(ls, Node(n, c, n.cost + 1, heuristic(c, goal)))
-    return []
+def is_goal_state(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) -> bool:
+    for mdd, node in zip(mdds, curr_nodes):
+        if curr_depth < mdd.depth or mdd.goal != node:
+            return False
+    return True
+
+
+"""Generates the locations you choose from a given location at a given depth for an MDD."""
+
+
+def get_children_per_mdd(mdd: MDD, node: Location, curr_depth: int) -> List[Location]:
+    if mdd.goal == node and curr_depth >= mdd.depth:
+        return [mdd.goal]
+    else:
+        return list(map(lambda p: p[0], mdd.mdd[(node, curr_depth)]))
+
+
+"""Generates locations to choose for each (MDD,Location) pair."""
+
+
+def get_children_for_mdds(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) -> List[List[Location]]:
+    return list(map(lambda x: get_children_per_mdd(x[0], x[1], curr_depth), zip(mdds, curr_nodes)))
+
+
+def has_edge_collisions(curr_nodes: List[Location], next_nodes: List[Location]) -> bool:
+    forward_edges = set(filter(lambda p: p[0] != p[1], zip(curr_nodes, next_nodes)))
+    backward_edges = set(filter(lambda p: p[0] != p[1], zip(next_nodes, curr_nodes)))
+    return not forward_edges.isdisjoint(backward_edges)
+
+
+def prune_joint_children(joint_child_nodes, curr_nodes: List[Location]):
+    return list(
+        filter(
+            lambda node: len(set(node)) == len(node) and not has_edge_collisions(curr_nodes, node), joint_child_nodes))
+
+
+def get_valid_children(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int):
+    per_mdd_children = get_children_for_mdds(mdds, curr_nodes, curr_depth)
+    all_joint_child_nodes = list(itertools.product(*per_mdd_children))
+    return prune_joint_children(all_joint_child_nodes,curr_nodes)
+
+
+def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[List[Location], int], max_depth: int,
+                  visited: Set[Tuple[List[Location], int]]) \
+        -> Tuple[bool, Set[Tuple[List[Location], int]]]:
+    curr_nodes: List[Location] = curr[0]
+    curr_depth: int = curr[1]
+    if curr in visited or curr_depth > max_depth:
+        return False, visited
+    visited.add(curr)
+    if is_goal_state(mdds, curr_nodes, curr_depth):
+        return True, visited
+    # TODO: implement logic for generating valid children using curr_nodes locations and the mdds
+    children = []
+    # children = get_valid_children(mdds,curr_nodes,curr_depth)
+    for node in children:
+        child = (node, curr_depth + 1)
+        found_path, visited = joint_mdd_dfs(mdds, child, max_depth, visited)
+        if found_path:
+            return found_path, visited
+    return False, visited
 
 
 def solve(problem: Problem) -> Solution:
