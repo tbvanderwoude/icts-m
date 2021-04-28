@@ -4,7 +4,7 @@ import itertools
 from matplotlib import pyplot as plt
 from pprint import pprint
 from collections import deque, defaultdict
-from typing import List, Optional, Tuple, Set, DefaultDict, Any
+from typing import List, Optional, Tuple, Set, DefaultDict, Any, Union
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
 from graphviz import Digraph
 
@@ -82,7 +82,7 @@ class Maze:
         all_children: List[Tuple[int, int]] = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1), (x, y)]
         good_children: List[Tuple[int, int]] = []
         for c in all_children:
-            if 0 <= c[0] < self.height and 0 <= c[1] < self.width:
+            if 0 <= c[0] < self.width and 0 <= c[1] < self.height:
                 if not self.grid[c[1]][c[0]]:
                     good_children.append(c)
         return list(map(lambda x: Location(x[0], x[1]), good_children))
@@ -110,6 +110,7 @@ def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int, int]]:
 # type alias for graph structure of MDD
 MDDGraph = Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]]
 
+JointSolution = List[Tuple[Tuple[Location,...], int]]
 
 class MDD:
     def __init__(self, maze: Maze, agent: int, start: Location, goal: Location, depth: int):
@@ -228,6 +229,10 @@ def get_children_for_mdds(mdds: List[MDD], curr_nodes: List[Location], curr_dept
     return list(map(lambda x: x[0].get_children_at_node(x[1], curr_depth), zip(mdds, curr_nodes)))
 
 
+def is_invalid_move(curr_locs, next_locs):
+    return not all_different(curr_locs) or has_edge_collisions(curr_locs, next_locs)
+
+
 def has_edge_collisions(curr_nodes: List[Location], next_nodes: List[Location]) -> bool:
     forward_edges = set(filter(lambda p: p[0] != p[1], zip(curr_nodes, next_nodes)))
     backward_edges = set(filter(lambda p: p[0] != p[1], zip(next_nodes, curr_nodes)))
@@ -237,26 +242,33 @@ def has_edge_collisions(curr_nodes: List[Location], next_nodes: List[Location]) 
 def prune_joint_children(joint_child_nodes, curr_nodes: List[Location]):
     return list(
         filter(
-            lambda node: len(set(node)) == len(node) and not has_edge_collisions(curr_nodes, node), joint_child_nodes))
+            lambda node: all_different(node) and not has_edge_collisions(curr_nodes, node), joint_child_nodes))
 
 
 def get_valid_children(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int):
     per_mdd_children = get_children_for_mdds(mdds, curr_nodes, curr_depth)
     all_joint_child_nodes = list(itertools.product(*per_mdd_children))
-    return prune_joint_children(all_joint_child_nodes,curr_nodes)
+    return prune_joint_children(all_joint_child_nodes, curr_nodes)
 
 
-def seek_solution_in_joint_mdd(mdds: List[MDD]) -> bool:
+def seek_solution_in_joint_mdd(mdds: List[MDD], constructive: bool) -> Union[bool,JointSolution]:
     for mdd in mdds:
         if not mdd.mdd:
-            return False
-    roots: Tuple[Any] = tuple(map(lambda mdd: mdd.start,mdds))
-    depths: List[int] = list(map(lambda mdd: mdd.depth,mdds))
+            if constructive:
+                return []
+            else:
+                return False
+    roots: Tuple[Any] = tuple(map(lambda mdd: mdd.start, mdds))
+    depths: List[int] = list(map(lambda mdd: mdd.depth, mdds))
     visited = set()
-    found_path, visited = joint_mdd_dfs(mdds,(roots,0),max(depths), visited)
-    return found_path
+    if constructive:
+        solution, _ = joint_mdd_dfs_constructive(mdds,None,(roots,0),max(depths),visited)
+        return solution
+    else:
+        found_path, visited = joint_mdd_dfs(mdds, (roots, 0), max(depths), visited)
+        return found_path
 
-def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[List[Location], int], max_depth: int,
+def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[Any, int], max_depth: int,
                   visited: Set[Tuple[List[Location], int]]) \
         -> Tuple[bool, Set[Tuple[List[Location], int]]]:
     curr_nodes: List[Location] = curr[0]
@@ -266,7 +278,7 @@ def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[List[Location], int], max_depth: 
     visited.add(curr)
     if is_goal_state(mdds, curr_nodes, curr_depth):
         return True, visited
-    children = get_valid_children(mdds,curr_nodes,curr_depth)
+    children = get_valid_children(mdds, curr_nodes, curr_depth)
     for node in children:
         child = (node, curr_depth + 1)
         found_path, visited = joint_mdd_dfs(mdds, child, max_depth, visited)
@@ -274,26 +286,63 @@ def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[List[Location], int], max_depth: 
             return found_path, visited
     return False, visited
 
-def ict_search(maze: Maze, subproblems: List[Tuple[Location,Location]],root: Tuple[Any]) -> bool:
+
+def joint_mdd_dfs_constructive(mdds: List[MDD], prev: Optional[List[Location]], curr: Tuple[Any, int], max_depth: int,
+                               visited: Set[Tuple[List[Location], int]]) \
+        -> Tuple[JointSolution, Set[Tuple[List[Location], int]]]:
+    curr_nodes: List[Location] = curr[0]
+    curr_depth: int = curr[1]
+    if prev and is_invalid_move(prev, curr_nodes):
+        return [], visited
+    if curr in visited or curr_depth > max_depth:
+        return [], visited
+
+    visited.add(curr)
+    if is_goal_state(mdds, curr_nodes, curr_depth):
+        return [curr], visited
+    children = get_valid_children(mdds, curr_nodes, curr_depth)
+
+    partial_sol = [curr]
+    for node in children:
+        child = (node, curr_depth + 1)
+        if child not in visited:
+            sol, visited = joint_mdd_dfs_constructive(mdds, curr_nodes, child, max_depth, visited)
+            if sol:
+                partial_sol.extend(sol)
+                return partial_sol, visited
+    return [], visited
+
+
+def all_different(xs):
+    return len(set(xs)) == len(xs)
+
+
+def ict_search(maze: Maze, subproblems: List[Tuple[Location, Location]], root: Tuple[int, ...]) -> Optional[JointSolution]:
     frontier = deque()
     frontier.append(root)
     visited = set()
+    mdd_cache = dict()
     while frontier:
         node = frontier.popleft()
         if not node in visited:
+            print(node)
             visited.add(node)
             mdds = []
-            for (i,c) in enumerate(node):
-                mdds.append(MDD(maze,i,subproblems[i][0],subproblems[i][1],c))
+            for (i, c) in enumerate(node):
                 node_list = list(node)
-                node_list[i] +=1
-                frontier.append(tuple(node_list))
-            has_solution = seek_solution_in_joint_mdd(mdds)
-            if has_solution:
+                node_list[i] += 1
+                if not tuple(node_list) in visited:
+                    frontier.append(tuple(node_list))
+                if not (i, c) in mdd_cache:
+                    mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c)
+                mdds.append(mdd_cache[(i, c)])
+            solution: JointSolution = seek_solution_in_joint_mdd(mdds,True)
+            if solution:
                 print("There is a solution for {}".format(node))
-                return True
+                return solution
     # Strictly speaking unreachable
-    return False
+    return []
+
 
 def solve(problem: Problem) -> Solution:
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
@@ -301,54 +350,42 @@ def solve(problem: Problem) -> Solution:
 
     subproblems = []
     root_list = []
-
-    for (start_m,goal_m) in zip(problem.starts,problem.goals):
+    for (start_m, goal_m) in zip(problem.starts, problem.goals):
         start = Location(start_m.x, start_m.y)
         goal = Location(goal_m.x, goal_m.y)
-        subproblems.append((start,goal))
-        root_list.append(len(astar(maze,start,goal))-2)
+        subproblems.append((start, goal))
+        print(start,goal)
+        shortest = astar(maze, start, goal)
+        assert len(shortest) > 0
+        root_list.append(len(shortest)-1)
     root = tuple(root_list)
-    frontier = deque()
-    frontier.append(root)
-    visited = set()
-    while frontier:
-        node = frontier.popleft()
-        if not node in visited:
-            visited.add(node)
-            mdds = []
-            for (i,c) in enumerate(node):
-                mdds.append(MDD(maze,i,subproblems[i][0],subproblems[i][1],c))
-                node_list = list(node)
-                node_list[i] +=1
-                frontier.append(tuple(node_list))
-            has_solution = seek_solution_in_joint_mdd(mdds)
-            if has_solution:
-                print("There is a solution for {}".format(node))
-                break
-
-    path: List[Tuple[int, int]] = astar(maze, start, goal)
-    pprint("Length of found solution: {}".format(len(path)))
-    paths.append(path)
+    sol = ict_search(maze, subproblems, root)
+    # print(sol)
+    stripped_sol = list(map(lambda x: x[0],sol))
+    subsols = list(zip(*stripped_sol))
+    for subsol in subsols:
+        paths.append(list(map(lambda loc: (loc.x, loc.y), subsol)))
     return Solution.from_paths(paths)
 
 
 if __name__ == '__main__':
-    start1: MarkedLocation = MarkedLocation(0, 1, 1)
-    start2: MarkedLocation = MarkedLocation(0, 1, 2)
-    goal1: MarkedLocation = MarkedLocation(0, 3, 1)
-    goal2: MarkedLocation = MarkedLocation(0, 3, 2)
-    problem: Problem = Problem([
-        [1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 1],
-        [1, 0, 0, 0, 1],
-        [1, 1, 1, 1, 1]
-    ], 5, 4, [start1,start2], [goal1,goal2], 0, 1, 1)
-    solution = solve(problem)
-    pprint(solution.serialize())
-    # benchmark = MapfBenchmarker(
-    #     token="FXJ8wNVeWh4syRdh", problem_id=2,
-    #     algorithm="A*", version="test",
-    #     debug=True, solver=solve,
-    #     cores=8
-    # )
-    # benchmark.run()
+    # start1: MarkedLocation = MarkedLocation(0, 1, 1)
+    # start2: MarkedLocation = MarkedLocation(1, 3, 1)
+    # goal1: MarkedLocation = MarkedLocation(0, 3, 1)
+    # goal2: MarkedLocation = MarkedLocation(1, 3, 3)
+    # problem: Problem = Problem([
+    #     [1, 1, 1, 1, 1],
+    #     [1, 0, 1, 0, 1],
+    #     [1, 0, 0, 0, 1],
+    #     [1, 0, 1, 0, 1],
+    #     [1, 1, 1, 1, 1]
+    # ], 5, 5, [start1, start2], [goal1, goal2], 0, 1, 1)
+    # solution = solve(problem)
+    # pprint(solution.serialize())
+    benchmark = MapfBenchmarker(
+        token="FXJ8wNVeWh4syRdh", problem_id=3,
+        algorithm="ICTS", version="Without tree bootstrapping",
+        debug=True, solver=solve,
+        cores=8
+    )
+    benchmark.run()
