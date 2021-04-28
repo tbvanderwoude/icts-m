@@ -1,9 +1,10 @@
 import heapq
+from matplotlib import pyplot as plt
 from pprint import pprint
 from collections import deque, defaultdict
 from typing import List, Optional, Tuple, Set, DefaultDict
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
-
+from graphviz import Digraph
 
 class Location:
     def __init__(self, x: int, y: int):
@@ -17,7 +18,7 @@ class Location:
         return hash((self.x, self.y))
 
     def __str__(self):
-        return '<'+str(self.x)+','+str(self.y)+'>'
+        return '(' + str(self.x) + ',' + str(self.y) + ')'
 
     @classmethod
     def from_dict(cls, dct) -> "Location":
@@ -94,19 +95,56 @@ class MDD:
         self.start: Location = start
         self.goal: Location = goal
         self.depth: int = depth
-        tree = construct_bfs_tree(maze,start,depth)
-        self.mdd: Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]] = mdd_from_tree(tree,goal,depth)
+        self.level: DefaultDict[int, Location] = defaultdict(set)
+        tree = construct_bfs_tree(maze, start, depth)
+        mdd = mdd_from_tree(tree, goal, depth)
+        self.mdd: Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]] = mdd
+        if mdd:
+            self.populate_levels(self.mdd)
+
+    # Constructs a graph of the MDD.
+    def show(self):
+        items = list(sorted(self.mdd.items(), key=lambda x: x[0][1]))
+        g = Digraph()
+        added = set()
+        plt.tight_layout()
+        for ((loc, d), v) in items:
+            node_str = str(loc) + ',' + str(d)
+            g.node(node_str)
+            for (c_loc, c_depth) in v:
+                child_str = str(c_loc) + ',' + str(c_depth)
+                if not child_str in added:
+                    added.add(child_str)
+                g.edge(node_str, child_str)
+        return g
+
+    def populate_levels(self, mdd):
+        # all nodes except the start are children of other nodes at a level given by the depth
+        self.level[0] = {self.start}
+        for children_sets in mdd.values():
+            for child in children_sets:
+                self.level[child[1]].add(child[0])
+
+    def get_level(self, i):
+        # Models the behaviour of staying at the goal once reached
+        if i > self.depth:
+            return {self.goal}
+        return self.level[i]
+
+
 """
 Constructs a top-down MDD structure in the form of a dictionary of parent-children mappings representing all the ways to
 get to the goal-node. This is done by tracing paths back to the start through the bottom-up DAG that was constructed
-when doing the breadth-first traversal. This is similar to tracing a single path back up as in path-finding (consider
+when doing the breadth-first traversal. This is similar to tracing a single path back up as in normal path-finding (consider
 the get_directions function in the A* Node class), but here there are typically many paths that can be taken, resulting 
 in an MDD.
 TLDR: turns a child-parents structure into a parent-children structure with some filtering along the way
 """
+
+
 def mdd_from_tree(tree: DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]], goal: Location, depth: int) \
         -> Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]]:
-    goal_at_depth = (goal,depth)
+    goal_at_depth = (goal, depth)
     # If the goal node is not in the DAG, return the empty MDD represented by None
     if not tree[goal_at_depth]:
         return None
@@ -114,15 +152,15 @@ def mdd_from_tree(tree: DefaultDict[Tuple[Location, int], Set[Tuple[Location, in
     mdd = defaultdict(set)
     trace_list = deque()
     for parent in tree[goal_at_depth]:
-        trace_list.append((parent,goal_at_depth))
-        visited.add((parent,goal_at_depth))
+        trace_list.append((parent, goal_at_depth))
+        visited.add((parent, goal_at_depth))
     while trace_list:
         current, child = trace_list.popleft()
         mdd[current].add(child)
         for parent in tree[current]:
-            if (parent,current) not in visited:
-                trace_list.append((parent,current))
-                visited.add((parent,current))
+            if (parent, current) not in visited:
+                trace_list.append((parent, current))
+                visited.add((parent, current))
     return mdd
 
 
@@ -172,13 +210,11 @@ def solve(problem: Problem) -> Solution:
     start_m: MarkedLocation = problem.starts[0]
     goal_m: MarkedLocation = problem.goals[0]
     start = Location(start_m.x, start_m.y)
-    goal = Location(goal_m.x,goal_m.y)
-    mdd: MDD = MDD(maze,0,start,goal,4)
-    items = list(sorted(mdd.mdd.items(),key = lambda x : x[0][1]))
-    for ((loc,depth),v) in items:
-        print(loc,depth,'->')
-        for (c_loc,c_depth) in v:
-            print('\t',c_loc, c_depth)
+    goal = Location(goal_m.x, goal_m.y)
+    mdd: MDD = MDD(maze, 0, start, goal, 4)
+    for level in sorted(mdd.level.items()):
+        print(len(level[1]))
+    # display(mdd.show())
 
     path: List[Tuple[int, int]] = astar(maze, start, goal)
     pprint("Length of found solution: {}".format(len(path)))
@@ -192,8 +228,9 @@ if __name__ == '__main__':
     problem: Problem = Problem([
         [1, 1, 1, 1],
         [1, 0, 0, 1],
+        [1, 0, 0, 1],
         [1, 1, 1, 1]
-    ], 4, 3, [start], [goal], 0, 1, 1)
+    ], 4, 4, [start], [goal], 0, 1, 1)
     solution = solve(problem)
     pprint(solution.serialize())
     # benchmark = MapfBenchmarker(
