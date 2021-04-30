@@ -7,10 +7,11 @@ import sys
 # from matplotlib import pyplot as plt
 from pprint import pprint
 from collections import deque, defaultdict
-from typing import List, Optional, Tuple, Set, DefaultDict, Any, Union, Deque
+from typing import List, Optional, Tuple, Set, DefaultDict, Any, Union, Deque, Iterable
 
 import requests
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
+
 # from graphviz import Digraph
 
 row_factor = 2048
@@ -23,11 +24,13 @@ MDDGraph = Optional[DefaultDict[Tuple[CompactLocation, int], Set[Tuple[CompactLo
 JointSolution = List[Tuple[Tuple[CompactLocation, ...], int]]
 
 
-def compact_location(x,y):
+def compact_location(x, y):
     return x + y * row_factor
+
 
 def expand_location(c: CompactLocation):
     return (c % row_factor, c // row_factor)
+
 
 class Node:
     def __init__(self, parent, loc: CompactLocation, cost: int, heuristic: int):
@@ -85,7 +88,7 @@ class Maze:
         for c in all_children:
             if 0 <= c[0] < self.width and 0 <= c[1] < self.height:
                 if not self.grid[c[1]][c[0]]:
-                    good_children.append(compact_location(c[0],c[1]))
+                    good_children.append(compact_location(c[0], c[1]))
         return good_children
 
 
@@ -110,9 +113,9 @@ def astar(maze: Maze, start: CompactLocation, goal: CompactLocation) -> List[Tup
     return []
 
 
-
 class MDD:
-    def __init__(self, maze: Maze, agent: int, start: CompactLocation, goal: CompactLocation, depth: int, last_mdd=None):
+    def __init__(self, maze: Maze, agent: int, start: CompactLocation, goal: CompactLocation, depth: int,
+                 last_mdd=None):
         self.agent: int = agent
         self.start: CompactLocation = start
         self.goal: CompactLocation = goal
@@ -165,11 +168,11 @@ class MDD:
             return {self.goal}
         return self.level[i]
 
-    def get_children_at_node(self, node: CompactLocation, curr_depth: int) -> List[CompactLocation]:
+    def get_children_at_node(self, node: CompactLocation, curr_depth: int) -> Iterable[CompactLocation]:
         if self.goal == node and curr_depth >= self.depth:
             return [self.goal]
         else:
-            return list(map(lambda p: p[0], self.mdd[(node, curr_depth)]))
+            return map(lambda p: p[0], self.mdd[(node, curr_depth)])
 
 
 """
@@ -182,7 +185,8 @@ TLDR: turns a child-parents structure into a parent-children structure with some
 """
 
 
-def mdd_from_tree(tree: DefaultDict[Tuple[CompactLocation, int], Set[Tuple[CompactLocation, int]]], goal: CompactLocation, depth: int) \
+def mdd_from_tree(tree: DefaultDict[Tuple[CompactLocation, int], Set[Tuple[CompactLocation, int]]],
+                  goal: CompactLocation, depth: int) \
         -> MDDGraph:
     goal_at_depth = (goal, depth)
     # If the goal node is not in the DAG, return the empty MDD represented by None
@@ -234,7 +238,7 @@ def main_bfs_loop(maze: Maze, depth: int, fringe: Deque[Tuple[CompactLocation, i
     while fringe:
         curr = fringe.popleft()
         loc, d = curr
-        children: List[Tuple[CompactLocation, int]] = list(map(lambda c: (c, d + 1), maze.get_valid_children(loc)))
+        children: Iterable[Tuple[CompactLocation, int]] = map(lambda c: (c, d + 1), maze.get_valid_children(loc))
         for c in children:
             if c[1] <= depth:
                 prev_dict[c].add(curr)
@@ -258,8 +262,9 @@ def is_goal_state(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth
 """Generates locations to choose for each (MDD,Location) pair."""
 
 
-def get_children_for_mdds(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int) -> List[List[CompactLocation]]:
-    return list(map(lambda x: x[0].get_children_at_node(x[1], curr_depth), zip(mdds, curr_nodes)))
+def get_children_for_mdds(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int) -> Iterable[
+    List[CompactLocation]]:
+    return map(lambda x: x[0].get_children_at_node(x[1], curr_depth), zip(mdds, curr_nodes))
 
 
 def is_invalid_move(curr_locs, next_locs):
@@ -273,16 +278,16 @@ def has_edge_collisions(curr_nodes: List[CompactLocation], next_nodes: List[Comp
 
 
 def prune_joint_children(joint_child_nodes, curr_nodes: List[CompactLocation]):
-    return list(
-        filter(
-            lambda node: all_different(node) and not has_edge_collisions(curr_nodes, node), joint_child_nodes))
+    return filter(
+            lambda node: all_different(node) and not has_edge_collisions(curr_nodes, node), joint_child_nodes)
+
 
 def get_valid_children(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int, unfold_mdds: bool = False):
     per_mdd_children = get_children_for_mdds(mdds, curr_nodes, curr_depth)
-    all_joint_child_nodes = list(itertools.product(*per_mdd_children))
+    all_joint_child_nodes = itertools.product(*per_mdd_children)
     pruned = prune_joint_children(all_joint_child_nodes, curr_nodes)
     if unfold_mdds:
-        for (i,children) in enumerate(per_mdd_children):
+        for (i, children) in enumerate(per_mdd_children):
             node = curr_nodes[i]
             for child in children:
                 occurs = False
@@ -292,9 +297,10 @@ def get_valid_children(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_
                         break
                 if not occurs:
                     if curr_depth < mdds[i].depth:
-                        mdds[i].mdd[(node,curr_depth)].remove((child,curr_depth + 1))
+                        mdds[i].mdd[(node, curr_depth)].remove((child, curr_depth + 1))
 
     return pruned
+
 
 # def get_children_for_mdds(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) -> List[List[Location]]:
 #     return list(map(lambda x: x[0].get_children_at_node(x[1], curr_depth), zip(mdds, curr_nodes)))
@@ -314,13 +320,13 @@ def seek_solution_in_joint_mdd(mdds: List[MDD], constructive: bool, unfold: bool
             else:
                 return False
     roots: Tuple[Any] = tuple(map(lambda mdd: mdd.start, mdds))
-    depths: List[int] = list(map(lambda mdd: mdd.depth, mdds))
+    depths: Iterable[int] = map(lambda mdd: mdd.depth, mdds)
     visited = set()
     if constructive:
         solution, _ = joint_mdd_dfs_constructive(mdds, None, (roots, 0), max(depths), visited)
         return solution
     else:
-        found_path, visited = joint_mdd_dfs(mdds, (roots, 0), max(depths), visited,unfold)
+        found_path, visited = joint_mdd_dfs(mdds, (roots, 0), max(depths), visited, unfold)
         return found_path
 
 
@@ -337,13 +343,14 @@ def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[Any, int], max_depth: int,
     children = get_valid_children(mdds, curr_nodes, curr_depth, unfold)
     for node in children:
         child = (node, curr_depth + 1)
-        found_path, visited = joint_mdd_dfs(mdds, child, max_depth, visited)
+        found_path, visited = joint_mdd_dfs(mdds, child, max_depth, visited,unfold)
         if found_path:
             return found_path, visited
     return False, visited
 
 
-def joint_mdd_dfs_constructive(mdds: List[MDD], prev: Optional[List[CompactLocation]], curr: Tuple[Any, int], max_depth: int,
+def joint_mdd_dfs_constructive(mdds: List[MDD], prev: Optional[List[CompactLocation]], curr: Tuple[Any, int],
+                               max_depth: int,
                                visited: Set[Tuple[List[CompactLocation], int]]) \
         -> Tuple[JointSolution, Set[Tuple[List[CompactLocation], int]]]:
     curr_nodes: List[CompactLocation] = curr[0]
@@ -368,13 +375,19 @@ def joint_mdd_dfs_constructive(mdds: List[MDD], prev: Optional[List[CompactLocat
                 return partial_sol, visited
     return [], visited
 
+# early-exit variant of the version below. Intuitively, it should be faster
+# https://stackoverflow.com/questions/5278122/checking-if-all-elements-in-a-list-are-unique
+# experimentally, it is much much worse!
+# def all_different(xs):
+#     seen = set()
+#     return not any(i in seen or seen.add(i) for i in xs)
 
 def all_different(xs):
     return len(set(xs)) == len(xs)
 
 
 def find_number_of_open_spaces(maze: Maze):
-    return sum([sum([x^1 for x in row]) for row in maze.grid])
+    return sum([sum([x ^ 1 for x in row]) for row in maze.grid])
 
 
 def calculate_upper_bound_cost(agents: int, maze: Maze):
@@ -382,15 +395,20 @@ def calculate_upper_bound_cost(agents: int, maze: Maze):
     return (agents ** 2) * number_of_open_spaces
 
 
-def ict_search(maze: Maze, subproblems: List[Tuple[CompactLocation, CompactLocation]], root: Tuple[int, ...]) -> Optional[
+def ict_search(maze: Maze, subproblems: List[Tuple[CompactLocation, CompactLocation]], root: Tuple[int, ...]) -> \
+Optional[
     JointSolution]:
+    combs = 2
+    prune = True
+    enhanced = True
     frontier = deque()
     frontier.append(root)
     visited = set()
     mdd_cache = dict()
+
     k = len(subproblems)
     upper = calculate_upper_bound_cost(k, maze)
-    print(k,upper,root)
+    print(k, upper, root)
     while frontier:
         node = frontier.popleft()
         if sum(node) <= upper and not node in visited:
@@ -407,18 +425,21 @@ def ict_search(maze: Maze, subproblems: List[Tuple[CompactLocation, CompactLocat
                     else:
                         mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c)
                 mdds.append(copy(mdd_cache[(i, c)]))
-                mdds[i].mdd = deepcopy(mdd_cache[(i, c)].mdd)
-            if k <= 2 or check_triples(mdds,k):
+                if enhanced:
+                    mdds[i].mdd = deepcopy(mdd_cache[(i, c)].mdd)
+            if not prune or k <= combs or check_combinations(combs, mdds, k,enhanced):
                 solution: JointSolution = seek_solution_in_joint_mdd(mdds, True)
                 if solution:
                     return solution
     return []
 
-def check_triples(mdds: List[MDD],k: int, enhanced: bool = True):
-    for (i,j) in combinations(range(k), 2):
-        if not seek_solution_in_joint_mdd([mdds[i],mdds[j]], False,enhanced):
+
+def check_combinations(combs, mdds: List[MDD], k: int, enhanced: bool = True):
+    for c in combinations(range(k), combs):
+        if not seek_solution_in_joint_mdd([mdds[i] for i in c], False, enhanced):
             return False
     return True
+
 
 def enumerate_matchings(agents, tasks):
     if agents:
@@ -429,7 +450,7 @@ def enumerate_matchings(agents, tasks):
                 tasks_cp = copy(tasks)
                 tasks_cp.pop(i)
                 if tail:
-                    results.extend(list(map(lambda rs: [(name, task_name)] + rs, enumerate_matchings(tail, tasks_cp))))
+                    results.extend(map(lambda rs: [(name, task_name)] + rs, enumerate_matchings(tail, tasks_cp)))
                 else:
                     results.append([(name, task_name)])
         return results
@@ -460,55 +481,40 @@ def solve(problem: Problem) -> Solution:
         if not min_sic or min_sic > sic:
             min_sic = sic
             min_sol = stripped_sol
-    print(min_sic)
+    # print(min_sic)
     subsols = list(zip(*min_sol))
     for subsol in subsols:
         paths.append(list(map(lambda loc: expand_location(loc), subsol)))
     return Solution.from_paths(paths)
 
 
+def run_custom(token,p_id):
+    headers = {
+        'X-API-Token': token
+    }
+    data = {
+        "algorithm": "ICTS",
+        "version": "0.1.2",
+        "debug": True
+    }
+    r = requests.post("https://mapf.nl/api/benchmark/{}".format(p_id), headers=headers,
+                      json=data)
+    assert r.status_code == 200, print(r.content)
+    j = r.json()
+    problem_json = j["problems"][0]
+    problem = Problem(problem_json["grid"], problem_json["width"], problem_json["height"], [MarkedLocation.from_dict(i) for i in problem_json["starts"]],
+                           [MarkedLocation.from_dict(i) for i in problem_json["goals"]], 0, problem_json["id"], 0)
+    solution = solve(problem)
+    pprint(solution.serialize())
+
 if __name__ == '__main__':
-    # start1: MarkedLocation = MarkedLocation(0, 1, 1)
-    # start2: MarkedLocation = MarkedLocation(1, 3, 1)
-    # goal1: MarkedLocation = MarkedLocation(0, 3, 1)
-    # goal2: MarkedLocation = MarkedLocation(1, 3, 3)
-    # problem: Problem = Problem([
-    #     [1, 1, 1, 1, 1],
-    #     [1, 0, 1, 0, 1],
-    #     [1, 0, 0, 0, 1],
-    #     [1, 0, 1, 0, 1],
-    #     [1, 1, 1, 1, 1]
-    # ], 5, 5, [start1, start2], [goal1, goal2], 0, 1, 1)
-    # solution = solve(problem)
-    # pprint(solution.serialize())
-    # agents = [("alice",1),("bob",1),("eve",2)]
-    # tasks = [("encrypt",1),("decrypt",1),("eavesdrop",2)]
-    # print(enumerate_matchings(agents,tasks))
-    # print(enumerate_matchings(agents[1:],tasks[1:]))
-    # print(enumerate_matchings(agents[2:],tasks[2:]))
     token = "FXJ8wNVeWh4syRdh"
     p_id = int(sys.argv[1])
-    benchmark = MapfBenchmarker(
-        token=token, problem_id=p_id,
-        algorithm="ICTS", version="0.1.2",
-        debug=False, solver=solve,
-        cores=8
-    )
-    benchmark.run()
-    # headers = {
-    #     'X-API-Token': token
-    # }
-    # data = {
-    #     "algorithm": "ICTS",
-    #     "version": "0.1.2",
-    #     "debug": True
-    # }
-    # r = requests.post("https://mapf.nl/api/benchmark/{}".format(p_id), headers=headers,
-    #                   json=data)
-    # assert r.status_code == 200, print(r.content)
-    # j = r.json()
-    # problem_json = j["problems"][0]
-    # problem = Problem(problem_json["grid"], problem_json["width"], problem_json["height"], [MarkedLocation.from_dict(i) for i in problem_json["starts"]],
-    #                        [MarkedLocation.from_dict(i) for i in problem_json["goals"]], 0, problem_json["id"], 0)
-    # solution = solve(problem)
-    # pprint(solution.serialize())
+    run_custom(token,p_id)
+    # benchmark = MapfBenchmarker(
+    #     token=token, problem_id=p_id,
+    #     algorithm="ICTS", version="0.1.2",
+    #     debug=True, solver=solve,
+    #     cores=8
+    # )
+    # benchmark.run()
