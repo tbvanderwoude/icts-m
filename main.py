@@ -282,7 +282,7 @@ def prune_joint_children(joint_child_nodes, curr_nodes: List[CompactLocation]):
             lambda node: all_different(node) and not has_edge_collisions(curr_nodes, node), joint_child_nodes)
 
 
-def get_valid_children(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int, unfold_mdds: bool = False):
+def get_valid_children(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int, unfold_mdds: bool = False, accumulator: List = []):
     per_mdd_children = get_children_for_mdds(mdds, curr_nodes, curr_depth)
     all_joint_child_nodes = itertools.product(*per_mdd_children)
     pruned = prune_joint_children(all_joint_child_nodes, curr_nodes)
@@ -298,6 +298,7 @@ def get_valid_children(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_
                 if not occurs:
                     if curr_depth < mdds[i].depth:
                         mdds[i].mdd[(node, curr_depth)].remove((child, curr_depth + 1))
+                        accumulator.append((i,(node, curr_depth),(child, curr_depth + 1)))
 
     return pruned
 
@@ -312,7 +313,7 @@ def get_valid_children(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_
 #         return list(map(lambda p: p[0], self.mdd[(node, curr_depth)]))
 
 
-def seek_solution_in_joint_mdd(mdds: List[MDD], constructive: bool, unfold: bool = False) -> Union[bool, JointSolution]:
+def seek_solution_in_joint_mdd(mdds: List[MDD], constructive: bool, unfold: bool = False, accumulator: List = []) -> Union[bool, JointSolution]:
     for mdd in mdds:
         if not mdd.mdd:
             if constructive:
@@ -326,12 +327,12 @@ def seek_solution_in_joint_mdd(mdds: List[MDD], constructive: bool, unfold: bool
         solution, _ = joint_mdd_dfs_constructive(mdds, None, (roots, 0), max(depths), visited)
         return solution
     else:
-        found_path, visited = joint_mdd_dfs(mdds, (roots, 0), max(depths), visited, unfold)
+        found_path, visited = joint_mdd_dfs(mdds, (roots, 0), max(depths), visited, unfold, accumulator)
         return found_path
 
 
 def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[Any, int], max_depth: int,
-                  visited: Set[Tuple[List[CompactLocation], int]], unfold: bool = False) \
+                  visited: Set[Tuple[List[CompactLocation], int]], unfold: bool = False,  accumulator: List = []) \
         -> Tuple[bool, Set[Tuple[List[CompactLocation], int]]]:
     curr_nodes: List[CompactLocation] = curr[0]
     curr_depth: int = curr[1]
@@ -340,10 +341,10 @@ def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[Any, int], max_depth: int,
     visited.add(curr)
     if is_goal_state(mdds, curr_nodes, curr_depth):
         return True, visited
-    children = get_valid_children(mdds, curr_nodes, curr_depth, unfold)
+    children = get_valid_children(mdds, curr_nodes, curr_depth, unfold, accumulator)
     for node in children:
         child = (node, curr_depth + 1)
-        found_path, visited = joint_mdd_dfs(mdds, child, max_depth, visited,unfold)
+        found_path, visited = joint_mdd_dfs(mdds, child, max_depth, visited,unfold, accumulator)
         if found_path:
             return found_path, visited
     return False, visited
@@ -395,12 +396,9 @@ def calculate_upper_bound_cost(agents: int, maze: Maze):
     return (agents ** 2) * number_of_open_spaces
 
 
-def ict_search(maze: Maze, subproblems: List[Tuple[CompactLocation, CompactLocation]], root: Tuple[int, ...]) -> \
+def ict_search(maze: Maze, combs, prune, enhanced, subproblems: List[Tuple[CompactLocation, CompactLocation]], root: Tuple[int, ...]) -> \
 Optional[
     JointSolution]:
-    combs = 2
-    prune = True
-    enhanced = True
     frontier = deque()
     frontier.append(root)
     visited = set()
@@ -412,6 +410,7 @@ Optional[
     while frontier:
         node = frontier.popleft()
         if sum(node) <= upper and not node in visited:
+            accumulator = []
             visited.add(node)
             mdds = []
             for (i, c) in enumerate(node):
@@ -424,19 +423,19 @@ Optional[
                         mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c, mdd_cache[(i, c - 1)])
                     else:
                         mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c)
-                mdds.append(copy(mdd_cache[(i, c)]))
-                if enhanced:
-                    mdds[i].mdd = deepcopy(mdd_cache[(i, c)].mdd)
-            if not prune or k <= combs or check_combinations(combs, mdds, k,enhanced):
+                mdds.append(mdd_cache[(i, c)])
+            if not prune or k <= combs or check_combinations(combs, mdds, k, enhanced,accumulator):
                 solution: JointSolution = seek_solution_in_joint_mdd(mdds, True)
                 if solution:
                     return solution
+            for (i, p, c) in accumulator:
+                mdds[i].mdd[p].add(c)
     return []
 
 
-def check_combinations(combs, mdds: List[MDD], k: int, enhanced: bool = True):
+def check_combinations(combs, mdds: List[MDD], k: int, enhanced: bool = True, accumulator: List = []):
     for c in combinations(range(k), combs):
-        if not seek_solution_in_joint_mdd([mdds[i] for i in c], False, enhanced):
+        if not seek_solution_in_joint_mdd([mdds[i] for i in c], False, enhanced, accumulator):
             return False
     return True
 
@@ -459,6 +458,9 @@ def enumerate_matchings(agents, tasks):
 
 
 def solve(problem: Problem) -> Solution:
+    combs = 2
+    prune = True
+    enhanced = True
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
     paths: List[List[Tuple[int, int]]] = []
     agents = list(map(lambda marked: (compact_location(marked.x, marked.y), marked.color), problem.starts))
@@ -475,7 +477,7 @@ def solve(problem: Problem) -> Solution:
             assert len(shortest) > 0
             root_list.append(len(shortest) - 1)
         root = tuple(root_list)
-        sol = ict_search(maze, subproblems, root)
+        sol = ict_search(maze, combs,prune,enhanced,subproblems, root)
         stripped_sol = list(map(lambda x: x[0], sol))
         sic = len(stripped_sol)
         if not min_sic or min_sic > sic:
@@ -507,14 +509,21 @@ def run_custom(token,p_id):
     solution = solve(problem)
     pprint(solution.serialize())
 
+def str_to_bool(s):
+    return s == "true" or s == "True"
 if __name__ == '__main__':
     token = "FXJ8wNVeWh4syRdh"
     p_id = int(sys.argv[1])
-    run_custom(token,p_id)
-    # benchmark = MapfBenchmarker(
-    #     token=token, problem_id=p_id,
-    #     algorithm="ICTS", version="0.1.2",
-    #     debug=True, solver=solve,
-    #     cores=8
-    # )
-    # benchmark.run()
+    profile = str_to_bool(sys.argv[2])
+    debug = str_to_bool(sys.argv[3])
+    # print(p_id,profile)
+    if profile:
+        run_custom(token,p_id)
+    else:
+        benchmark = MapfBenchmarker(
+            token=token, problem_id=p_id,
+            algorithm="ICTS", version="0.1.3",
+            debug=debug, solver=solve,
+            cores=8
+        )
+        benchmark.run()
