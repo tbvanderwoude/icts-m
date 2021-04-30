@@ -1,15 +1,20 @@
 import heapq
 import itertools
 from itertools import combinations
-from copy import copy
+from copy import copy, deepcopy
 import sys
 
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 from pprint import pprint
 from collections import deque, defaultdict
 from typing import List, Optional, Tuple, Set, DefaultDict, Any, Union, Deque
+
+import requests
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
-from graphviz import Digraph
+# from graphviz import Digraph
+
+row_factor = 1000
+depth_factor = 1000000
 
 
 class Location:
@@ -21,7 +26,7 @@ class Location:
         return self.x == other.x and self.y == other.y
 
     def __hash__(self):
-        return hash((self.x, self.y))
+        return self.x + self.y * row_factor
 
     def __str__(self):
         return '(' + str(self.x) + ',' + str(self.y) + ')'
@@ -142,20 +147,20 @@ class MDD:
             self.populate_levels(self.mdd)
 
     # Constructs a graph of the MDD.
-    def show(self):
-        items = list(sorted(self.mdd.items(), key=lambda x: x[0][1]))
-        g = Digraph()
-        added = set()
-        plt.tight_layout()
-        for ((loc, d), v) in items:
-            node_str = str(loc) + ',' + str(d)
-            g.node(node_str)
-            for (c_loc, c_depth) in v:
-                child_str = str(c_loc) + ',' + str(c_depth)
-                if not child_str in added:
-                    added.add(child_str)
-                g.edge(node_str, child_str)
-        return g
+    # def show(self):
+    #     items = list(sorted(self.mdd.items(), key=lambda x: x[0][1]))
+    #     g = Digraph()
+    #     added = set()
+    #     plt.tight_layout()
+    #     for ((loc, d), v) in items:
+    #         node_str = str(loc) + ',' + str(d)
+    #         g.node(node_str)
+    #         for (c_loc, c_depth) in v:
+    #             child_str = str(c_loc) + ',' + str(c_depth)
+    #             if not child_str in added:
+    #                 added.add(child_str)
+    #             g.edge(node_str, child_str)
+    #     return g
 
     def populate_levels(self, mdd: MDDGraph):
         # all nodes except the start are children of other nodes at a level given by the depth
@@ -282,14 +287,36 @@ def prune_joint_children(joint_child_nodes, curr_nodes: List[Location]):
         filter(
             lambda node: all_different(node) and not has_edge_collisions(curr_nodes, node), joint_child_nodes))
 
-
-def get_valid_children(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int):
+def get_valid_children(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int, unfold_mdds: bool = False):
     per_mdd_children = get_children_for_mdds(mdds, curr_nodes, curr_depth)
     all_joint_child_nodes = list(itertools.product(*per_mdd_children))
-    return prune_joint_children(all_joint_child_nodes, curr_nodes)
+    pruned = prune_joint_children(all_joint_child_nodes, curr_nodes)
+    if unfold_mdds:
+        for (i,children) in enumerate(per_mdd_children):
+            node = curr_nodes[i]
+            for child in children:
+                occurs = False
+                for pruned_joint in pruned:
+                    if pruned_joint[i] == child:
+                        occurs = True
+                        break
+                if not occurs:
+                    if curr_depth < mdds[i].depth:
+                        mdds[i].mdd[(node,curr_depth)].remove((child,curr_depth + 1))
+
+    return pruned
+
+# def get_children_for_mdds(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) -> List[List[Location]]:
+#     return list(map(lambda x: x[0].get_children_at_node(x[1], curr_depth), zip(mdds, curr_nodes)))
+#
+# def get_children_at_node(self, node: Location, curr_depth: int) -> List[Location]:
+#     if self.goal == node and curr_depth >= self.depth:
+#         return [self.goal]
+#     else:
+#         return list(map(lambda p: p[0], self.mdd[(node, curr_depth)]))
 
 
-def seek_solution_in_joint_mdd(mdds: List[MDD], constructive: bool) -> Union[bool, JointSolution]:
+def seek_solution_in_joint_mdd(mdds: List[MDD], constructive: bool, unfold: bool = False) -> Union[bool, JointSolution]:
     for mdd in mdds:
         if not mdd.mdd:
             if constructive:
@@ -303,12 +330,12 @@ def seek_solution_in_joint_mdd(mdds: List[MDD], constructive: bool) -> Union[boo
         solution, _ = joint_mdd_dfs_constructive(mdds, None, (roots, 0), max(depths), visited)
         return solution
     else:
-        found_path, visited = joint_mdd_dfs(mdds, (roots, 0), max(depths), visited)
+        found_path, visited = joint_mdd_dfs(mdds, (roots, 0), max(depths), visited,unfold)
         return found_path
 
 
 def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[Any, int], max_depth: int,
-                  visited: Set[Tuple[List[Location], int]]) \
+                  visited: Set[Tuple[List[Location], int]], unfold: bool = False) \
         -> Tuple[bool, Set[Tuple[List[Location], int]]]:
     curr_nodes: List[Location] = curr[0]
     curr_depth: int = curr[1]
@@ -317,7 +344,7 @@ def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[Any, int], max_depth: int,
     visited.add(curr)
     if is_goal_state(mdds, curr_nodes, curr_depth):
         return True, visited
-    children = get_valid_children(mdds, curr_nodes, curr_depth)
+    children = get_valid_children(mdds, curr_nodes, curr_depth, unfold)
     for node in children:
         child = (node, curr_depth + 1)
         found_path, visited = joint_mdd_dfs(mdds, child, max_depth, visited)
@@ -389,16 +416,17 @@ def ict_search(maze: Maze, subproblems: List[Tuple[Location, Location]], root: T
                         mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c, mdd_cache[(i, c - 1)])
                     else:
                         mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c)
-                mdds.append(mdd_cache[(i, c)])
-            if k <= 2 or check_pairs(mdds,k):
+                mdds.append(copy(mdd_cache[(i, c)]))
+                mdds[i].mdd = deepcopy(mdd_cache[(i, c)].mdd)
+            if k <= 2 or check_triples(mdds,k):
                 solution: JointSolution = seek_solution_in_joint_mdd(mdds, True)
                 if solution:
                     return solution
     return []
 
-def check_pairs(mdds: List[MDD],k: int):
-    for (i,j,k) in combinations(range(k), 3):
-        if not seek_solution_in_joint_mdd([mdds[i],mdds[j],mdds[k]], False):
+def check_triples(mdds: List[MDD],k: int, enhanced: bool = True):
+    for (i,j) in combinations(range(k), 2):
+        if not seek_solution_in_joint_mdd([mdds[i],mdds[j]], False,enhanced):
             return False
     return True
 
@@ -468,10 +496,29 @@ if __name__ == '__main__':
     # print(enumerate_matchings(agents,tasks))
     # print(enumerate_matchings(agents[1:],tasks[1:]))
     # print(enumerate_matchings(agents[2:],tasks[2:]))
-    benchmark = MapfBenchmarker(
-        token="FXJ8wNVeWh4syRdh", problem_id=int(sys.argv[1]),
-        algorithm="ICTS", version="0.1.1",
-        debug=False, solver=solve,
-        cores=8
-    )
-    benchmark.run()
+    token = "FXJ8wNVeWh4syRdh"
+    p_id = int(sys.argv[1])
+    # benchmark = MapfBenchmarker(
+    #     token=token, problem_id=p_id,
+    #     algorithm="ICTS", version="0.1.2",
+    #     debug=True, solver=solve,
+    #     cores=8
+    # )
+    # benchmark.run()
+    headers = {
+        'X-API-Token': token
+    }
+    data = {
+        "algorithm": "ICTS",
+        "version": "0.1.2",
+        "debug": True
+    }
+    r = requests.post("https://mapf.nl/api/benchmark/{}".format(p_id), headers=headers,
+                      json=data)
+    assert r.status_code == 200, print(r.content)
+    j = r.json()
+    problem_json = j["problems"][0]
+    problem = Problem(problem_json["grid"], problem_json["width"], problem_json["height"], [MarkedLocation.from_dict(i) for i in problem_json["starts"]],
+                           [MarkedLocation.from_dict(i) for i in problem_json["goals"]], 0, problem_json["id"], 0)
+    solution = solve(problem)
+    pprint(solution.serialize())
