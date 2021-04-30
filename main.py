@@ -396,12 +396,9 @@ def calculate_upper_bound_cost(agents: int, maze: Maze):
     return (agents ** 2) * number_of_open_spaces
 
 
-def ict_search(maze: Maze, subproblems: List[Tuple[CompactLocation, CompactLocation]], root: Tuple[int, ...]) -> \
+def ict_search(maze: Maze, combs, prune, enhanced, subproblems: List[Tuple[CompactLocation, CompactLocation]], root: Tuple[int, ...]) -> \
 Optional[
     JointSolution]:
-    combs = 3
-    prune = True
-    enhanced = True
     frontier = deque()
     frontier.append(root)
     visited = set()
@@ -427,9 +424,7 @@ Optional[
                     else:
                         mdd_cache[(i, c)] = MDD(maze, i, subproblems[i][0], subproblems[i][1], c)
                 mdds.append(mdd_cache[(i, c)])
-                # if enhanced:
-                #     mdds[i].mdd = deepcopy(mdd_cache[(i, c)].mdd)
-            if not prune or k <= combs or check_combinations(combs, mdds, k,False,accumulator):
+            if not prune or k <= combs or check_combinations(combs, mdds, k, enhanced,accumulator):
                 solution: JointSolution = seek_solution_in_joint_mdd(mdds, True)
                 if solution:
                     return solution
@@ -463,6 +458,9 @@ def enumerate_matchings(agents, tasks):
 
 
 def solve(problem: Problem) -> Solution:
+    combs = 2
+    prune = True
+    enhanced = True
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
     paths: List[List[Tuple[int, int]]] = []
     agents = list(map(lambda marked: (compact_location(marked.x, marked.y), marked.color), problem.starts))
@@ -479,7 +477,7 @@ def solve(problem: Problem) -> Solution:
             assert len(shortest) > 0
             root_list.append(len(shortest) - 1)
         root = tuple(root_list)
-        sol = ict_search(maze, subproblems, root)
+        sol = ict_search(maze, combs,prune,enhanced,subproblems, root)
         stripped_sol = list(map(lambda x: x[0], sol))
         sic = len(stripped_sol)
         if not min_sic or min_sic > sic:
@@ -511,14 +509,21 @@ def run_custom(token,p_id):
     solution = solve(problem)
     pprint(solution.serialize())
 
+def str_to_bool(s):
+    return s == "true" or s == "True"
 if __name__ == '__main__':
     token = "FXJ8wNVeWh4syRdh"
     p_id = int(sys.argv[1])
-    run_custom(token,p_id)
-    # benchmark = MapfBenchmarker(
-    #     token=token, problem_id=p_id,
-    #     algorithm="ICTS", version="0.1.2",
-    #     debug=True, solver=solve,
-    #     cores=8
-    # )
-    # benchmark.run()
+    profile = str_to_bool(sys.argv[2])
+    debug = str_to_bool(sys.argv[3])
+    # print(p_id,profile)
+    if profile:
+        run_custom(token,p_id)
+    else:
+        benchmark = MapfBenchmarker(
+            token=token, problem_id=p_id,
+            algorithm="ICTS", version="0.1.3",
+            debug=debug, solver=solve,
+            cores=8
+        )
+        benchmark.run()
