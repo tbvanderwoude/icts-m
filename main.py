@@ -13,33 +13,26 @@ import requests
 from mapfmclient import MapfBenchmarker, Problem, Solution, MarkedLocation
 # from graphviz import Digraph
 
-row_factor = 1000
+row_factor = 2048
 depth_factor = 1000000
 
+CompactLocation = int
+# type alias for graph structure of MDD
+MDDGraph = Optional[DefaultDict[Tuple[CompactLocation, int], Set[Tuple[CompactLocation, int]]]]
 
-class Location:
-    def __init__(self, x: int, y: int):
-        self.x: int = x
-        self.y: int = y
+JointSolution = List[Tuple[Tuple[CompactLocation, ...], int]]
 
-    def __eq__(self, other) -> bool:
-        return self.x == other.x and self.y == other.y
 
-    def __hash__(self):
-        return self.x + self.y * row_factor
+def compact_location(x,y):
+    return x + y * row_factor
 
-    def __str__(self):
-        return '(' + str(self.x) + ',' + str(self.y) + ')'
-
-    @classmethod
-    def from_dict(cls, dct) -> "Location":
-        return cls(dct["x"], dct["y"])
-
+def expand_location(c: CompactLocation):
+    return (c % row_factor, c // row_factor)
 
 class Node:
-    def __init__(self, parent, loc: Location, cost: int, heuristic: int):
+    def __init__(self, parent, loc: CompactLocation, cost: int, heuristic: int):
         self.parent: Optional[Node] = parent
-        self.loc: Location = loc
+        self.loc: CompactLocation = loc
         self.cost: int = cost
         self.heuristic: int = heuristic
 
@@ -49,7 +42,7 @@ class Node:
     def is_root(self):
         return self.parent is None
 
-    def is_goal(self, goal: Location) -> bool:
+    def is_goal(self, goal: CompactLocation) -> bool:
         return self.loc == goal
 
     def get_directions(self):
@@ -85,51 +78,48 @@ class Maze:
         self.width = width
         self.height = height
 
-    def get_valid_children(self, loc: Location) -> List[Location]:
-        x, y = loc.x, loc.y
+    def get_valid_children(self, loc: CompactLocation) -> List[CompactLocation]:
+        x, y = expand_location(loc)
         all_children: List[Tuple[int, int]] = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1), (x, y)]
-        good_children: List[Tuple[int, int]] = []
+        good_children: List[CompactLocation] = []
         for c in all_children:
             if 0 <= c[0] < self.width and 0 <= c[1] < self.height:
                 if not self.grid[c[1]][c[0]]:
-                    good_children.append(c)
-        return list(map(lambda x: Location(x[0], x[1]), good_children))
+                    good_children.append(compact_location(c[0],c[1]))
+        return good_children
 
 
-def heuristic(node: Location, goal: Location) -> int:
-    return abs(goal.x - node.x) + abs(goal.y - node.y)
+def heuristic(node: CompactLocation, goal: CompactLocation) -> int:
+    x1, y1 = expand_location(node)
+    x2, y2 = expand_location(goal)
+    return abs(x1 - x2) + abs(y1 - y2)
 
 
-def astar(maze: Maze, start: Location, goal: Location) -> List[Tuple[int, int]]:
+def astar(maze: Maze, start: CompactLocation, goal: CompactLocation) -> List[Tuple[int, int]]:
     ls: List[Node] = [Node(None, start, 0, heuristic(start, goal))]
     heapq.heapify(ls)
-    seen: Set[Location] = set()
+    seen: Set[CompactLocation] = set()
     while ls:
         n: Node = heapq.heappop(ls)
         if (n.loc) not in seen:
             seen.add(n.loc)
             if n.is_goal(goal):
-                return list(map(lambda loc: (loc.x, loc.y), n.get_directions()))
+                return list(map(lambda loc: expand_location(loc), n.get_directions()))
             for c in maze.get_valid_children(n.loc):
                 heapq.heappush(ls, Node(n, c, n.cost + 1, heuristic(c, goal)))
     return []
 
 
-# type alias for graph structure of MDD
-MDDGraph = Optional[DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]]]
-
-JointSolution = List[Tuple[Tuple[Location, ...], int]]
-
 
 class MDD:
-    def __init__(self, maze: Maze, agent: int, start: Location, goal: Location, depth: int, last_mdd=None):
+    def __init__(self, maze: Maze, agent: int, start: CompactLocation, goal: CompactLocation, depth: int, last_mdd=None):
         self.agent: int = agent
-        self.start: Location = start
-        self.goal: Location = goal
+        self.start: CompactLocation = start
+        self.goal: CompactLocation = goal
         self.depth: int = depth
         self.bfs_tree = {}
         self.mdd: MDDGraph = None
-        self.level: DefaultDict[int, Set[Location]] = defaultdict(set)
+        self.level: DefaultDict[int, Set[CompactLocation]] = defaultdict(set)
         if last_mdd and last_mdd.depth < depth and last_mdd.agent == agent:
             self.generate_mdd(maze, last_mdd)
         else:
@@ -175,7 +165,7 @@ class MDD:
             return {self.goal}
         return self.level[i]
 
-    def get_children_at_node(self, node: Location, curr_depth: int) -> List[Location]:
+    def get_children_at_node(self, node: CompactLocation, curr_depth: int) -> List[CompactLocation]:
         if self.goal == node and curr_depth >= self.depth:
             return [self.goal]
         else:
@@ -192,7 +182,7 @@ TLDR: turns a child-parents structure into a parent-children structure with some
 """
 
 
-def mdd_from_tree(tree: DefaultDict[Tuple[Location, int], Set[Tuple[Location, int]]], goal: Location, depth: int) \
+def mdd_from_tree(tree: DefaultDict[Tuple[CompactLocation, int], Set[Tuple[CompactLocation, int]]], goal: CompactLocation, depth: int) \
         -> MDDGraph:
     goal_at_depth = (goal, depth)
     # If the goal node is not in the DAG, return the empty MDD represented by None
@@ -214,7 +204,7 @@ def mdd_from_tree(tree: DefaultDict[Tuple[Location, int], Set[Tuple[Location, in
     return mdd
 
 
-def construct_bfs_tree(maze: Maze, start: Location, depth: int):
+def construct_bfs_tree(maze: Maze, start: CompactLocation, depth: int):
     fringe = deque()
     fringe.append((start, 0))
     # DAG represented by child-parents map. This formulation makes it easier to construct the path(s) from the parents
@@ -227,7 +217,7 @@ def construct_bfs_tree(maze: Maze, start: Location, depth: int):
 def bootstrap_depth_d_bfs_tree(maze: Maze, depth: int, old_tree):
     fringe = deque()
     old_fringe = list(old_tree['fringe'])
-    old_fringe.sort(key=lambda x: x[0].x + x[0].y)
+    old_fringe.sort()
     fringe.extend(old_fringe)
     prev_dict = old_tree['tree']
     for node in old_fringe:
@@ -238,13 +228,13 @@ def bootstrap_depth_d_bfs_tree(maze: Maze, depth: int, old_tree):
     return new_bfs_tree
 
 
-def main_bfs_loop(maze: Maze, depth: int, fringe: Deque[Tuple[Location, int]], prev_dict, visited):
+def main_bfs_loop(maze: Maze, depth: int, fringe: Deque[Tuple[CompactLocation, int]], prev_dict, visited):
     depth_d_plus_one_fringe = set()
     fringe_prevs = defaultdict(set)
     while fringe:
         curr = fringe.popleft()
         loc, d = curr
-        children: List[Tuple[Location, int]] = list(map(lambda c: (c, d + 1), maze.get_valid_children(loc)))
+        children: List[Tuple[CompactLocation, int]] = list(map(lambda c: (c, d + 1), maze.get_valid_children(loc)))
         for c in children:
             if c[1] <= depth:
                 prev_dict[c].add(curr)
@@ -258,7 +248,7 @@ def main_bfs_loop(maze: Maze, depth: int, fringe: Deque[Tuple[Location, int]], p
             'fringe_prevs': fringe_prevs}
 
 
-def is_goal_state(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) -> bool:
+def is_goal_state(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int) -> bool:
     for mdd, node in zip(mdds, curr_nodes):
         if curr_depth < mdd.depth or mdd.goal != node:
             return False
@@ -268,7 +258,7 @@ def is_goal_state(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) 
 """Generates locations to choose for each (MDD,Location) pair."""
 
 
-def get_children_for_mdds(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int) -> List[List[Location]]:
+def get_children_for_mdds(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int) -> List[List[CompactLocation]]:
     return list(map(lambda x: x[0].get_children_at_node(x[1], curr_depth), zip(mdds, curr_nodes)))
 
 
@@ -276,18 +266,18 @@ def is_invalid_move(curr_locs, next_locs):
     return not all_different(curr_locs) or has_edge_collisions(curr_locs, next_locs)
 
 
-def has_edge_collisions(curr_nodes: List[Location], next_nodes: List[Location]) -> bool:
+def has_edge_collisions(curr_nodes: List[CompactLocation], next_nodes: List[CompactLocation]) -> bool:
     forward_edges = set(filter(lambda p: p[0] != p[1], zip(curr_nodes, next_nodes)))
     backward_edges = set(filter(lambda p: p[0] != p[1], zip(next_nodes, curr_nodes)))
     return not forward_edges.isdisjoint(backward_edges)
 
 
-def prune_joint_children(joint_child_nodes, curr_nodes: List[Location]):
+def prune_joint_children(joint_child_nodes, curr_nodes: List[CompactLocation]):
     return list(
         filter(
             lambda node: all_different(node) and not has_edge_collisions(curr_nodes, node), joint_child_nodes))
 
-def get_valid_children(mdds: List[MDD], curr_nodes: List[Location], curr_depth: int, unfold_mdds: bool = False):
+def get_valid_children(mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int, unfold_mdds: bool = False):
     per_mdd_children = get_children_for_mdds(mdds, curr_nodes, curr_depth)
     all_joint_child_nodes = list(itertools.product(*per_mdd_children))
     pruned = prune_joint_children(all_joint_child_nodes, curr_nodes)
@@ -335,9 +325,9 @@ def seek_solution_in_joint_mdd(mdds: List[MDD], constructive: bool, unfold: bool
 
 
 def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[Any, int], max_depth: int,
-                  visited: Set[Tuple[List[Location], int]], unfold: bool = False) \
-        -> Tuple[bool, Set[Tuple[List[Location], int]]]:
-    curr_nodes: List[Location] = curr[0]
+                  visited: Set[Tuple[List[CompactLocation], int]], unfold: bool = False) \
+        -> Tuple[bool, Set[Tuple[List[CompactLocation], int]]]:
+    curr_nodes: List[CompactLocation] = curr[0]
     curr_depth: int = curr[1]
     if curr in visited or curr_depth > max_depth:
         return False, visited
@@ -353,10 +343,10 @@ def joint_mdd_dfs(mdds: List[MDD], curr: Tuple[Any, int], max_depth: int,
     return False, visited
 
 
-def joint_mdd_dfs_constructive(mdds: List[MDD], prev: Optional[List[Location]], curr: Tuple[Any, int], max_depth: int,
-                               visited: Set[Tuple[List[Location], int]]) \
-        -> Tuple[JointSolution, Set[Tuple[List[Location], int]]]:
-    curr_nodes: List[Location] = curr[0]
+def joint_mdd_dfs_constructive(mdds: List[MDD], prev: Optional[List[CompactLocation]], curr: Tuple[Any, int], max_depth: int,
+                               visited: Set[Tuple[List[CompactLocation], int]]) \
+        -> Tuple[JointSolution, Set[Tuple[List[CompactLocation], int]]]:
+    curr_nodes: List[CompactLocation] = curr[0]
     curr_depth: int = curr[1]
     if prev and is_invalid_move(prev, curr_nodes):
         return [], visited
@@ -392,7 +382,7 @@ def calculate_upper_bound_cost(agents: int, maze: Maze):
     return (agents ** 2) * number_of_open_spaces
 
 
-def ict_search(maze: Maze, subproblems: List[Tuple[Location, Location]], root: Tuple[int, ...]) -> Optional[
+def ict_search(maze: Maze, subproblems: List[Tuple[CompactLocation, CompactLocation]], root: Tuple[int, ...]) -> Optional[
     JointSolution]:
     frontier = deque()
     frontier.append(root)
@@ -450,8 +440,8 @@ def enumerate_matchings(agents, tasks):
 def solve(problem: Problem) -> Solution:
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
     paths: List[List[Tuple[int, int]]] = []
-    agents = list(map(lambda marked: (Location(marked.x, marked.y), marked.color), problem.starts))
-    goals = list(map(lambda marked: (Location(marked.x, marked.y), marked.color), problem.goals))
+    agents = list(map(lambda marked: (compact_location(marked.x, marked.y), marked.color), problem.starts))
+    goals = list(map(lambda marked: (compact_location(marked.x, marked.y), marked.color), problem.goals))
     matchings = enumerate_matchings(agents, goals)
     min_sic = None
     min_sol = None
@@ -473,7 +463,7 @@ def solve(problem: Problem) -> Solution:
     print(min_sic)
     subsols = list(zip(*min_sol))
     for subsol in subsols:
-        paths.append(list(map(lambda loc: (loc.x, loc.y), subsol)))
+        paths.append(list(map(lambda loc: expand_location(loc), subsol)))
     return Solution.from_paths(paths)
 
 
@@ -498,27 +488,27 @@ if __name__ == '__main__':
     # print(enumerate_matchings(agents[2:],tasks[2:]))
     token = "FXJ8wNVeWh4syRdh"
     p_id = int(sys.argv[1])
-    # benchmark = MapfBenchmarker(
-    #     token=token, problem_id=p_id,
-    #     algorithm="ICTS", version="0.1.2",
-    #     debug=True, solver=solve,
-    #     cores=8
-    # )
-    # benchmark.run()
-    headers = {
-        'X-API-Token': token
-    }
-    data = {
-        "algorithm": "ICTS",
-        "version": "0.1.2",
-        "debug": True
-    }
-    r = requests.post("https://mapf.nl/api/benchmark/{}".format(p_id), headers=headers,
-                      json=data)
-    assert r.status_code == 200, print(r.content)
-    j = r.json()
-    problem_json = j["problems"][0]
-    problem = Problem(problem_json["grid"], problem_json["width"], problem_json["height"], [MarkedLocation.from_dict(i) for i in problem_json["starts"]],
-                           [MarkedLocation.from_dict(i) for i in problem_json["goals"]], 0, problem_json["id"], 0)
-    solution = solve(problem)
-    pprint(solution.serialize())
+    benchmark = MapfBenchmarker(
+        token=token, problem_id=p_id,
+        algorithm="ICTS", version="0.1.2",
+        debug=False, solver=solve,
+        cores=8
+    )
+    benchmark.run()
+    # headers = {
+    #     'X-API-Token': token
+    # }
+    # data = {
+    #     "algorithm": "ICTS",
+    #     "version": "0.1.2",
+    #     "debug": True
+    # }
+    # r = requests.post("https://mapf.nl/api/benchmark/{}".format(p_id), headers=headers,
+    #                   json=data)
+    # assert r.status_code == 200, print(r.content)
+    # j = r.json()
+    # problem_json = j["problems"][0]
+    # problem = Problem(problem_json["grid"], problem_json["width"], problem_json["height"], [MarkedLocation.from_dict(i) for i in problem_json["starts"]],
+    #                        [MarkedLocation.from_dict(i) for i in problem_json["goals"]], 0, problem_json["id"], 0)
+    # solution = solve(problem)
+    # pprint(solution.serialize())
