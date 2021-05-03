@@ -21,16 +21,16 @@ class AStarTest(unittest.TestCase):
         start: CompactLocation = compact_location(1, 1)
         goal: CompactLocation = compact_location(1, 1)
         path = astar(self.maze, start, goal)
-        self.assertEqual(len(path), 1)
+        self.assertListEqual(path, [(1,1)])
 
     def test_astar_one(self):
         start: CompactLocation = compact_location(1, 1)
         goal: CompactLocation = compact_location(1, 2)
         path = astar(self.maze, start, goal)
-        self.assertEqual(len(path), 2)
+        self.assertListEqual(path, [(1,1),(1,2)])
 
     def test_astar_many(self):
         start: CompactLocation = compact_location(1, 1)
         goal: CompactLocation = compact_location(3, 3)
         path = astar(self.maze, start, goal)
-        self.assertEqual(len(path), 5)
+        self.assertListEqual(path, [(1, 1), (1, 2),(2,2),(3,2),(3,3)])
