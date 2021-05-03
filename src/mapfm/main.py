@@ -5,7 +5,7 @@ from pprint import pprint
 import requests
 from mapfmclient import MapfBenchmarker, Problem, MarkedLocation
 
-from solve import solve
+from mapfm.solve import solve
 
 
 def run_custom(token, p_id):

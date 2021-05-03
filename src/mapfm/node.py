@@ -1,6 +1,6 @@
 from typing import Optional
 
-from compact_location import CompactLocation
+from mapfm.compact_location import CompactLocation
 
 
 class Node:

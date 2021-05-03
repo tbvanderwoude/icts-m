@@ -1,8 +1,8 @@
 import itertools
 from typing import List, Tuple, Iterable, Any, Union, Set, Optional
 
-from compact_location import CompactLocation
-from mdd import MDD
+from mapfm.compact_location import CompactLocation
+from mapfm.mdd import MDD
 
 JointSolution = List[Tuple[Tuple[CompactLocation, ...], int]]
 

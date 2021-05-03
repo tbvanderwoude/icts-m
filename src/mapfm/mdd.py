@@ -4,8 +4,8 @@ from typing import Optional, DefaultDict, Tuple, Set, Iterable, Deque
 from graphviz import Digraph
 from matplotlib import pyplot as plt
 
-from compact_location import CompactLocation
-from maze import Maze
+from mapfm.compact_location import CompactLocation
+from mapfm.maze import Maze
 
 MDDGraph = Optional[
     DefaultDict[Tuple[CompactLocation, int], Set[Tuple[CompactLocation, int]]]

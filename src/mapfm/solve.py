@@ -3,10 +3,10 @@ from typing import List, Tuple
 
 from mapfmclient import Problem, Solution
 
-from astar import astar
-from compact_location import compact_location, expand_location
-from ict_search import ict_search
-from maze import Maze
+from mapfm.astar import astar
+from mapfm.compact_location import compact_location, expand_location
+from mapfm.ict_search import ict_search
+from mapfm.maze import Maze
 
 
 def enumerate_matchings(agents, tasks):
