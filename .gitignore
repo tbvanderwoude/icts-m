@@ -9,3 +9,4 @@
 *.synctex.gz
 *.run.xml
 *-blx.bib
+__pycache__/
