@@ -11,7 +11,13 @@ class Maze:
 
     def get_valid_children(self, loc: CompactLocation) -> List[CompactLocation]:
         x, y = expand_location(loc)
-        all_children: List[Tuple[int, int]] = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1), (x, y)]
+        all_children: List[Tuple[int, int]] = [
+            (x + 1, y),
+            (x - 1, y),
+            (x, y + 1),
+            (x, y - 1),
+            (x, y),
+        ]
         good_children: List[CompactLocation] = []
         for c in all_children:
             if 0 <= c[0] < self.width and 0 <= c[1] < self.height:
