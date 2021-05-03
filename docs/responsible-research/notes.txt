@@ -76,3 +76,81 @@ What went wrong in sampling? There were 60 samples, although 100.000 residents m
 Iron level exceeded measurement capabilities, lead levels were more than 20 times too high sometimes.
 
 Power of citizen scientists and emperical evidence, sadness of officials focussing only on showing regulations are met.
+
+
+Reproducibility crisis! Most researchers think there is one, no one does something about it. A bit like climate change.
+
+People fail to reproduce other's work, even their own work! 
+
+Having other lab members redo experiment is a good sanity check. Documentation and standardization of procedures are also important.
+
+Pre-registration: I will do this experiment with this analysis after to test these hypotheses. 
+
+Factors: pressure to publish and selective reporting.
+
+Also: increasing grant and position competition, more bureaucracy and additional tasks: being stretched thinner.
+
+Reproducibility is like brushing your teeth
+
+Diederik stapel
+
+
+
+Stapel: opposite extreme of the subtle cherry-picking to support your hypothesis. Still on the same distribution, that of fraud
+
+Science is not holy.
+
+Science becoming a business
+Resources, grants, competition, money
+
+Travelling salesmen selling their talks, maybe more like a travelling circus
+
+Lesson: there was space in the scientific praxis of the field of psychology for fraud at this scale, with so little care (handcrafted random data and so on).
+
+Reproducibility in computational science:
+Massive computation as changing science, many different fields.
+Simulations from the climate to the genesis of galaxies and biomolecular processes. Data mining and artificial intelligence. 
+
+Computation as key in modern scientific praxis: so experiments, code, should be described as accurately as traditional science but it is not!
+This is the scientific method. In math, science, you need to explain what you found out and how you did it so people can check and see that it is true.
+
+Why is it harder? Communicating the exact algorithms you used, what software packages and so on, is not a fit for a traditional paper. Code repositories do not always make sense. Data is often too huge to put up online, or may have copyrights. 
+
+Credibility crisis
+
+Fundamental question: how can data and code be integrated with traditional research publication formats?
+
+Bermuda principles in genome science
+
+Roles: scientist, funding decision-maker, journal editor
+
+Scientist: Include source-code and data along with statistical analyses and simulation results.
+Version this code properly, so that versions could be cited in reproduction (doi: digital object identifier)
+Describe environment, ideally a virtual machine image
+Use open licensing to facilitate reuse
+Use open-access contracts for published papers
+Avoid proprietary formats/systems/software
+
+Funding role:
+Establish archival organization for hosting data/code
+Fund groups to adopt reproducibility methods
+Encourage development of common definitions regarding state of reproducibility
+Fund development of new digital frameworks/tools for both linking code/data to pubs but also for sharing workflows.
+
+Journal editor:
+Encourage provision of URLs to repos
+Require a replication review
+Require appropriate data/code citations when referring to data/code
+
+Long-term:
+VCS for data and code and papers. 
+Test suites delivered along with code as well as documentation (See Sphinx)
+Tools for describing contributions, even if small (minor commits to code)
+Tools for effective download tracking
+Marking of reproducible documents in a uniform way
+Standard data descriptions
+Universities taking a key role in all the above, to facilitate this
+Clarify ownership between all parties of data, code, paper
+Develop living communities around all these concepts related to computational reproducibility
+
+
