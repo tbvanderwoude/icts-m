@@ -5,7 +5,7 @@ from typing import List, Tuple, Optional
 from mapfm.compact_location import CompactLocation
 from mapfm.maze import Maze
 from mapfm.mdd import MDD
-from mapfm.mdd_search import JointSolution, seek_solution_in_joint_mdd
+from mapfm.mdd_search import JointSolution, seek_solution_in_joint_mdd, JointTimedSolution
 
 
 def find_number_of_open_spaces(maze: Maze):
@@ -32,7 +32,7 @@ def ict_search(
 
     k = len(subproblems)
     upper = calculate_upper_bound_cost(k, maze)
-    print(k, upper, root)
+    # print(k, upper, root)
     while frontier:
         node = frontier.popleft()
         if sum(node) <= upper and not node in visited:
@@ -64,9 +64,10 @@ def ict_search(
                 or k <= combs
                 or check_combinations(combs, mdds, k, enhanced, accumulator)
             ):
-                solution: JointSolution = seek_solution_in_joint_mdd(mdds, True)
+                solution: JointTimedSolution = seek_solution_in_joint_mdd(mdds, True)
                 if solution:
-                    return solution
+                    return list(map(lambda x: x[0], solution))
+
             for (i, p, c) in accumulator:
                 mdds[i].mdd[p].add(c)
     return []

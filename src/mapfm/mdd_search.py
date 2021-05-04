@@ -1,19 +1,19 @@
 import itertools
+from collections import defaultdict
 from typing import List, Tuple, Iterable, Any, Union, Set, Optional
 
 from mapfm.compact_location import CompactLocation
+from mapfm.conflicts import is_invalid_move, has_edge_collisions, all_different
 from mapfm.mdd import MDD
 
-JointSolution = List[Tuple[Tuple[CompactLocation, ...], int]]
-
+JointSolution = List[Tuple[CompactLocation, ...]]
+JointTimedSolution = List[Tuple[Tuple[CompactLocation, ...],int]]
 # early-exit variant of the version below. Intuitively, it should be faster
 # https://stackoverflow.com/questions/5278122/checking-if-all-elements-in-a-list-are-unique
 # experimentally, it is much much worse!
 # def all_different(xs):
 #     seen = set()
 #     return not any(i in seen or seen.add(i) for i in xs)
-def all_different(xs):
-    return len(set(xs)) == len(xs)
 
 
 def is_goal_state(
@@ -34,18 +34,6 @@ def get_children_for_mdds(
     return map(
         lambda x: x[0].get_children_at_node(x[1], curr_depth), zip(mdds, curr_nodes)
     )
-
-
-def is_invalid_move(curr_locs, next_locs):
-    return not all_different(curr_locs) or has_edge_collisions(curr_locs, next_locs)
-
-
-def has_edge_collisions(
-    curr_nodes: List[CompactLocation], next_nodes: List[CompactLocation]
-) -> bool:
-    forward_edges = set(filter(lambda p: p[0] != p[1], zip(curr_nodes, next_nodes)))
-    backward_edges = set(filter(lambda p: p[0] != p[1], zip(next_nodes, curr_nodes)))
-    return not forward_edges.isdisjoint(backward_edges)
 
 
 def prune_joint_children(joint_child_nodes, curr_nodes: List[CompactLocation]):
@@ -86,7 +74,7 @@ def get_valid_children(
 
 def seek_solution_in_joint_mdd(
     mdds: List[MDD], constructive: bool, unfold: bool = False, accumulator: List = []
-) -> Union[bool, JointSolution]:
+) -> Union[bool, JointTimedSolution]:
     for mdd in mdds:
         if not mdd.mdd:
             if constructive:
@@ -140,7 +128,7 @@ def joint_mdd_dfs_constructive(
     curr: Tuple[Any, int],
     max_depth: int,
     visited: Set[Tuple[List[CompactLocation], int]],
-) -> Tuple[JointSolution, Set[Tuple[List[CompactLocation], int]]]:
+) -> Tuple[JointTimedSolution, Set[Tuple[List[CompactLocation], int]]]:
     curr_nodes: List[CompactLocation] = curr[0]
     curr_depth: int = curr[1]
     if prev and is_invalid_move(prev, curr_nodes):
