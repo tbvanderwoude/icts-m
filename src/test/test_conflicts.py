@@ -23,7 +23,6 @@ class ConflictTest(unittest.TestCase):
         self.assertEqual(edge_collisions_constructive(xs, ys), (1, 2))
         self.assertEqual(count_edge_collsions(xs, ys), 1)
 
-
     def test_find_conflict_edge(self):
         xs = construct_node([(0, 0), (0, 1), (2, 1)])
         ys = construct_node([(0, 1), (2, 1), (0, 1)])

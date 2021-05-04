@@ -21,6 +21,7 @@ def all_different_constructive(xs) -> Optional[Tuple[int, int]]:
             loc_agent[curr_loc].add(i)
     return None
 
+
 def count_all_different(xs) -> int:
     count = 0
     loc_agent = defaultdict(set)
@@ -30,6 +31,7 @@ def count_all_different(xs) -> int:
         else:
             loc_agent[curr_loc].add(i)
     return count
+
 
 def count_edge_collsions(curr_locs, next_locs) -> int:
     count = 0
@@ -43,6 +45,9 @@ def count_edge_collsions(curr_locs, next_locs) -> int:
                 count += 1
     return count
 
+
+def count_conflicts(curr_locs, next_locs) -> int:
+    return count_all_different(curr_locs) + count_edge_collsions(curr_locs, next_locs)
 
 
 def edge_collisions_constructive(curr_locs, next_locs) -> Optional[Tuple[int, int]]:
