@@ -21,6 +21,29 @@ def all_different_constructive(xs) -> Optional[Tuple[int, int]]:
             loc_agent[curr_loc].add(i)
     return None
 
+def count_all_different(xs) -> int:
+    count = 0
+    loc_agent = defaultdict(set)
+    for (i, curr_loc) in enumerate(xs):
+        if len(loc_agent[curr_loc]) > 0:
+            count += 1
+        else:
+            loc_agent[curr_loc].add(i)
+    return count
+
+def count_edge_collsions(curr_locs, next_locs) -> int:
+    count = 0
+    for (i, ei) in filter(
+        lambda p: p[1][0] != p[1][1], enumerate(zip(curr_locs, next_locs))
+    ):
+        for (j, ej) in filter(
+            lambda p: p[1][0] != p[1][1], enumerate(zip(next_locs, curr_locs))
+        ):
+            if j > i and ei == ej:
+                count += 1
+    return count
+
+
 
 def edge_collisions_constructive(curr_locs, next_locs) -> Optional[Tuple[int, int]]:
     for (i, ei) in filter(
