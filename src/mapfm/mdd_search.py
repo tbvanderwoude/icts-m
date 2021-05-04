@@ -1,5 +1,4 @@
 import itertools
-from collections import defaultdict
 from typing import List, Tuple, Iterable, Any, Union, Set, Optional
 
 from mapfm.compact_location import CompactLocation
@@ -8,12 +7,6 @@ from mapfm.mdd import MDD
 
 JointSolution = List[Tuple[CompactLocation, ...]]
 JointTimedSolution = List[Tuple[Tuple[CompactLocation, ...], int]]
-# early-exit variant of the version below. Intuitively, it should be faster
-# https://stackoverflow.com/questions/5278122/checking-if-all-elements-in-a-list-are-unique
-# experimentally, it is much much worse!
-# def all_different(xs):
-#     seen = set()
-#     return not any(i in seen or seen.add(i) for i in xs)
 
 
 def is_goal_state(

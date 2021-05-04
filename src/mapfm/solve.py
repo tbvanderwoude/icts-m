@@ -6,7 +6,7 @@ from mapfmclient import Problem, Solution
 from mapfm.astar import astar
 from mapfm.compact_location import compact_location, expand_location, CompactLocation
 from mapfm.conflicts import is_invalid_move, find_conflict
-from mapfm.ict_search import ict_search
+from mapfm.ict_search import ICTSearcher
 from mapfm.maze import Maze
 
 
@@ -60,6 +60,7 @@ class Solver:
         self.prune = prune
         self.enhanced = enhanced
         self.id = id
+        self.ict_searcher = ICTSearcher(self.maze, combs, prune, enhanced)
 
     def solve(self) -> Solution:
         paths: List[List[Tuple[int, int]]] = []
@@ -79,14 +80,12 @@ class Solver:
         min_sic = None
         min_sol = None
         for matching in matchings:
-            if id:
-                sol = self.solve_mapf_with_id(matching)
-            else:
-                sol = self.solve_matching(matching)
+            sol = self.solve_matching(matching)
             sic = len(sol)
             if not min_sic or min_sic > sic:
                 min_sic = sic
                 min_sol = sol
+
         # print(min_sic)
         subsols = list(zip(*min_sol))
         for subsol in subsols:
@@ -94,6 +93,12 @@ class Solver:
         return Solution.from_paths(paths)
 
     def solve_matching(self, matching: List[Tuple[CompactLocation, CompactLocation]]):
+        if id:
+            return self.solve_mapf_with_id(matching)
+        else:
+            return self.solve_mapf(matching)
+
+    def solve_mapf(self, matching: List[Tuple[CompactLocation, CompactLocation]]):
         subproblems = []
         root_list = []
         for (start, goal) in matching:
@@ -102,9 +107,7 @@ class Solver:
             assert len(shortest) > 0
             root_list.append(len(shortest) - 1)
         root = tuple(root_list)
-        return ict_search(
-            self.maze, self.combs, self.prune, self.enhanced, subproblems, root
-        )
+        return self.ict_searcher.search(subproblems, root)
 
     def solve_group(
         self,
@@ -113,7 +116,7 @@ class Solver:
         matching: List[Tuple[CompactLocation, CompactLocation]],
     ):
         sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
-        return list(zip(*self.solve_matching(sub_matching)))
+        return list(zip(*self.solve_mapf(sub_matching)))
 
     def solve_mapf_with_id(
         self,
@@ -122,7 +125,7 @@ class Solver:
         agent_groups = list(range(self.k))
         agent_paths: List[List[Tuple[CompactLocation]]] = []
         for (i, match) in enumerate(matching):
-            agent_paths.append(list(map(lambda x: x[0], self.solve_matching([match]))))
+            agent_paths.append(list(map(lambda x: x[0], self.solve_mapf([match]))))
         kprime = 1
         while True:
             unique_groups = set(agent_groups)

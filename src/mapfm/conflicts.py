@@ -3,6 +3,13 @@ from typing import List, Optional, Tuple
 
 from mapfm.compact_location import CompactLocation
 
+# early-exit variant of the version below. Intuitively, it should be faster
+# https://stackoverflow.com/questions/5278122/checking-if-all-elements-in-a-list-are-unique
+# experimentally, it is much much worse!
+# def all_different(xs):
+#     seen = set()
+#     return not any(i in seen or seen.add(i) for i in xs)
+
 
 def all_different(xs):
     return len(set(xs)) == len(xs)
