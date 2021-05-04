@@ -81,7 +81,8 @@ class Solver:
                 min_sic = sic
                 min_sol = sol.solution
                 self.update_budget(min_sic)
-            # print("Solved matching")
+            print("Solved matching")
+
         # print(min_sic)
         subsols = list(zip(*min_sol))
         for subsol in subsols:
