@@ -1,12 +1,12 @@
 from copy import copy
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Dict
 
 from mapfmclient import Problem, Solution
 
 from mapfm.astar import astar
 from mapfm.compact_location import compact_location, expand_location, CompactLocation
 from mapfm.conflicts import is_invalid_move, find_conflict
-from mapfm.ict_search import ICTSearcher
+from mapfm.ict_search import ICTSearcher, ICTSolution
 from mapfm.maze import Maze
 
 
@@ -81,10 +81,11 @@ class Solver:
         min_sol = None
         for matching in matchings:
             sol = self.solve_matching(matching)
-            sic = len(sol)
+            sic = sol.sic
             if not min_sic or min_sic > sic:
                 min_sic = sic
-                min_sol = sol
+                min_sol = sol.solution
+                self.update_budget(min_sic)
 
         # print(min_sic)
         subsols = list(zip(*min_sol))
@@ -92,13 +93,15 @@ class Solver:
             paths.append(list(map(lambda loc: expand_location(loc), subsol)))
         return Solution.from_paths(paths)
 
+    def update_budget(self,budget):
+        self.ict_searcher.budget = budget
     def solve_matching(self, matching: List[Tuple[CompactLocation, CompactLocation]]):
         if id:
             return self.solve_mapf_with_id(matching)
         else:
             return self.solve_mapf(matching)
 
-    def solve_mapf(self, matching: List[Tuple[CompactLocation, CompactLocation]]):
+    def solve_mapf(self, matching: List[Tuple[CompactLocation, CompactLocation]]) -> Optional[ICTSolution]:
         subproblems = []
         root_list = []
         for (start, goal) in matching:
@@ -116,7 +119,7 @@ class Solver:
         matching: List[Tuple[CompactLocation, CompactLocation]],
     ):
         sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
-        return list(zip(*self.solve_mapf(sub_matching)))
+        return self.solve_mapf(sub_matching)
 
     def solve_mapf_with_id(
         self,
@@ -124,8 +127,11 @@ class Solver:
     ):
         agent_groups = list(range(self.k))
         agent_paths: List[List[Tuple[CompactLocation]]] = []
+        group_sic: Dict[int,int] = {}
         for (i, match) in enumerate(matching):
-            agent_paths.append(list(map(lambda x: x[0], self.solve_mapf([match]))))
+            solution = self.solve_mapf([match])
+            agent_paths.append(list(map(lambda x: x[0], solution.solution)))
+            group_sic[i] = solution.sic
         kprime = 1
         while True:
             unique_groups = set(agent_groups)
@@ -149,20 +155,24 @@ class Solver:
             if conflict and len(unique_groups) > 1:
                 merged_group = agent_groups[conflicting_pair[0]]
                 conflict_group = agent_groups[conflicting_pair[1]]
+                group_sic[conflict_group] = 0
                 agent_groups = merge_groups(agent_groups, merged_group, conflict_group)
                 agents = [i for i in range(self.k) if agent_groups[i] == merged_group]
                 # other_agents = [i for i in range(k) if agent_groups[i] != merged_group]
                 k_solved = len(agents)
-                sol = self.solve_group(
+                group_sol = self.solve_group(
                     agent_groups[conflicting_pair[0]], agent_groups, matching
                 )
+                group_sic[merged_group] = group_sol.sic
+                group_agent_paths = list(zip(*group_sol.solution))
+
                 for (i, agent) in enumerate(agents):
-                    agent_paths[agent] = sol[i]
+                    agent_paths[agent] = group_agent_paths[i]
                 kprime = max(kprime, k_solved)
             else:
                 break
         print("k': {}".format(kprime))
-        return final_path
+        return ICTSolution(final_path,sum(group_sic.values()))
 
 
 def solve(problem: Problem) -> Solution:

@@ -15,6 +15,10 @@ from mapfm.mdd_search import (
 def find_number_of_open_spaces(maze: Maze):
     return sum([sum([x ^ 1 for x in row]) for row in maze.grid])
 
+class ICTSolution:
+    def __init__(self, solution: JointSolution, sic: int):
+        self.solution = solution
+        self.sic = sic
 
 class ICTSearcher:
     def __init__(
@@ -47,7 +51,7 @@ class ICTSearcher:
         self,
         subproblems: List[Tuple[CompactLocation, CompactLocation]],
         root: Tuple[int, ...],
-    ) -> Optional[JointSolution]:
+    ) -> Optional[ICTSolution]:
         k = len(subproblems)
         if self.budget is None:
             budget = self.calculate_upper_bound_cost(k)
@@ -57,7 +61,7 @@ class ICTSearcher:
         frontier.append(root)
         visited = set()
         mdd_cache = dict()
-        # print(k, upper, root)
+        # print(k, budget, root)
         while frontier:
             node = frontier.popleft()
             if sum(node) <= budget and not node in visited:
@@ -93,8 +97,8 @@ class ICTSearcher:
                         mdds, True
                     )
                     if solution:
-                        return list(map(lambda x: x[0], solution))
+                        return ICTSolution(list(map(lambda x: x[0], solution)),sum(node))
 
                 for (i, p, c) in accumulator:
                     mdds[i].mdd[p].add(c)
-        return []
+        return None
