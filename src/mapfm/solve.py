@@ -161,11 +161,14 @@ class Solver:
                     i for i in range(self.k) if agent_groups[i] != merged_group
                 ]
                 k_solved = len(agents)
+                context = None
+                if k_solved < self.k:
+                    context = IDContext(other_agents, agent_paths, lens)
                 group_sol = self.solve_group(
                     agent_groups[conflicting_pair[0]],
                     agent_groups,
                     matching,
-                    IDContext(other_agents, agent_paths, lens),
+                    context
                 )
                 group_sic[merged_group] = group_sol.sic
                 group_agent_paths = list(zip(*group_sol.solution))
@@ -175,7 +178,7 @@ class Solver:
                 kprime = max(kprime, k_solved)
             else:
                 break
-        print("k': {}".format(kprime))
+        # print("k': {}".format(kprime))
         return ICTSolution(final_path, sum(group_sic.values()))
 
 
