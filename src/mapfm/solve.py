@@ -60,11 +60,8 @@ def solve_group(
     matching: List[Tuple[CompactLocation, CompactLocation]],
     k: int,
 ):
-    agents = [i for i in range(k) if agent_groups[i] == group]
     sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
-    paths = list(zip(*solve_matching(maze, combs, prune, enhanced, sub_matching)))
-    return zip(agents, paths), len(agents)
-
+    return list(zip(*solve_matching(maze, combs, prune, enhanced, sub_matching)))
 
 def index_path(path, i, l):
     if i < l:
@@ -94,27 +91,21 @@ def solve_mapf_with_id(
     k: int,
 ):
     agent_groups = list(range(k))
+    agent_paths: List[List[Tuple[CompactLocation]]] = []
+    for (i,match) in enumerate(matching):
+        agent_paths.append(list(map(lambda x: x[0],solve_matching(maze, combs, prune, enhanced, [match]))))
+    # print(agent_paths)
     kprime = 0
     while True:
-        assert len(agent_groups) == k
-        path_agent_pairs = []
         unique_groups = set(agent_groups)
-        for group in unique_groups:
-            sol, k_solved = solve_group(
-                group, agent_groups, maze, combs, prune, enhanced, matching, k
-            )
-            kprime = max(kprime,k_solved)
-            path_agent_pairs.extend(sol)
-        agent_paths = dict(path_agent_pairs)
-        paths = [agent_paths[i] for i in range(k)]
-        lens = [len(path) for path in paths]
+        lens = [len(path) for path in agent_paths]
         max_len = max(lens)
-        prev = tuple([path[0] for path in paths])
+        prev = tuple([path[0] for path in agent_paths])
         conflict = False
         conflicting_pair = None
         final_path = [prev]
         for t in range(1, max_len):
-            node = tuple([index_path(paths[i], t, lens[i]) for i in range(k)])
+            node = tuple([index_path(agent_paths[i], t, lens[i]) for i in range(k)])
             conflicting_pair = find_conflict(node, prev)
             if conflicting_pair:
                 conflict = True
@@ -123,12 +114,21 @@ def solve_mapf_with_id(
                 final_path.append(node)
                 prev = node
         if conflict and len(unique_groups) > 1:
+            merged_group = agent_groups[conflicting_pair[0]]
             agent_groups = merge_groups(
                 agent_groups, conflicting_pair[0], conflicting_pair[1]
             )
+            agents = [i for i in range(k) if agent_groups[i] == merged_group]
+            k_solved = len(agents)
+            sol = solve_group(agent_groups[conflicting_pair[0]],agent_groups,maze,combs,prune,enhanced,matching,k)
+            for (i,agent) in enumerate(agents):
+                agent_paths[agent] = sol[i]
+            kprime = max(kprime,k_solved)
         else:
             break
     print("k': {}".format(kprime))
+    # for (i,p) in enumerate(final_path):
+    #     print(i,p)
     return final_path
 
 
