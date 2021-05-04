@@ -57,8 +57,7 @@ def solve_group(
     combs: int,
     prune: bool,
     enhanced: bool,
-    matching: List[Tuple[CompactLocation, CompactLocation]],
-    k: int,
+    matching: List[Tuple[CompactLocation, CompactLocation]]
 ):
     sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
     return list(zip(*solve_matching(maze, combs, prune, enhanced, sub_matching)))
@@ -70,9 +69,7 @@ def index_path(path, i, l):
         return path[-1]
 
 
-def merge_groups(agent_groups, agent_i, agent_j):
-    group_i = agent_groups[agent_i]
-    group_j = agent_groups[agent_j]
+def merge_groups(agent_groups, group_i, group_j):
     new_agent_groups = []
     for agent_group in agent_groups:
         if agent_group == group_j:
@@ -95,7 +92,7 @@ def solve_mapf_with_id(
     for (i,match) in enumerate(matching):
         agent_paths.append(list(map(lambda x: x[0],solve_matching(maze, combs, prune, enhanced, [match]))))
     # print(agent_paths)
-    kprime = 0
+    kprime = 1
     while True:
         unique_groups = set(agent_groups)
         lens = [len(path) for path in agent_paths]
@@ -115,20 +112,19 @@ def solve_mapf_with_id(
                 prev = node
         if conflict and len(unique_groups) > 1:
             merged_group = agent_groups[conflicting_pair[0]]
+            conflict_group = agent_groups[conflicting_pair[1]]
             agent_groups = merge_groups(
-                agent_groups, conflicting_pair[0], conflicting_pair[1]
+                agent_groups, merged_group, conflict_group
             )
             agents = [i for i in range(k) if agent_groups[i] == merged_group]
             k_solved = len(agents)
-            sol = solve_group(agent_groups[conflicting_pair[0]],agent_groups,maze,combs,prune,enhanced,matching,k)
+            sol = solve_group(agent_groups[conflicting_pair[0]],agent_groups,maze,combs,prune,enhanced,matching)
             for (i,agent) in enumerate(agents):
                 agent_paths[agent] = sol[i]
             kprime = max(kprime,k_solved)
         else:
             break
     print("k': {}".format(kprime))
-    # for (i,p) in enumerate(final_path):
-    #     print(i,p)
     return final_path
 
 
