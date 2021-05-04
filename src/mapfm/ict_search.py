@@ -5,7 +5,11 @@ from typing import List, Tuple, Optional
 from mapfm.compact_location import CompactLocation
 from mapfm.maze import Maze
 from mapfm.mdd import MDD
-from mapfm.mdd_search import JointSolution, seek_solution_in_joint_mdd, JointTimedSolution
+from mapfm.mdd_search import (
+    JointSolution,
+    seek_solution_in_joint_mdd,
+    JointTimedSolution,
+)
 
 
 def find_number_of_open_spaces(maze: Maze):

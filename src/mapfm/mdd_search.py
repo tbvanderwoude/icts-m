@@ -7,7 +7,7 @@ from mapfm.conflicts import is_invalid_move, has_edge_collisions, all_different
 from mapfm.mdd import MDD
 
 JointSolution = List[Tuple[CompactLocation, ...]]
-JointTimedSolution = List[Tuple[Tuple[CompactLocation, ...],int]]
+JointTimedSolution = List[Tuple[Tuple[CompactLocation, ...], int]]
 # early-exit variant of the version below. Intuitively, it should be faster
 # https://stackoverflow.com/questions/5278122/checking-if-all-elements-in-a-list-are-unique
 # experimentally, it is much much worse!

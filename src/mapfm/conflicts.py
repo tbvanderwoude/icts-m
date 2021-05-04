@@ -15,7 +15,7 @@ def is_invalid_move(curr_locs, next_locs):
 def all_different_constructive(xs) -> Optional[Tuple[int, int]]:
     loc_agent = defaultdict(set)
     for (i, curr_loc) in enumerate(xs):
-        if len(loc_agent[curr_loc]) > 0 :
+        if len(loc_agent[curr_loc]) > 0:
             return list(loc_agent[curr_loc])[0], i
         else:
             loc_agent[curr_loc].add(i)

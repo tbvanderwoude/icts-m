@@ -63,8 +63,8 @@ def solve_group(
     agents = [i for i in range(k) if agent_groups[i] == group]
     sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
     paths = list(zip(*solve_matching(maze, combs, prune, enhanced, sub_matching)))
-    return zip(
-        agents, paths)
+    return zip(agents, paths)
+
 
 def index_path(path, i, l):
     if i < l:
@@ -73,7 +73,7 @@ def index_path(path, i, l):
         return path[-1]
 
 
-def merge_groups(agent_groups, agent_i,agent_j):
+def merge_groups(agent_groups, agent_i, agent_j):
     group_i = agent_groups[agent_i]
     group_j = agent_groups[agent_j]
     new_agent_groups = []
@@ -83,6 +83,7 @@ def merge_groups(agent_groups, agent_i,agent_j):
         else:
             new_agent_groups.append(agent_group)
     return new_agent_groups
+
 
 def solve_mapf_with_id(
     maze: Maze,
@@ -94,14 +95,14 @@ def solve_mapf_with_id(
 ):
     agent_groups = list(range(k))
     while True:
-        assert(len(agent_groups) == k)
+        assert len(agent_groups) == k
         path_agent_pairs = []
         unique_groups = set(agent_groups)
         for group in unique_groups:
-            sol = solve_group(group, agent_groups, maze, combs, prune, enhanced, matching, k)
-            path_agent_pairs.extend(
-               sol
+            sol = solve_group(
+                group, agent_groups, maze, combs, prune, enhanced, matching, k
             )
+            path_agent_pairs.extend(sol)
         agent_paths = dict(path_agent_pairs)
         paths = [agent_paths[i] for i in range(k)]
         lens = [len(path) for path in paths]
@@ -120,7 +121,9 @@ def solve_mapf_with_id(
                 final_path.append(node)
                 prev = node
         if conflict and len(unique_groups) > 1:
-            agent_groups = merge_groups(agent_groups,conflicting_pair[0],conflicting_pair[1])
+            agent_groups = merge_groups(
+                agent_groups, conflicting_pair[0], conflicting_pair[1]
+            )
         else:
             break
     return final_path
