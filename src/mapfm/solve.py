@@ -93,15 +93,18 @@ class Solver:
             paths.append(list(map(lambda loc: expand_location(loc), subsol)))
         return Solution.from_paths(paths)
 
-    def update_budget(self,budget):
+    def update_budget(self, budget):
         self.ict_searcher.budget = budget
+
     def solve_matching(self, matching: List[Tuple[CompactLocation, CompactLocation]]):
         if id:
             return self.solve_mapf_with_id(matching)
         else:
             return self.solve_mapf(matching)
 
-    def solve_mapf(self, matching: List[Tuple[CompactLocation, CompactLocation]]) -> Optional[ICTSolution]:
+    def solve_mapf(
+        self, matching: List[Tuple[CompactLocation, CompactLocation]]
+    ) -> Optional[ICTSolution]:
         subproblems = []
         root_list = []
         for (start, goal) in matching:
@@ -127,7 +130,7 @@ class Solver:
     ):
         agent_groups = list(range(self.k))
         agent_paths: List[List[Tuple[CompactLocation]]] = []
-        group_sic: Dict[int,int] = {}
+        group_sic: Dict[int, int] = {}
         for (i, match) in enumerate(matching):
             solution = self.solve_mapf([match])
             agent_paths.append(list(map(lambda x: x[0], solution.solution)))
@@ -172,7 +175,7 @@ class Solver:
             else:
                 break
         print("k': {}".format(kprime))
-        return ICTSolution(final_path,sum(group_sic.values()))
+        return ICTSolution(final_path, sum(group_sic.values()))
 
 
 def solve(problem: Problem) -> Solution:

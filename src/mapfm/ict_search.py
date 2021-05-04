@@ -15,10 +15,12 @@ from mapfm.mdd_search import (
 def find_number_of_open_spaces(maze: Maze):
     return sum([sum([x ^ 1 for x in row]) for row in maze.grid])
 
+
 class ICTSolution:
     def __init__(self, solution: JointSolution, sic: int):
         self.solution = solution
         self.sic = sic
+
 
 class ICTSearcher:
     def __init__(
@@ -97,7 +99,9 @@ class ICTSearcher:
                         mdds, True
                     )
                     if solution:
-                        return ICTSolution(list(map(lambda x: x[0], solution)),sum(node))
+                        return ICTSolution(
+                            list(map(lambda x: x[0], solution)), sum(node)
+                        )
 
                 for (i, p, c) in accumulator:
                     mdds[i].mdd[p].add(c)
