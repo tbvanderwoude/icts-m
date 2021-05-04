@@ -63,7 +63,7 @@ def solve_group(
     agents = [i for i in range(k) if agent_groups[i] == group]
     sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
     paths = list(zip(*solve_matching(maze, combs, prune, enhanced, sub_matching)))
-    return zip(agents, paths)
+    return zip(agents, paths), len(agents)
 
 
 def index_path(path, i, l):
@@ -94,14 +94,16 @@ def solve_mapf_with_id(
     k: int,
 ):
     agent_groups = list(range(k))
+    kprime = 0
     while True:
         assert len(agent_groups) == k
         path_agent_pairs = []
         unique_groups = set(agent_groups)
         for group in unique_groups:
-            sol = solve_group(
+            sol, k_solved = solve_group(
                 group, agent_groups, maze, combs, prune, enhanced, matching, k
             )
+            kprime = max(kprime,k_solved)
             path_agent_pairs.extend(sol)
         agent_paths = dict(path_agent_pairs)
         paths = [agent_paths[i] for i in range(k)]
@@ -126,6 +128,7 @@ def solve_mapf_with_id(
             )
         else:
             break
+    print("k': {}".format(kprime))
     return final_path
 
 
