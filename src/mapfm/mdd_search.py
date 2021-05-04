@@ -2,8 +2,15 @@ import itertools
 from typing import List, Tuple, Iterable, Any, Union, Set, Optional
 
 from mapfm.compact_location import CompactLocation
-from mapfm.conflicts import is_invalid_move, has_edge_collisions, all_different
+from mapfm.conflicts import (
+    is_invalid_move,
+    has_edge_collisions,
+    all_different,
+    count_conflicts,
+)
+from mapfm.id_context import IDContext
 from mapfm.mdd import MDD
+from mapfm.util import index_path
 
 JointSolution = List[Tuple[CompactLocation, ...]]
 JointTimedSolution = List[Tuple[Tuple[CompactLocation, ...], int]]
@@ -30,9 +37,12 @@ def get_children_for_mdds(
 
 
 def prune_joint_children(joint_child_nodes, curr_nodes: List[CompactLocation]):
-    return filter(
-        lambda node: all_different(node) and not has_edge_collisions(curr_nodes, node),
-        joint_child_nodes,
+    return list(
+        filter(
+            lambda node: all_different(node)
+            and not has_edge_collisions(curr_nodes, node),
+            joint_child_nodes,
+        )
     )
 
 
@@ -66,7 +76,11 @@ def get_valid_children(
 
 
 def seek_solution_in_joint_mdd(
-    mdds: List[MDD], constructive: bool, unfold: bool = False, accumulator: List = []
+    mdds: List[MDD],
+    constructive: bool,
+    unfold: bool = False,
+    accumulator: List = [],
+    context: Optional[IDContext] = None,
 ) -> Union[bool, JointTimedSolution]:
     for mdd in mdds:
         if not mdd.mdd:
@@ -79,14 +93,23 @@ def seek_solution_in_joint_mdd(
     visited = set()
     if constructive:
         solution, _ = joint_mdd_dfs_constructive(
-            mdds, None, (roots, 0), max(depths), visited
+            mdds, None, (roots, 0), max(depths), visited, context
         )
         return solution
     else:
         found_path, visited = joint_mdd_dfs(
-            mdds, (roots, 0), max(depths), visited, unfold, accumulator
+            mdds, (roots, 0), max(depths), visited, unfold, accumulator, context
         )
         return found_path
+
+
+def sample_context_node(context: IDContext, depth: int):
+    return list(
+        map(
+            lambda agent: index_path(context.paths[agent], depth, context.lens[agent]),
+            context.other_agents,
+        )
+    )
 
 
 def joint_mdd_dfs(
@@ -96,6 +119,7 @@ def joint_mdd_dfs(
     visited: Set[Tuple[List[CompactLocation], int]],
     unfold: bool = False,
     accumulator: List = [],
+    context: Optional[IDContext] = None,
 ) -> Tuple[bool, Set[Tuple[List[CompactLocation], int]]]:
     curr_nodes: List[CompactLocation] = curr[0]
     curr_depth: int = curr[1]
@@ -105,10 +129,18 @@ def joint_mdd_dfs(
     if is_goal_state(mdds, curr_nodes, curr_depth):
         return True, visited
     children = get_valid_children(mdds, curr_nodes, curr_depth, unfold, accumulator)
+    if context:
+        curr_context = sample_context_node(context, curr_depth)
+        next_context = sample_context_node(context, curr_depth + 1)
+        children.sort(
+            key=lambda child: count_conflicts(
+                curr_context + list(curr_nodes), next_context + list(child)
+            )
+        )
     for node in children:
         child = (node, curr_depth + 1)
         found_path, visited = joint_mdd_dfs(
-            mdds, child, max_depth, visited, unfold, accumulator
+            mdds, child, max_depth, visited, unfold, accumulator, context
         )
         if found_path:
             return found_path, visited
@@ -121,6 +153,7 @@ def joint_mdd_dfs_constructive(
     curr: Tuple[Any, int],
     max_depth: int,
     visited: Set[Tuple[List[CompactLocation], int]],
+    context: Optional[IDContext] = None,
 ) -> Tuple[JointTimedSolution, Set[Tuple[List[CompactLocation], int]]]:
     curr_nodes: List[CompactLocation] = curr[0]
     curr_depth: int = curr[1]
@@ -133,13 +166,20 @@ def joint_mdd_dfs_constructive(
     if is_goal_state(mdds, curr_nodes, curr_depth):
         return [curr], visited
     children = get_valid_children(mdds, curr_nodes, curr_depth)
-
+    if context:
+        curr_context = sample_context_node(context, curr_depth)
+        next_context = sample_context_node(context, curr_depth + 1)
+        children.sort(
+            key=lambda child: count_conflicts(
+                curr_context + curr_nodes, next_context + child
+            )
+        )
     partial_sol = [curr]
     for node in children:
         child = (node, curr_depth + 1)
         if child not in visited:
             sol, visited = joint_mdd_dfs_constructive(
-                mdds, curr_nodes, child, max_depth, visited
+                mdds, curr_nodes, child, max_depth, visited, context
             )
             if sol:
                 partial_sol.extend(sol)

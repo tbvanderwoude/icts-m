@@ -3,6 +3,7 @@ from itertools import combinations
 from typing import List, Tuple, Optional
 
 from mapfm.compact_location import CompactLocation
+from mapfm.id_context import IDContext
 from mapfm.maze import Maze
 from mapfm.mdd import MDD
 from mapfm.mdd_search import (
@@ -41,10 +42,16 @@ class ICTSearcher:
     def calculate_upper_bound_cost(self, k: int):
         return (k ** 2) * self.open_spaces
 
-    def check_combinations(self, mdds: List[MDD], k: int, accumulator: List = []):
+    def check_combinations(
+        self,
+        mdds: List[MDD],
+        k: int,
+        accumulator: List = [],
+        context: Optional[IDContext] = None,
+    ):
         for c in combinations(range(k), self.combs):
             if not seek_solution_in_joint_mdd(
-                [mdds[i] for i in c], False, self.enhanced, accumulator
+                [mdds[i] for i in c], False, self.enhanced, accumulator, context
             ):
                 return False
         return True
@@ -53,6 +60,7 @@ class ICTSearcher:
         self,
         subproblems: List[Tuple[CompactLocation, CompactLocation]],
         root: Tuple[int, ...],
+        context: Optional[IDContext] = None,
     ) -> Optional[ICTSolution]:
         k = len(subproblems)
         if self.budget is None:
@@ -93,10 +101,10 @@ class ICTSearcher:
                 if (
                     not self.prune
                     or k <= self.combs
-                    or self.check_combinations(mdds, k, accumulator)
+                    or self.check_combinations(mdds, k, accumulator, context)
                 ):
                     solution: JointTimedSolution = seek_solution_in_joint_mdd(
-                        mdds, True
+                        mdds, True, [], context
                     )
                     if solution:
                         return ICTSolution(

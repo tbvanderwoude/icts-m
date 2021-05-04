@@ -7,7 +7,9 @@ from mapfm.astar import astar
 from mapfm.compact_location import compact_location, expand_location, CompactLocation
 from mapfm.conflicts import is_invalid_move, find_conflict
 from mapfm.ict_search import ICTSearcher, ICTSolution
+from mapfm.id_context import IDContext
 from mapfm.maze import Maze
+from mapfm.util import index_path
 
 
 def enumerate_matchings(agents, tasks):
@@ -30,13 +32,6 @@ def enumerate_matchings(agents, tasks):
         return results
     else:
         return []
-
-
-def index_path(path, i, l):
-    if i < l:
-        return path[i]
-    else:
-        return path[-1]
 
 
 def merge_groups(agent_groups, group_i, group_j):
@@ -86,6 +81,7 @@ class Solver:
                 min_sic = sic
                 min_sol = sol.solution
                 self.update_budget(min_sic)
+            print("Solved matching")
 
         # print(min_sic)
         subsols = list(zip(*min_sol))
@@ -97,13 +93,15 @@ class Solver:
         self.ict_searcher.budget = budget
 
     def solve_matching(self, matching: List[Tuple[CompactLocation, CompactLocation]]):
-        if id:
+        if self.id:
             return self.solve_mapf_with_id(matching)
         else:
             return self.solve_mapf(matching)
 
     def solve_mapf(
-        self, matching: List[Tuple[CompactLocation, CompactLocation]]
+        self,
+        matching: List[Tuple[CompactLocation, CompactLocation]],
+        context: Optional[IDContext] = None,
     ) -> Optional[ICTSolution]:
         subproblems = []
         root_list = []
@@ -113,16 +111,17 @@ class Solver:
             assert len(shortest) > 0
             root_list.append(len(shortest) - 1)
         root = tuple(root_list)
-        return self.ict_searcher.search(subproblems, root)
+        return self.ict_searcher.search(subproblems, root, context)
 
     def solve_group(
         self,
         group: int,
         agent_groups: List[int],
         matching: List[Tuple[CompactLocation, CompactLocation]],
+        context: IDContext,
     ):
         sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
-        return self.solve_mapf(sub_matching)
+        return self.solve_mapf(sub_matching, context)
 
     def solve_mapf_with_id(
         self,
@@ -161,10 +160,15 @@ class Solver:
                 group_sic[conflict_group] = 0
                 agent_groups = merge_groups(agent_groups, merged_group, conflict_group)
                 agents = [i for i in range(self.k) if agent_groups[i] == merged_group]
-                # other_agents = [i for i in range(k) if agent_groups[i] != merged_group]
+                other_agents = [
+                    i for i in range(self.k) if agent_groups[i] != merged_group
+                ]
                 k_solved = len(agents)
                 group_sol = self.solve_group(
-                    agent_groups[conflicting_pair[0]], agent_groups, matching
+                    agent_groups[conflicting_pair[0]],
+                    agent_groups,
+                    matching,
+                    IDContext(other_agents, agent_paths, lens),
                 )
                 group_sic[merged_group] = group_sol.sic
                 group_agent_paths = list(zip(*group_sol.solution))
@@ -179,5 +183,5 @@ class Solver:
 
 
 def solve(problem: Problem) -> Solution:
-    solver = Solver(problem, 2, True, True, False)
+    solver = Solver(problem, 2, True, True, True)
     return solver.solve()
