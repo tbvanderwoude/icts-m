@@ -76,11 +76,12 @@ class Solver:
         min_sol = None
         for matching in matchings:
             sol = self.solve_matching(matching)
-            sic = sol.sic
-            if not min_sic or min_sic > sic:
-                min_sic = sic
-                min_sol = sol.solution
-                self.update_budget(min_sic)
+            if sol:
+                sic = sol.sic
+                if not min_sic or min_sic > sic:
+                    min_sic = sic
+                    min_sol = sol.solution
+                    self.update_budget(min_sic)
         subsols = list(zip(*min_sol))
         for subsol in subsols:
             paths.append(list(map(lambda loc: expand_location(loc), subsol)))
@@ -170,6 +171,8 @@ class Solver:
                     matching,
                     context
                 )
+                if not group_sol:
+                    return None
                 group_sic[merged_group] = group_sol.sic
                 group_agent_paths = list(zip(*group_sol.solution))
 
