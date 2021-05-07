@@ -171,7 +171,7 @@ def joint_mdd_dfs_constructive(
         next_context = sample_context_node(context, curr_depth + 1)
         children.sort(
             key=lambda child: count_conflicts(
-                curr_context + curr_nodes, next_context + child
+                curr_context + list(curr_nodes), next_context + list(child)
             )
         )
     partial_sol = [curr]

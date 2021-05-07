@@ -104,7 +104,7 @@ class ICTSearcher:
                     or self.check_combinations(mdds, k, accumulator, context)
                 ):
                     solution: JointTimedSolution = seek_solution_in_joint_mdd(
-                        mdds, True, [], context
+                        mdds, True, False, [], context
                     )
                     if solution:
                         return ICTSolution(
