@@ -56,6 +56,23 @@ class ICTSearcher:
                 return False
         return True
 
+    def check_team_combinations(
+        self,
+        team_agent_indices: List[List[int]],
+        mdds: List[MDD],
+        accumulator: List = [],
+        context: Optional[IDContext] = None,
+    ):
+        for c in combinations(range(len(team_agent_indices)), self.combs):
+            indices = []
+            for team_i in c:
+                indices.extend(team_agent_indices[team_i])
+            if not seek_solution_in_joint_mdd(
+                [mdds[i] for i in indices], False, self.enhanced, accumulator, context
+            ):
+                return False
+        return True
+
     def check_combinations(
         self,
         mdds: List[MDD],
@@ -78,7 +95,6 @@ class ICTSearcher:
         root
     ) -> Optional[ICTSolution]:
         k = len(agents)
-        teams = set(team_goals.keys())
         if self.budget is None:
             budget = self.calculate_upper_bound_cost(k)
         else:
@@ -88,8 +104,12 @@ class ICTSearcher:
         visited = set()
         mdd_cache = dict()
         # print(k, budget, root)
+        cost = sum(root)
         while frontier:
             node = frontier.popleft()
+            if sum(node) != cost:
+                cost = sum(node)
+                print(cost)
             if sum(node) <= budget and not node in visited:
                 accumulator = []
                 visited.add(node)
@@ -114,11 +134,11 @@ class ICTSearcher:
                                 self.maze, i, agents[i][0], team_goals[agents[i][1]], c
                             )
                     mdds.append(mdd_cache[(i, c)])
-                if (self.check_teams(team_agent_indices,mdds,accumulator) and (
+                if (
                     not self.prune
                     or k <= self.combs
-                    or self.check_combinations(mdds, k, accumulator))
-                ):
+                    or self.check_combinations(mdds, k, accumulator)
+                ) and self.check_teams(team_agent_indices,mdds,accumulator) and (len(team_agent_indices) <= 2 or self.check_team_combinations(team_agent_indices,mdds, accumulator)):
                     solution: JointTimedSolution = seek_solution_in_joint_mdd(
                         mdds, True, False, []
                     )
