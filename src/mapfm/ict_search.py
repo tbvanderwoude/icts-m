@@ -42,6 +42,20 @@ class ICTSearcher:
     def calculate_upper_bound_cost(self, k: int):
         return (k ** 2) * self.open_spaces
 
+    def check_teams(
+        self,
+        team_agent_indices: List[List[int]],
+        mdds: List[MDD],
+        accumulator: List = [],
+        context: Optional[IDContext] = None,
+    ):
+        for team in team_agent_indices:
+            if not seek_solution_in_joint_mdd(
+                [mdds[i] for i in team_agent_indices[team]], False, self.enhanced, accumulator, context
+            ):
+                return False
+        return True
+
     def check_combinations(
         self,
         mdds: List[MDD],
@@ -59,10 +73,12 @@ class ICTSearcher:
     def search_tapf(
         self,
         agents,
+        team_agent_indices,
         team_goals,
         root
     ) -> Optional[ICTSolution]:
         k = len(agents)
+        teams = set(team_goals.keys())
         if self.budget is None:
             budget = self.calculate_upper_bound_cost(k)
         else:
@@ -98,10 +114,10 @@ class ICTSearcher:
                                 self.maze, i, agents[i][0], team_goals[agents[i][1]], c
                             )
                     mdds.append(mdd_cache[(i, c)])
-                if (
+                if (self.check_teams(team_agent_indices,mdds,accumulator) and (
                     not self.prune
                     or k <= self.combs
-                    or self.check_combinations(mdds, k, accumulator)
+                    or self.check_combinations(mdds, k, accumulator))
                 ):
                     solution: JointTimedSolution = seek_solution_in_joint_mdd(
                         mdds, True, False, []
