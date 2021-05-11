@@ -20,7 +20,7 @@ def is_goal_state(
     mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int
 ) -> bool:
     for mdd, node in zip(mdds, curr_nodes):
-        if curr_depth < mdd.depth or mdd.goal != node:
+        if curr_depth < mdd.depth or node not in mdd.goals:
             return False
     return True
 

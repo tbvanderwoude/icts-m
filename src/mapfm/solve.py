@@ -71,18 +71,12 @@ class Solver:
                 self.problem.goals,
             )
         )
-        matchings = enumerate_matchings(agents, goals)
-        min_sic = None
-        min_sol = None
-        for matching in matchings:
-            sol = self.solve_matching(matching)
-            if sol:
-                sic = sol.sic
-                if not min_sic or min_sic > sic:
-                    min_sic = sic
-                    min_sol = sol.solution
-                    self.update_budget(min_sic)
-        subsols = list(zip(*min_sol))
+        teams = set(map(lambda a: a.color, self.problem.starts))
+        print(teams)
+        team_goals = dict([(team,set([g[0] for g in goals if g[1] == team])) for team in teams])
+        print(team_goals)
+        min_sol = self.solve_tapf(agents,team_goals)
+        subsols = list(zip(*min_sol.solution))
         for subsol in subsols:
             paths.append(list(map(lambda loc: expand_location(loc), subsol)))
         return Solution.from_paths(paths)
@@ -95,6 +89,21 @@ class Solver:
             return self.solve_mapf_with_id(matching)
         else:
             return self.solve_mapf(matching)
+
+    def solve_tapf(self, agents, team_goals):
+        subproblems = []
+        root_list = []
+        for agent in agents:
+            min_len = None
+            for goal in team_goals[agent[1]]:
+                subproblems.append((agent[0], goal))
+                shortest = astar(self.maze, agent[0], goal)
+                assert len(shortest) > 0
+                if not min_len or min_len >= shortest:
+                    min_len = shortest
+            root_list.append(len(min_len) - 1)
+        root = tuple(root_list)
+        return self.ict_searcher.search_tapf(agents,team_goals, root)
 
     def solve_mapf(
         self,

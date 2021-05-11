@@ -47,8 +47,8 @@ if __name__ == "__main__":
         benchmark = MapfBenchmarker(
             token=token,
             problem_id=p_id,
-            algorithm="ICTS + ID",
-            version="0.1.5",
+            algorithm="ICTS-M",
+            version="0.0.1",
             debug=debug,
             solver=solve,
             cores=8,

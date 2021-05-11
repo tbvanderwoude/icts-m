@@ -18,13 +18,13 @@ class MDD:
         maze: Maze,
         agent: int,
         start: CompactLocation,
-        goal: CompactLocation,
+        goals: Set[CompactLocation],
         depth: int,
         last_mdd=None,
     ):
         self.agent: int = agent
         self.start: CompactLocation = start
-        self.goal: CompactLocation = goal
+        self.goals: Set[CompactLocation] = goals
         self.depth: int = depth
         self.bfs_tree = {}
         self.mdd: MDDGraph = None
@@ -40,7 +40,7 @@ class MDD:
         else:
             bfs_tree = construct_bfs_tree(maze, self.start, self.depth)
         self.bfs_tree = bfs_tree
-        mdd = mdd_from_tree(self.bfs_tree["tree"], self.goal, self.depth)
+        mdd = mdd_from_tree(self.bfs_tree["tree"], self.goals, self.depth)
         self.mdd = mdd
         if mdd:
             self.populate_levels(self.mdd)
@@ -55,14 +55,14 @@ class MDD:
     def get_level(self, i):
         # Models the behaviour of staying at the goal once reached
         if i > self.depth:
-            return {self.goal}
+            return self.goals
         return self.level[i]
 
     def get_children_at_node(
         self, node: CompactLocation, curr_depth: int
     ) -> Iterable[CompactLocation]:
-        if self.goal == node and curr_depth >= self.depth:
-            return [self.goal]
+        if node in self.goals and curr_depth >= self.depth:
+            return [node]
         else:
             return map(lambda p: p[0], self.mdd[(node, curr_depth)])
 
@@ -94,19 +94,21 @@ TLDR: turns a child-parents structure into a parent-children structure with some
 
 def mdd_from_tree(
     tree: DefaultDict[Tuple[CompactLocation, int], Set[Tuple[CompactLocation, int]]],
-    goal: CompactLocation,
+    goals: Set[CompactLocation],
     depth: int,
 ) -> MDDGraph:
-    goal_at_depth = (goal, depth)
+    goals_at_depth = [(goal, depth) for goal in goals]
     # If the goal node is not in the DAG, return the empty MDD represented by None
-    if not tree[goal_at_depth]:
+    reachable_goals = list(filter(lambda goal_at_depth: tree[goal_at_depth],goals_at_depth))
+    if not reachable_goals:
         return None
     visited = set()
     mdd = defaultdict(set)
     trace_list = deque()
-    for parent in tree[goal_at_depth]:
-        trace_list.append((parent, goal_at_depth))
-        visited.add((parent, goal_at_depth))
+    for goal in reachable_goals:
+        for parent in tree[goal]:
+            trace_list.append((parent, goal))
+            visited.add((parent, goal))
     while trace_list:
         current, child = trace_list.popleft()
         mdd[current].add(child)

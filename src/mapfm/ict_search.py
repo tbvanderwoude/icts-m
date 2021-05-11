@@ -56,6 +56,65 @@ class ICTSearcher:
                 return False
         return True
 
+    def search_tapf(
+        self,
+        agents,
+        team_goals,
+        root
+    ) -> Optional[ICTSolution]:
+        k = len(agents)
+        if self.budget is None:
+            budget = self.calculate_upper_bound_cost(k)
+        else:
+            budget = self.budget
+        frontier = deque()
+        frontier.append(root)
+        visited = set()
+        mdd_cache = dict()
+        # print(k, budget, root)
+        while frontier:
+            node = frontier.popleft()
+            if sum(node) <= budget and not node in visited:
+                accumulator = []
+                visited.add(node)
+                mdds = []
+                for (i, c) in enumerate(node):
+                    node_list = list(node)
+                    node_list[i] += 1
+                    if not tuple(node_list) in visited:
+                        frontier.append(tuple(node_list))
+                    if not (i, c) in mdd_cache:
+                        if (i, c - 1) in mdd_cache:
+                            mdd_cache[(i, c)] = MDD(
+                                self.maze,
+                                i,
+                                agents[i][0],
+                                team_goals[agents[i][1]],
+                                c,
+                                mdd_cache[(i, c - 1)],
+                            )
+                        else:
+                            mdd_cache[(i, c)] = MDD(
+                                self.maze, i, agents[i][0], team_goals[agents[i][1]], c
+                            )
+                    mdds.append(mdd_cache[(i, c)])
+                if (
+                    not self.prune
+                    or k <= self.combs
+                    or self.check_combinations(mdds, k, accumulator)
+                ):
+                    solution: JointTimedSolution = seek_solution_in_joint_mdd(
+                        mdds, True, False, []
+                    )
+                    if solution:
+                        return ICTSolution(
+                            list(map(lambda x: x[0], solution)), sum(node)
+                        )
+
+                for (i, p, c) in accumulator:
+                    mdds[i].mdd[p].add(c)
+        return None
+
     def search(
         self,
         subproblems: List[Tuple[CompactLocation, CompactLocation]],
@@ -89,13 +148,13 @@ class ICTSearcher:
                                 self.maze,
                                 i,
                                 subproblems[i][0],
-                                subproblems[i][1],
+                                {subproblems[i][1]},
                                 c,
                                 mdd_cache[(i, c - 1)],
                             )
                         else:
                             mdd_cache[(i, c)] = MDD(
-                                self.maze, i, subproblems[i][0], subproblems[i][1], c
+                                self.maze, i, subproblems[i][0], {subproblems[i][1]}, c
                             )
                     mdds.append(mdd_cache[(i, c)])
                 if (
