@@ -3,7 +3,8 @@ from typing import Optional
 from mapfm.compact_location import CompactLocation
 
 
-class Node:
+class Node(object):
+    __slots__ = ['parent', 'loc', 'cost','heuristic']
     def __init__(self, parent, loc: CompactLocation, cost: int, heuristic: int):
         self.parent: Optional[Node] = parent
         self.loc: CompactLocation = loc

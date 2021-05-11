@@ -3,7 +3,8 @@ from typing import List, Tuple
 from mapfm.compact_location import CompactLocation, expand_location, compact_location
 
 
-class Maze:
+class Maze(object):
+    __slots__ = ['grid', 'width', 'height']
     def __init__(self, grid: List[List[int]], width: int, height: int):
         self.grid = grid
         self.width = width

@@ -23,7 +23,8 @@ class ICTSolution:
         self.sic = sic
 
 
-class ICTSearcher:
+class ICTSearcher(object):
+    __slots__ = ['maze', 'combs', 'prune', 'enhanced','open_spaces','budget']
     def __init__(
         self,
         maze: Maze,
