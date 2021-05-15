@@ -105,7 +105,7 @@ class Solver:
                     for team in teams
                 ]
             )
-            print(agents, teams, team_goals, team_agent_indices)
+            # print(agents, teams, team_goals, team_agent_indices)
             min_sol = self.solve_tapf_instance(agents, team_agent_indices, team_goals)
             if min_sol:
                 subsols = list(zip(*min_sol.solution))
@@ -184,13 +184,13 @@ class Solver:
     ):
         # print(agents)
         agent_group = [x for (i,x) in enumerate(agents) if agent_groups[i] == group]
-        team_agent_indices = dict(
+        local_team_agent_indices = dict(
             [
                 (team, [i for (i, a) in enumerate(agents) if a[1] == team])
                 for team in team_agent_indices.keys()
             ]
         )
-        return self.solve_tapf(agent_group, team_agent_indices, team_goals, context)
+        return self.solve_tapf(agent_group, local_team_agent_indices, team_goals, context)
 
     def solve_tapf_with_id(
         self,
@@ -201,8 +201,8 @@ class Solver:
         agent_groups = list(range(self.k))
         agent_paths: List[List[Tuple[CompactLocation]]] = []
         group_sic: Dict[int, int] = {}
-        for i in all_agents:
-            solution = self.solve_tapf([i], team_agent_indices, team_goals)
+        for (i,a) in enumerate(all_agents):
+            solution = self.solve_tapf([a], team_agent_indices, team_goals)
             if solution:
                 agent_paths.append(list(map(lambda x: x[0], solution.solution)))
                 group_sic[i] = solution.sic
@@ -231,6 +231,8 @@ class Solver:
             if conflict and len(unique_groups) > 1:
                 merged_group = agent_groups[conflicting_pair[0]]
                 conflict_group = agent_groups[conflicting_pair[1]]
+                # print("{} into {}".format(merged_group,conflict_group))
+
                 group_sic[conflict_group] = 0
                 agent_groups = merge_groups(agent_groups, merged_group, conflict_group)
                 group_agent_indices = [i for (i, a) in enumerate(all_agents) if agent_groups[i] == merged_group]
@@ -262,6 +264,7 @@ class Solver:
             else:
                 break
         # print("k': {}".format(kprime))
+        # print(group_sic)
         return ICTSolution(final_path, sum(group_sic.values()))
 
     def solve_mapf_group(
@@ -311,6 +314,7 @@ class Solver:
             if conflict and len(unique_groups) > 1:
                 merged_group = agent_groups[conflicting_pair[0]]
                 conflict_group = agent_groups[conflicting_pair[1]]
+                # print("{} into {}".format(merged_group,conflict_group))
                 group_sic[conflict_group] = 0
                 agent_groups = merge_groups(agent_groups, merged_group, conflict_group)
                 agents = [i for i in range(self.k) if agent_groups[i] == merged_group]
@@ -335,9 +339,10 @@ class Solver:
             else:
                 break
         # print("k': {}".format(kprime))
+        # print(group_sic)
         return ICTSolution(final_path, sum(group_sic.values()))
 
 
 def solve(problem: Problem,enumerative: bool = False) -> Solution:
-    solver = Solver(problem, 2, True, True, False, enumerative)
+    solver = Solver(problem, 2, True, True, True, enumerative)
     return solver.solve()

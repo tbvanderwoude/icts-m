@@ -128,7 +128,7 @@ class ICTSearcher(object):
         visited = set()
         mdd_cache = dict()
         print(k, budget, root)
-        cost = sum(root)
+        # cost = sum(root)
         while frontier:
             node = frontier.popleft()
             # if sum(node) != cost:
@@ -162,18 +162,18 @@ class ICTSearcher(object):
                     (
                         not self.prune
                         or k <= self.combs
-                        or self.check_combinations(mdds, k, accumulator)
+                        or self.check_combinations(mdds, k, accumulator,context)
                     )
-                    and self.check_teams(agents, team_agent_indices, mdds, accumulator)
-                    and (
-                        len(team_agent_indices) <= 2
-                        or self.check_team_combinations(
-                            team_agent_indices,agents, mdds, accumulator
-                        )
-                    )
+                    # and self.check_teams(agents, team_agent_indices, mdds, accumulator,context)
+                    # and (
+                    #     len(team_agent_indices) <= 2
+                    #     or self.check_team_combinations(
+                    #         team_agent_indices,agents, mdds, accumulator,context
+                    #     )
+                    # )
                 ):
                     solution: JointTimedSolution = seek_solution_in_joint_mdd(
-                        mdds, True, False, []
+                        mdds, True, False, [], context
                     )
                     if solution:
                         return ICTSolution(
@@ -199,7 +199,7 @@ class ICTSearcher(object):
         frontier.append(root)
         visited = set()
         mdd_cache = dict()
-        # print(k, budget, root)
+        print(k, budget, root)
         while frontier:
             node = frontier.popleft()
             if sum(node) <= budget and not node in visited:
