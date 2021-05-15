@@ -49,7 +49,8 @@ if __name__ == "__main__":
     else:
         benchmark = MapfBenchmarker(
             token=token,
-            benchmark=BenchmarkDescriptor(p_id, ProgressiveDescriptor(1, 3, 2, 1)),
+            # benchmark=BenchmarkDescriptor(p_id, ProgressiveDescriptor(1, 3, 2, 1)),
+            benchmark=p_id,
             algorithm="ICTS-M",
             version="0.0.1",
             debug=debug,

@@ -46,14 +46,19 @@ class ICTSearcher(object):
 
     def check_teams(
         self,
+        agents,
         team_agent_indices: List[List[int]],
         mdds: List[MDD],
         accumulator: List = [],
         context: Optional[IDContext] = None,
     ):
         for team in team_agent_indices:
-            if not seek_solution_in_joint_mdd(
-                [mdds[i] for i in team_agent_indices[team]],
+            filtered_agents = list(
+                filter(lambda x: x in agents, team_agent_indices[team])
+            )
+
+            if filtered_agents and not seek_solution_in_joint_mdd(
+                [mdds[i] for i in filtered_agents],
                 False,
                 self.enhanced,
                 accumulator,
@@ -65,6 +70,7 @@ class ICTSearcher(object):
     def check_team_combinations(
         self,
         team_agent_indices: List[List[int]],
+        agents,
         mdds: List[MDD],
         accumulator: List = [],
         context: Optional[IDContext] = None,
@@ -73,8 +79,17 @@ class ICTSearcher(object):
             if len(c) <= 1:
                 continue
             indices = []
+            skip = False
             for team_i in c:
-                indices.extend(team_agent_indices[team_i])
+                filtered_agents = list(
+                    filter(lambda x: x in agents, team_agent_indices[team_i])
+                )
+                if not filtered_agents:
+                    skip = True
+                    break
+                indices.extend(filtered_agents)
+            if skip:
+                continue
             if not seek_solution_in_joint_mdd(
                 [mdds[i] for i in indices], False, self.enhanced, accumulator, context
             ):
@@ -96,7 +111,12 @@ class ICTSearcher(object):
         return True
 
     def search_tapf(
-        self, agents, team_agent_indices, team_goals, root
+        self,
+        agents,
+        team_agent_indices,
+        team_goals,
+        root,
+        context: Optional[IDContext] = None,
     ) -> Optional[ICTSolution]:
         k = len(agents)
         if self.budget is None:
@@ -111,9 +131,9 @@ class ICTSearcher(object):
         cost = sum(root)
         while frontier:
             node = frontier.popleft()
-            if sum(node) != cost:
-                cost = sum(node)
-                print(cost)
+            # if sum(node) != cost:
+            #     cost = sum(node)
+            #     print(cost)
             if sum(node) <= budget and not node in visited:
                 accumulator = []
                 visited.add(node)
@@ -144,11 +164,11 @@ class ICTSearcher(object):
                         or k <= self.combs
                         or self.check_combinations(mdds, k, accumulator)
                     )
-                    and self.check_teams(team_agent_indices, mdds, accumulator)
+                    and self.check_teams(agents, team_agent_indices, mdds, accumulator)
                     and (
                         len(team_agent_indices) <= 2
                         or self.check_team_combinations(
-                            team_agent_indices, mdds, accumulator
+                            team_agent_indices,agents, mdds, accumulator
                         )
                     )
                 ):
