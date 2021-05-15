@@ -26,7 +26,7 @@ def gen_legal_point(taken,grid, width, height):
 
 
 def gen_agent_goals(grid, width, height, k):
-    num_teams = random.randrange(1, k)
+    num_teams = 1
     starts = []
     goals = []
     taken_starts = set()
@@ -55,13 +55,12 @@ def show_problem(grid, width,height, starts,goals):
     return starts, goals
 
 if __name__ == "__main__":
-    width = 32
-    height = 32
-    grid = gen_rand_grid(width, height, 0.2)
-    starts, goals = gen_agent_goals(grid, width, height, 4)
+    width = 8
+    height = 8
+    grid = gen_rand_grid(width, height, 0.1)
+    starts, goals = gen_agent_goals(grid, width, height, 2)
     # show_problem(grid,width,height,starts,goals)
     problem = Problem(grid, width, height, starts, goals)
-    tapf_sol = solve(problem)
-    # tapf_sol = solve(problem)
-    print(tapf_sol)
+    enum_sol = solve(problem,True)
+    tapf_sol = solve(problem,False)
     # print(grid)

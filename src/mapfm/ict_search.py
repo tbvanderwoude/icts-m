@@ -127,7 +127,7 @@ class ICTSearcher(object):
         frontier.append(root)
         visited = set()
         mdd_cache = dict()
-        # print(k, budget, root)
+        print(k, budget, root)
         cost = sum(root)
         while frontier:
             node = frontier.popleft()

@@ -105,7 +105,7 @@ class Solver:
                     for team in teams
                 ]
             )
-            # print(agents, teams, team_goals, team_agent_indices)
+            print(agents, teams, team_goals, team_agent_indices)
             min_sol = self.solve_tapf_instance(agents, team_agent_indices, team_goals)
             if min_sol:
                 subsols = list(zip(*min_sol.solution))
@@ -126,10 +126,10 @@ class Solver:
             return self.solve_mapf(matching)
 
     def solve_tapf_instance(self, agents, team_agent_indices, team_goals):
-        # if self.id:
-        #     return self.solve_tapf_with_id(agents, team_agent_indices, team_goals)
-        # else:
-        return self.solve_tapf(agents, team_agent_indices, team_goals)
+        if self.id:
+            return self.solve_tapf_with_id(agents, team_agent_indices, team_goals)
+        else:
+            return self.solve_tapf(agents, team_agent_indices, team_goals)
 
     def solve_tapf(
         self,
@@ -144,13 +144,13 @@ class Solver:
             min_len = None
             for goal in team_goals[agent[1]]:
                 subproblems.append((agent[0], goal))
-                shortest = astar(self.maze, agent[0], goal)
-                if not shortest:
+                shortest_path = astar(self.maze, agent[0], goal)
+                if not shortest_path:
                     return None
-                assert len(shortest) > 0
-                if not min_len or min_len >= shortest:
-                    min_len = shortest
-            root_list.append(len(min_len) - 1)
+                assert len(shortest_path) > 0
+                if not min_len or min_len >= len(shortest_path):
+                    min_len = len(shortest_path)
+            root_list.append(min_len - 1)
         root = tuple(root_list)
         return self.ict_searcher.search_tapf(
             agents, team_agent_indices, team_goals, root, context
@@ -338,6 +338,6 @@ class Solver:
         return ICTSolution(final_path, sum(group_sic.values()))
 
 
-def solve(problem: Problem) -> Solution:
-    solver = Solver(problem, 2, True, True, True, False)
+def solve(problem: Problem,enumerative: bool = False) -> Solution:
+    solver = Solver(problem, 2, True, True, False, enumerative)
     return solver.solve()
