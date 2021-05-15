@@ -13,7 +13,8 @@ MDDGraph = Optional[
 
 
 class MDD(object):
-    __slots__ = ['agent', 'start', 'goals', 'depth','bfs_tree','mdd','level']
+    __slots__ = ["agent", "start", "goals", "depth", "bfs_tree", "mdd", "level"]
+
     def __init__(
         self,
         maze: Maze,
@@ -69,7 +70,7 @@ class MDD(object):
 
     def show(self):
         items = list(sorted(self.mdd.items(), key=lambda x: x[0][1]))
-        g = Digraph()
+        g = Digraph(format="png")
         added = set()
         plt.tight_layout()
         for ((loc, d), v) in items:
@@ -102,7 +103,9 @@ def mdd_from_tree(
 ) -> MDDGraph:
     goals_at_depth = [(goal, depth) for goal in goals]
     # If the goal node is not in the DAG, return the empty MDD represented by None
-    reachable_goals = list(filter(lambda goal_at_depth: tree[goal_at_depth],goals_at_depth))
+    reachable_goals = list(
+        filter(lambda goal_at_depth: tree[goal_at_depth], goals_at_depth)
+    )
     if not reachable_goals:
         return None
     visited = set()

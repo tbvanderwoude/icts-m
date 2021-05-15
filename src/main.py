@@ -3,7 +3,13 @@ import sys
 from pprint import pprint
 
 import requests
-from mapfmclient import MapfBenchmarker, Problem, MarkedLocation
+from mapfmclient import (
+    MapfBenchmarker,
+    Problem,
+    MarkedLocation,
+    BenchmarkDescriptor,
+    ProgressiveDescriptor,
+)
 
 from mapfm.solve import solve
 
@@ -23,9 +29,6 @@ def run_custom(token, p_id):
         problem_json["height"],
         [MarkedLocation.from_dict(i) for i in problem_json["starts"]],
         [MarkedLocation.from_dict(i) for i in problem_json["goals"]],
-        0,
-        problem_json["id"],
-        0,
     )
     solution = solve(problem)
     pprint(solution.serialize())
@@ -46,7 +49,7 @@ if __name__ == "__main__":
     else:
         benchmark = MapfBenchmarker(
             token=token,
-            problem_id=p_id,
+            benchmark=BenchmarkDescriptor(p_id, ProgressiveDescriptor(1, 3, 2, 1)),
             algorithm="ICTS-M",
             version="0.0.1",
             debug=debug,

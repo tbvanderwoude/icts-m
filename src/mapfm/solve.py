@@ -72,10 +72,17 @@ class Solver:
             )
         )
         teams = set(map(lambda a: a.color, self.problem.starts))
-        team_goals = dict([(team,set([g[0] for g in goals if g[1] == team])) for team in teams])
-        team_agent_indices = dict([(team, [i for (i,a) in enumerate(agents) if a[1] == team]) for team in teams])
-        print(teams,team_goals,team_goals,team_agent_indices)
-        min_sol = self.solve_tapf(agents,team_agent_indices,team_goals)
+        team_goals = dict(
+            [(team, set([g[0] for g in goals if g[1] == team])) for team in teams]
+        )
+        team_agent_indices = dict(
+            [
+                (team, [i for (i, a) in enumerate(agents) if a[1] == team])
+                for team in teams
+            ]
+        )
+        print(teams, team_goals, team_goals, team_agent_indices)
+        min_sol = self.solve_tapf(agents, team_agent_indices, team_goals)
         subsols = list(zip(*min_sol.solution))
         for subsol in subsols:
             paths.append(list(map(lambda loc: expand_location(loc), subsol)))
@@ -90,7 +97,7 @@ class Solver:
         else:
             return self.solve_mapf(matching)
 
-    def solve_tapf(self, agents, team_agent_indices,team_goals):
+    def solve_tapf(self, agents, team_agent_indices, team_goals):
         subproblems = []
         root_list = []
         for agent in agents:
@@ -103,7 +110,9 @@ class Solver:
                     min_len = shortest
             root_list.append(len(min_len) - 1)
         root = tuple(root_list)
-        return self.ict_searcher.search_tapf(agents,team_agent_indices,team_goals, root)
+        return self.ict_searcher.search_tapf(
+            agents, team_agent_indices, team_goals, root
+        )
 
     def solve_mapf(
         self,
@@ -175,10 +184,7 @@ class Solver:
                 if k_solved < self.k:
                     context = IDContext(other_agents, agent_paths, lens)
                 group_sol = self.solve_group(
-                    agent_groups[conflicting_pair[0]],
-                    agent_groups,
-                    matching,
-                    context
+                    agent_groups[conflicting_pair[0]], agent_groups, matching, context
                 )
                 if not group_sol:
                     return None

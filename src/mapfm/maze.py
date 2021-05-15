@@ -4,7 +4,8 @@ from mapfm.compact_location import CompactLocation, expand_location, compact_loc
 
 
 class Maze(object):
-    __slots__ = ['grid', 'width', 'height']
+    __slots__ = ["grid", "width", "height"]
+
     def __init__(self, grid: List[List[int]], width: int, height: int):
         self.grid = grid
         self.width = width
@@ -25,3 +26,8 @@ class Maze(object):
                 if not self.grid[c[1]][c[0]]:
                     good_children.append(compact_location(c[0], c[1]))
         return good_children
+
+    def __str__(self):
+        accum = ""
+        for y in range(self.height):
+            accum += str(self.grid[y])
