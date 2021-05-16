@@ -45,6 +45,19 @@ def merge_groups(agent_groups, group_i, group_j):
 
 
 class Solver:
+    __slots__ = [
+        "problem",
+        "k",
+        "maze",
+        "combs",
+        "prune",
+        "enhanced",
+        "id",
+        "conflict_avoidance",
+        "enumerative",
+        "ict_searcher",
+    ]
+
     def __init__(
         self,
         problem: Problem,
@@ -52,6 +65,7 @@ class Solver:
         prune: bool,
         enhanced: bool,
         id: bool,
+        conflict_avoidance: bool,
         enumerative: bool,
     ):
         self.problem = problem
@@ -59,7 +73,7 @@ class Solver:
         self.maze: Maze = Maze(problem.grid, problem.width, problem.height)
         self.combs = combs
         self.prune = prune
-        self.enhanced = enhanced
+        self.conflict_avoidance = conflict_avoidance
         self.id = id
         self.enumerative = enumerative
         self.ict_searcher = ICTSearcher(self.maze, combs, prune, enhanced)
@@ -90,7 +104,7 @@ class Solver:
                         min_sic = sic
                         min_sol = sol.solution
                         self.update_budget(min_sic)
-            print("Enumerative SIC: " + str(min_sic))
+            # print("Enumerative SIC: " + str(min_sic))
             subsols = list(zip(*min_sol))
             for subsol in subsols:
                 paths.append(list(map(lambda loc: expand_location(loc), subsol)))
@@ -109,7 +123,7 @@ class Solver:
             min_sol = self.solve_tapf_instance(agents, team_agent_indices, team_goals)
             if min_sol:
                 subsols = list(zip(*min_sol.solution))
-                print("Native SIC: " + str(min_sol.sic))
+                # print("Native SIC: " + str(min_sol.sic))
                 for subsol in subsols:
                     paths.append(list(map(lambda loc: expand_location(loc), subsol)))
             else:
@@ -118,6 +132,9 @@ class Solver:
 
     def update_budget(self, budget):
         self.ict_searcher.budget = budget
+
+    def update_lower_sic(self, lower_sic):
+        self.ict_searcher.lower_sic_bound = lower_sic
 
     def solve_matching(self, matching: List[Tuple[CompactLocation, CompactLocation]]):
         if self.id:
@@ -159,7 +176,7 @@ class Solver:
     def solve_mapf(
         self,
         matching: List[Tuple[CompactLocation, CompactLocation]],
-        context: Optional[IDContext] = None,
+        context: Optional[IDContext] = None
     ) -> Optional[ICTSolution]:
         subproblems = []
         root_list = []
@@ -181,16 +198,20 @@ class Solver:
         team_agent_indices,
         team_goals,
         context: IDContext,
+        lower_sic_bound = 0,
     ):
         # print(agents)
-        agent_group = [x for (i,x) in enumerate(agents) if agent_groups[i] == group]
+        agent_group = [x for (i, x) in enumerate(agents) if agent_groups[i] == group]
         local_team_agent_indices = dict(
             [
                 (team, [i for (i, a) in enumerate(agents) if a[1] == team])
                 for team in team_agent_indices.keys()
             ]
         )
-        return self.solve_tapf(agent_group, local_team_agent_indices, team_goals, context)
+        self.update_lower_sic(lower_sic_bound)
+        return self.solve_tapf(
+            agent_group, local_team_agent_indices, team_goals, context
+        )
 
     def solve_tapf_with_id(
         self,
@@ -201,7 +222,7 @@ class Solver:
         agent_groups = list(range(self.k))
         agent_paths: List[List[Tuple[CompactLocation]]] = []
         group_sic: Dict[int, int] = {}
-        for (i,a) in enumerate(all_agents):
+        for (i, a) in enumerate(all_agents):
             solution = self.solve_tapf([a], team_agent_indices, team_goals)
             if solution:
                 agent_paths.append(list(map(lambda x: x[0], solution.solution)))
@@ -232,18 +253,26 @@ class Solver:
                 merged_group = agent_groups[conflicting_pair[0]]
                 conflict_group = agent_groups[conflicting_pair[1]]
                 # print("{} into {}".format(merged_group,conflict_group))
-
+                lower_sic_bound = group_sic[merged_group] + group_sic[conflict_group]
                 group_sic[conflict_group] = 0
                 agent_groups = merge_groups(agent_groups, merged_group, conflict_group)
-                group_agent_indices = [i for (i, a) in enumerate(all_agents) if agent_groups[i] == merged_group]
-                agents = [a for (i, a) in enumerate(all_agents) if agent_groups[i] == merged_group]
-                # print(group_agent_indices,agents)
-                other_agents = [
-                    i for i in range(self.k) if agent_groups[i] != merged_group
+                group_agent_indices = [
+                    i
+                    for (i, a) in enumerate(all_agents)
+                    if agent_groups[i] == merged_group
                 ]
+                agents = [
+                    a
+                    for (i, a) in enumerate(all_agents)
+                    if agent_groups[i] == merged_group
+                ]
+                # print(group_agent_indices,agents)
                 k_solved = len(agents)
                 context = None
-                if k_solved < self.k:
+                if self.conflict_avoidance and k_solved < self.k:
+                    other_agents = [
+                        i for i in range(self.k) if agent_groups[i] != merged_group
+                    ]
                     context = IDContext(other_agents, agent_paths, lens)
                 group_sol = self.solve_tapf_group(
                     agent_groups[conflicting_pair[0]],
@@ -252,6 +281,7 @@ class Solver:
                     team_agent_indices,
                     team_goals,
                     context,
+                    0
                 )
                 if not group_sol:
                     return None
@@ -273,8 +303,10 @@ class Solver:
         agent_groups: List[int],
         matching: List[Tuple[CompactLocation, CompactLocation]],
         context: IDContext,
+        lower_sic_bound = 0,
     ):
         sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
+        self.update_lower_sic(lower_sic_bound)
         return self.solve_mapf(sub_matching, context)
 
     def solve_mapf_with_id(
@@ -315,18 +347,21 @@ class Solver:
                 merged_group = agent_groups[conflicting_pair[0]]
                 conflict_group = agent_groups[conflicting_pair[1]]
                 # print("{} into {}".format(merged_group,conflict_group))
+                lower_sic_bound = group_sic[merged_group] + group_sic[conflict_group]
                 group_sic[conflict_group] = 0
                 agent_groups = merge_groups(agent_groups, merged_group, conflict_group)
                 agents = [i for i in range(self.k) if agent_groups[i] == merged_group]
-                other_agents = [
-                    i for i in range(self.k) if agent_groups[i] != merged_group
-                ]
+
                 k_solved = len(agents)
+
                 context = None
-                if k_solved < self.k:
+                if self.conflict_avoidance and k_solved < self.k:
+                    other_agents = [
+                        i for i in range(self.k) if agent_groups[i] != merged_group
+                    ]
                     context = IDContext(other_agents, agent_paths, lens)
                 group_sol = self.solve_mapf_group(
-                    agent_groups[conflicting_pair[0]], agent_groups, matching, context
+                    agent_groups[conflicting_pair[0]], agent_groups, matching, context,0
                 )
                 if not group_sol:
                     return None
@@ -343,6 +378,11 @@ class Solver:
         return ICTSolution(final_path, sum(group_sic.values()))
 
 
-def solve(problem: Problem,enumerative: bool = False) -> Solution:
-    solver = Solver(problem, 2, True, True, True, enumerative)
+def solve(problem: Problem) -> Solution:
+    solver = Solver(problem, 2, True, True, True, True, False)
     return solver.solve()
+
+def solve_enum(problem: Problem) -> Solution:
+    solver = Solver(problem, 2, True, True, True, True, True)
+    return solver.solve()
+

@@ -1,8 +1,8 @@
 from collections import defaultdict, deque
 from typing import Optional, DefaultDict, Tuple, Set, Iterable, Deque
 
-from graphviz import Digraph
-from matplotlib import pyplot as plt
+# from graphviz import Digraph
+# from matplotlib import pyplot as plt
 
 from mapfm.compact_location import CompactLocation, expand_location
 from mapfm.maze import Maze
@@ -68,22 +68,22 @@ class MDD(object):
         else:
             return map(lambda p: p[0], self.mdd[(node, curr_depth)])
 
-    def show(self):
-        items = list(sorted(self.mdd.items(), key=lambda x: x[0][1]))
-        g = Digraph(format="png")
-        added = set()
-        plt.tight_layout()
-        for ((loc, d), v) in items:
-            exp_loc = expand_location(loc)
-            node_str = str(exp_loc) + "," + str(d)
-            g.node(node_str)
-            for (c_loc, c_depth) in v:
-                exp_c_loc = expand_location(c_loc)
-                child_str = str(exp_c_loc) + "," + str(c_depth)
-                if not child_str in added:
-                    added.add(child_str)
-                g.edge(node_str, child_str)
-        return g
+    # def show(self):
+    #     items = list(sorted(self.mdd.items(), key=lambda x: x[0][1]))
+    #     g = Digraph(format="png")
+    #     added = set()
+    #     plt.tight_layout()
+    #     for ((loc, d), v) in items:
+    #         exp_loc = expand_location(loc)
+    #         node_str = str(exp_loc) + "," + str(d)
+    #         g.node(node_str)
+    #         for (c_loc, c_depth) in v:
+    #             exp_c_loc = expand_location(c_loc)
+    #             child_str = str(exp_c_loc) + "," + str(c_depth)
+    #             if not child_str in added:
+    #                 added.add(child_str)
+    #             g.edge(node_str, child_str)
+    #     return g
 
 
 """
