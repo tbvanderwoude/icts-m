@@ -75,12 +75,12 @@ def process_results(solutions):
 
 def solve_setting(k):
     print("k = {}".format(k))
-    problems = [gen_problem(8,8,0.0,k) for i in range(10)]
+    problems = [gen_problem(16,16,0.0,k) for i in range(100)]
     bench = TestBench(-1,1000)
+    print("Solving enumeratively")
     enum_sols = bench.solve_problems(solve_enum,problems)
-    print("Done with enumerative solving")
+    print("Solving natively")
     native_sols = bench.solve_problems(solve,problems)
-    print("Done with native solving")
     return enum_sols,native_sols
 
 if __name__ == "__main__":

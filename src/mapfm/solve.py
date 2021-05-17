@@ -78,7 +78,7 @@ class Solver:
         self.conflict_avoidance = conflict_avoidance
         self.id = id
         self.enumerative = enumerative
-        self.ict_searcher = ICTSearcher(self.maze, combs, prune, enhanced)
+        self.ict_searcher = ICTSearcher(self.maze, combs, prune, enhanced,self.k)
 
     def solve(self) -> Optional[Solution]:
         paths: List[List[Tuple[int, int]]] = []
@@ -382,14 +382,14 @@ class Solver:
 
 
 def solve_api(problem: Problem) -> Solution:
-    solver = Solver(problem, 2, True, True, True, True, False)
+    solver = Solver(problem, 3, True, True, True, True, True)
     return solver.solve()[0]
 
 def solve(problem: Problem) -> Solution:
-    solver = Solver(problem, 2, True, True, True, True, False)
+    solver = Solver(problem, 3, True, True, True, True, False)
     return solver.solve()
 
 def solve_enum(problem: Problem) -> Solution:
-    solver = Solver(problem, 2, True, True, True, True, True)
+    solver = Solver(problem, 3, True, True, True, True, True)
     return solver.solve()
 

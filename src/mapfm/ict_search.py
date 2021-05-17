@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, defaultdict
 from itertools import combinations
 from typing import List, Tuple, Optional
 
@@ -25,17 +25,17 @@ class ICTSolution:
 
 class ICTSearcher(object):
     __slots__ = ["maze", "combs", "prune", "enhanced", "open_spaces", "budget","max_delta","lower_sic_bound"]
-
     def __init__(
         self,
         maze: Maze,
         combs: int,
         prune: bool,
         enhanced: bool,
+        max_k: int,
         budget: Optional[int] = None,
     ):
         self.maze = maze
-        self.max_delta = 0
+        self.max_delta = [0] * (max_k + 1)
         self.combs = combs
         self.prune = prune
         self.enhanced = enhanced
@@ -109,8 +109,8 @@ class ICTSearcher(object):
             if not seek_solution_in_joint_mdd(
                 [mdds[i] for i in c], False, self.enhanced, accumulator, context
             ):
-                return False
-        return True
+                return c
+        return None
 
     def search_tapf(
         self,
@@ -131,15 +131,11 @@ class ICTSearcher(object):
         while frontier:
             node = frontier.popleft()
             if (self.lower_sic_bound - k) <= sum(node) <= budget and not node in visited:
-                self.max_delta = max(self.max_delta,sum(node) - root_cost)
+                self.max_delta[k] = max(self.max_delta[k],sum(node) - root_cost)
                 accumulator = []
                 visited.add(node)
                 mdds = []
                 for (i, c) in enumerate(node):
-                    node_list = list(node)
-                    node_list[i] += 1
-                    if not tuple(node_list) in visited:
-                        frontier.append(tuple(node_list))
                     if not (i, c) in mdd_cache:
                         if (i, c - 1) in mdd_cache:
                             mdd_cache[(i, c)] = MDD(
@@ -155,30 +151,45 @@ class ICTSearcher(object):
                                 self.maze, i, agents[i][0], team_goals[agents[i][1]], c
                             )
                     mdds.append(mdd_cache[(i, c)])
-                if (
-                    not self.prune
-                    or k <= self.combs
-                    or self.check_combinations(mdds, k, accumulator, context)
-                ) and (
-                    len(team_agent_indices) == 1
-                    or self.check_teams(
-                        agents, team_agent_indices, mdds, accumulator, context
-                    )
-                    and (
-                        len(team_agent_indices) <= 2
-                        or self.check_team_combinations(
-                            team_agent_indices, agents, mdds, accumulator, context
-                        )
-                    )
-                ):
+
+                conflict_combination = None
+                if self.prune and k > self.combs:
+                    conflict_combination = self.check_combinations(mdds, k, accumulator, context)
+
+                if (not conflict_combination):
                     solution: JointTimedSolution = seek_solution_in_joint_mdd(
                         mdds, True, False, [], context
                     )
-                    if solution:
-                        return ICTSolution(
-                            list(map(lambda x: x[0], solution)), sum(node)
+                    if (
+                            len(team_agent_indices) == 1
+                            or self.check_teams(
+                        agents, team_agent_indices, mdds, accumulator, context
+                    )
+                            and (
+                            len(team_agent_indices) <= 2
+                            or self.check_team_combinations(
+                        team_agent_indices, agents, mdds, accumulator, context
+                    )
+                    )
+                    ):
+                        solution: JointTimedSolution = seek_solution_in_joint_mdd(
+                            mdds, True, False, [], context
                         )
-
+                        if solution:
+                            return ICTSolution(
+                                list(map(lambda x: x[0], solution)), sum(node)
+                            )
+                        for (i, c) in enumerate(node):
+                            node_list = list(node)
+                            node_list[i] += 1
+                            if not tuple(node_list) in visited:
+                                frontier.append(tuple(node_list))
+                else:
+                    for i in conflict_combination:
+                        node_list = list(node)
+                        node_list[i] += 1
+                        if not tuple(node_list) in visited:
+                            frontier.append(tuple(node_list))
                 for (i, p, c) in accumulator:
                     mdds[i].mdd[p].add(c)
         return None
@@ -200,15 +211,11 @@ class ICTSearcher(object):
         while frontier:
             node = frontier.popleft()
             if (self.lower_sic_bound-k) <= sum(node) <= budget and not node in visited:
-                self.max_delta = max(self.max_delta,sum(node) - root_cost)
+                self.max_delta[k] = max(self.max_delta[k],sum(node) - root_cost)
                 accumulator = []
                 visited.add(node)
                 mdds = []
                 for (i, c) in enumerate(node):
-                    node_list = list(node)
-                    node_list[i] += 1
-                    if not tuple(node_list) in visited:
-                        frontier.append(tuple(node_list))
                     if not (i, c) in mdd_cache:
                         if (i, c - 1) in mdd_cache:
                             mdd_cache[(i, c)] = MDD(
@@ -224,11 +231,11 @@ class ICTSearcher(object):
                                 self.maze, i, subproblems[i][0], {subproblems[i][1]}, c
                             )
                     mdds.append(mdd_cache[(i, c)])
-                if (
-                    not self.prune
-                    or k <= self.combs
-                    or self.check_combinations(mdds, k, accumulator, context)
-                ):
+                conflict_combination = None
+                if self.prune and k > self.combs:
+                    conflict_combination = self.check_combinations(mdds, k, accumulator, context)
+
+                if (not conflict_combination):
                     solution: JointTimedSolution = seek_solution_in_joint_mdd(
                         mdds, True, False, [], context
                     )
@@ -236,6 +243,17 @@ class ICTSearcher(object):
                         return ICTSolution(
                             list(map(lambda x: x[0], solution)), sum(node)
                         )
+                    for (i, c) in enumerate(node):
+                        node_list = list(node)
+                        node_list[i] += 1
+                        if not tuple(node_list) in visited:
+                            frontier.append(tuple(node_list))
+                else:
+                    for i in conflict_combination:
+                        node_list = list(node)
+                        node_list[i] += 1
+                        if not tuple(node_list) in visited:
+                            frontier.append(tuple(node_list))
 
                 for (i, p, c) in accumulator:
                     mdds[i].mdd[p].add(c)
