@@ -11,7 +11,7 @@ from mapfmclient import (
     ProgressiveDescriptor,
 )
 
-from mapfm.solve import solve, solve_api
+from mapfm.solve import solve, solve_api, solve_api_enum
 
 
 def run_custom(token, p_id):
@@ -43,18 +43,29 @@ if __name__ == "__main__":
     p_id = int(sys.argv[1])
     profile = str_to_bool(sys.argv[2])
     debug = str_to_bool(sys.argv[3])
-
+    enumerative = str_to_bool(sys.argv[4])
     if profile:
         run_custom(token, p_id)
     else:
-        benchmark = MapfBenchmarker(
-            token=token,
-            # benchmark=BenchmarkDescriptor(p_id, ProgressiveDescriptor(1, 3, 2, 1)),
-            benchmark=p_id,
-            algorithm="ICTS-M",
-            version="0.0.1",
-            debug=debug,
-            solver=solve_api,
-            cores=8,
-        )
-        benchmark.run()
+        if enumerative:
+            benchmark = MapfBenchmarker(
+                token=token,
+                benchmark=p_id,
+                algorithm="ICTS (exhaustive)",
+                version="0.1.6",
+                debug=debug,
+                solver=solve_api_enum,
+                cores=8,
+            )
+            benchmark.run()
+        else:
+            benchmark = MapfBenchmarker(
+                token=token,
+                benchmark=p_id,
+                algorithm="ICTS-M",
+                version="0.0.2",
+                debug=debug,
+                solver=solve_api,
+                cores=8,
+            )
+            benchmark.run()

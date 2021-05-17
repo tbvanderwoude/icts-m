@@ -12,6 +12,21 @@ from mapfm.maze import Maze
 from mapfm.util import index_path
 
 
+
+def solve_api(problem: Problem) -> Solution:
+    return solve(problem)[0]
+
+def solve_api_enum(problem: Problem) -> Solution:
+    return solve_enum(problem)[0]
+
+def solve(problem: Problem) -> Solution:
+    solver = Solver(problem, 3, True, True, True, True, False)
+    return solver.solve()
+
+def solve_enum(problem: Problem) -> Solution:
+    solver = Solver(problem, 3, True, True, True, True, True)
+    return solver.solve()
+
 def enumerate_matchings(agents, tasks):
     if agents:
         (name, type), *tail = agents
@@ -276,7 +291,7 @@ class Solver:
                     other_agents = [
                         i for i in range(self.k) if agent_groups[i] != merged_group
                     ]
-                    context = IDContext(other_agents, agent_paths, lens)
+                    context = IDContext(0,other_agents, agent_paths, lens)
                 group_sol = self.solve_tapf_group(
                     agent_groups[conflicting_pair[0]],
                     agent_groups,
@@ -328,6 +343,7 @@ class Solver:
                 return None
         kprime = 1
         while True:
+            # print(group_sic)
             unique_groups = set(agent_groups)
             lens = [len(path) for path in agent_paths]
             max_len = max(lens)
@@ -362,7 +378,11 @@ class Solver:
                     other_agents = [
                         i for i in range(self.k) if agent_groups[i] != merged_group
                     ]
-                    context = IDContext(other_agents, agent_paths, lens)
+                    other_sum = 0
+                    for group in unique_groups:
+                        if group != merged_group and group != conflict_group:
+                            other_sum += group_sic[group]
+                    context = IDContext(other_sum,other_agents, agent_paths, lens)
                 group_sol = self.solve_mapf_group(
                     agent_groups[conflicting_pair[0]], agent_groups, matching, context,0
                 )
@@ -380,16 +400,4 @@ class Solver:
         # print(group_sic)
         return ICTSolution(final_path, sum(group_sic.values()))
 
-
-def solve_api(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, True, True, True, True, True)
-    return solver.solve()[0]
-
-def solve(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, True, True, True, True, False)
-    return solver.solve()
-
-def solve_enum(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, True, True, True, True, True)
-    return solver.solve()
 

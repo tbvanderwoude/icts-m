@@ -75,8 +75,8 @@ def process_results(solutions):
 
 def solve_setting(k):
     print("k = {}".format(k))
-    problems = [gen_problem(16,16,0.0,k) for i in range(100)]
-    bench = TestBench(-1,1000)
+    problems = [gen_problem(16,16,0.0,k) for i in range(1)]
+    bench = TestBench(-1,60000)
     print("Solving enumeratively")
     enum_sols = bench.solve_problems(solve_enum,problems)
     print("Solving natively")
@@ -86,7 +86,7 @@ def solve_setting(k):
 if __name__ == "__main__":
     results_summary = []
     raw_sols = []
-    for k in range(1,8):
+    for k in range(2,4):
         enum_sols,native_sols = solve_setting(k)
         raw_sols.append((enum_sols,native_sols))
         enum_success, enum_mean_time = process_results(enum_sols)
