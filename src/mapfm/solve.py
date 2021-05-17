@@ -5,7 +5,7 @@ from mapfmclient import Problem, Solution
 
 from mapfm.astar import astar
 from mapfm.compact_location import compact_location, expand_location, CompactLocation
-from mapfm.conflicts import is_invalid_move, find_conflict
+from mapfm.conflicts import find_conflict
 from mapfm.ict_search import ICTSearcher, ICTSolution
 from mapfm.id_context import IDContext
 from mapfm.maze import Maze
@@ -48,6 +48,7 @@ class Solver:
     __slots__ = [
         "problem",
         "k",
+        "max_k_solved",
         "maze",
         "combs",
         "prune",
@@ -71,6 +72,7 @@ class Solver:
         self.problem = problem
         self.k = len(problem.starts)
         self.maze: Maze = Maze(problem.grid, problem.width, problem.height)
+        self.max_k_solved = 0
         self.combs = combs
         self.prune = prune
         self.conflict_avoidance = conflict_avoidance
@@ -127,8 +129,8 @@ class Solver:
                 for subsol in subsols:
                     paths.append(list(map(lambda loc: expand_location(loc), subsol)))
             else:
-                return None
-        return Solution.from_paths(paths)
+                return None, self.ict_searcher.max_delta,self.max_k_solved
+        return Solution.from_paths(paths), self.ict_searcher.max_delta,self.max_k_solved
 
     def update_budget(self, budget):
         self.ict_searcher.budget = budget
@@ -268,6 +270,7 @@ class Solver:
                 ]
                 # print(group_agent_indices,agents)
                 k_solved = len(agents)
+                self.max_k_solved = max(k_solved,self.max_k_solved)
                 context = None
                 if self.conflict_avoidance and k_solved < self.k:
                     other_agents = [
@@ -353,7 +356,7 @@ class Solver:
                 agents = [i for i in range(self.k) if agent_groups[i] == merged_group]
 
                 k_solved = len(agents)
-
+                self.max_k_solved = max(k_solved,self.max_k_solved)
                 context = None
                 if self.conflict_avoidance and k_solved < self.k:
                     other_agents = [
@@ -377,6 +380,10 @@ class Solver:
         # print(group_sic)
         return ICTSolution(final_path, sum(group_sic.values()))
 
+
+def solve_api(problem: Problem) -> Solution:
+    solver = Solver(problem, 2, True, True, True, True, False)
+    return solver.solve()[0]
 
 def solve(problem: Problem) -> Solution:
     solver = Solver(problem, 2, True, True, True, True, False)

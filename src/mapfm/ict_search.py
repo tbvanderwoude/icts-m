@@ -24,7 +24,7 @@ class ICTSolution:
 
 
 class ICTSearcher(object):
-    __slots__ = ["maze", "combs", "prune", "enhanced", "open_spaces", "budget","lower_sic_bound"]
+    __slots__ = ["maze", "combs", "prune", "enhanced", "open_spaces", "budget","max_delta","lower_sic_bound"]
 
     def __init__(
         self,
@@ -35,6 +35,7 @@ class ICTSearcher(object):
         budget: Optional[int] = None,
     ):
         self.maze = maze
+        self.max_delta = 0
         self.combs = combs
         self.prune = prune
         self.enhanced = enhanced
@@ -126,13 +127,11 @@ class ICTSearcher(object):
         visited = set()
         mdd_cache = dict()
         # print(k, budget, root)
-        cost = sum(root)
+        root_cost = sum(root)
         while frontier:
             node = frontier.popleft()
-            # if sum(node) != cost:
-            #     cost = sum(node)
-            #     print(cost)
             if (self.lower_sic_bound - k) <= sum(node) <= budget and not node in visited:
+                self.max_delta = max(self.max_delta,sum(node) - root_cost)
                 accumulator = []
                 visited.add(node)
                 mdds = []
@@ -196,10 +195,12 @@ class ICTSearcher(object):
         frontier.append(root)
         visited = set()
         mdd_cache = dict()
+        root_cost = sum(root)
         # print(k, budget, root)
         while frontier:
             node = frontier.popleft()
             if (self.lower_sic_bound-k) <= sum(node) <= budget and not node in visited:
+                self.max_delta = max(self.max_delta,sum(node) - root_cost)
                 accumulator = []
                 visited.add(node)
                 mdds = []

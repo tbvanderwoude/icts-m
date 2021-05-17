@@ -71,12 +71,12 @@ def gen_problem(width,height,density,agents):
 
 # computes success rate and mean solution time
 def process_results(solutions):
-    return np.array([int(bool(x[1])) for x in solutions]).mean(),np.array([x[2] for x in solutions]).mean()
+    return np.array([int(bool(x[1]) and bool(x[1][0])) for x in solutions]).mean(),np.array([x[2] for x in solutions]).mean()
 
 def solve_setting(k):
     print("k = {}".format(k))
-    problems = [gen_problem(16,16,0.0,k) for i in range(100)]
-    bench = TestBench(-1,60000)
+    problems = [gen_problem(8,8,0.0,k) for i in range(10)]
+    bench = TestBench(-1,1000)
     enum_sols = bench.solve_problems(solve_enum,problems)
     print("Done with enumerative solving")
     native_sols = bench.solve_problems(solve,problems)
@@ -86,7 +86,7 @@ def solve_setting(k):
 if __name__ == "__main__":
     results_summary = []
     raw_sols = []
-    for k in range(1,17):
+    for k in range(1,8):
         enum_sols,native_sols = solve_setting(k)
         raw_sols.append((enum_sols,native_sols))
         enum_success, enum_mean_time = process_results(enum_sols)
@@ -95,6 +95,7 @@ if __name__ == "__main__":
         results_summary.append((enum_success, native_success, enum_mean_time, native_mean_time))
     print(results_summary)
     results_summary = np.array(results_summary)
+    print(raw_sols)
     filename = 'raw_results.txt'
     outfile = open(filename, 'wb')
     pickle.dump(raw_sols, outfile)

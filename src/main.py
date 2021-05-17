@@ -11,7 +11,7 @@ from mapfmclient import (
     ProgressiveDescriptor,
 )
 
-from mapfm.solve import solve
+from mapfm.solve import solve, solve_api
 
 
 def run_custom(token, p_id):
@@ -54,7 +54,7 @@ if __name__ == "__main__":
             algorithm="ICTS-M",
             version="0.0.1",
             debug=debug,
-            solver=solve,
+            solver=solve_api,
             cores=8,
         )
         benchmark.run()
