@@ -20,11 +20,11 @@ def solve_api_enum(problem: Problem) -> Solution:
     return solve_enum(problem)[0]
 
 def solve(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, True, True, True, True, False)
+    solver = Solver(problem, 2, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = False)
     return solver.solve()
 
 def solve_enum(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, True, True, True, True, True)
+    solver = Solver(problem, 2, prune = True, enhanced = True, id = False, conflict_avoidance = True, enumerative = True)
     return solver.solve()
 
 def enumerate_matchings(agents, tasks):
@@ -111,9 +111,11 @@ class Solver:
         )
         if self.enumerative:
             matchings = enumerate_matchings(agents, goals)
+            rooted_matchings = list(map(lambda m: (m,sum(self.compute_root(m))), matchings))
+            rooted_matchings.sort(key=lambda a: a[1])
             min_sic = None
             min_sol = None
-            for matching in matchings:
+            for (matching,_) in rooted_matchings:
                 sol = self.solve_matching(matching)
                 if sol:
                     sic = sol.sic
@@ -132,7 +134,7 @@ class Solver:
             )
             team_agent_indices = dict(
                 [
-                    (team, [i for (i, a) in enumerate(agents) if a[1] == team])
+                    (team, set([i for (i, a) in enumerate(agents) if a[1] == team]))
                     for team in teams
                 ]
             )
@@ -190,22 +192,23 @@ class Solver:
             agents, team_agent_indices, team_goals, root, context
         )
 
-    def solve_mapf(
-        self,
-        matching: List[Tuple[CompactLocation, CompactLocation]],
-        context: Optional[IDContext] = None
-    ) -> Optional[ICTSolution]:
-        subproblems = []
+    def compute_root(self,matching: List[Tuple[CompactLocation, CompactLocation]],):
         root_list = []
         for (start, goal) in matching:
-            subproblems.append((start, goal))
             shortest = astar(self.maze, start, goal)
             if not shortest:
                 return None
             assert len(shortest) > 0
             root_list.append(len(shortest) - 1)
-        root = tuple(root_list)
-        return self.ict_searcher.search(subproblems, root, context)
+        return tuple(root_list)
+
+    def solve_mapf(
+        self,
+        matching: List[Tuple[CompactLocation, CompactLocation]],
+        context: Optional[IDContext] = None
+    ) -> Optional[ICTSolution]:
+        root = self.compute_root(matching)
+        return self.ict_searcher.search(matching, root, context)
 
     def solve_tapf_group(
         self,
@@ -219,9 +222,10 @@ class Solver:
     ):
         # print(agents)
         agent_group = [x for (i, x) in enumerate(agents) if agent_groups[i] == group]
+
         local_team_agent_indices = dict(
             [
-                (team, [i for (i, a) in enumerate(agents) if a[1] == team])
+                (team, [j for (j, a) in enumerate(agent_group) if a[1] == team])
                 for team in team_agent_indices.keys()
             ]
         )
@@ -240,7 +244,7 @@ class Solver:
         agent_paths: List[List[Tuple[CompactLocation]]] = []
         group_sic: Dict[int, int] = {}
         for (i, a) in enumerate(all_agents):
-            solution = self.solve_tapf([a], team_agent_indices, team_goals)
+            solution = self.solve_tapf([a], {a[0]: 0}, team_goals)
             if solution:
                 agent_paths.append(list(map(lambda x: x[0], solution.solution)))
                 group_sic[i] = solution.sic

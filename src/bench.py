@@ -3,7 +3,7 @@ import random
 import numpy as np
 import pickle
 from mapfm.solve import solve, solve_enum
-from slim_testbench import TestBench
+from slim_testbench import TestBench, TimeoutSolver
 
 
 def p_bool(p):
@@ -30,7 +30,7 @@ def gen_legal_point(taken, grid, width, height):
 
 def gen_agent_goals(grid, width, height, k):
     num_agents = k
-    num_teams = random.randrange(1, num_agents+1)
+    num_teams = random.randrange(1, num_agents)
     starts = []
     goals = []
     taken_starts = set()
@@ -75,7 +75,7 @@ def process_results(solutions):
 
 def solve_setting(k):
     print("k = {}".format(k))
-    problems = [gen_problem(16,16,0.0,k) for i in range(1)]
+    problems = [gen_problem(16,16,0.0,k) for i in range(100)]
     bench = TestBench(-1,60000)
     print("Solving enumeratively")
     enum_sols = bench.solve_problems(solve_enum,problems)
@@ -83,10 +83,19 @@ def solve_setting(k):
     native_sols = bench.solve_problems(solve,problems)
     return enum_sols,native_sols
 
+def solve_debug(k):
+    print("k = {}".format(k))
+    problems = [gen_problem(16,16,0.0,k) for i in range(100)]
+    solve_func = TimeoutSolver(solve, 1000)
+    for problem in problems:
+        print(solve_func(problem))
+
+
 if __name__ == "__main__":
+    # solve_debug(5)
     results_summary = []
     raw_sols = []
-    for k in range(2,4):
+    for k in range(2,17):
         enum_sols,native_sols = solve_setting(k)
         raw_sols.append((enum_sols,native_sols))
         enum_success, enum_mean_time = process_results(enum_sols)

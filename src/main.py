@@ -51,8 +51,8 @@ if __name__ == "__main__":
             benchmark = MapfBenchmarker(
                 token=token,
                 benchmark=p_id,
-                algorithm="ICTS (exhaustive)",
-                version="0.1.6",
+                algorithm="ICTS (exhaustive with sorting)",
+                version="0.1.7",
                 debug=debug,
                 solver=solve_api_enum,
                 cores=8,
