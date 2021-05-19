@@ -1,9 +1,37 @@
+import os
+from collections import defaultdict
+from math import floor
+
 from mapfmclient import Problem, MarkedLocation
 import random
 import numpy as np
 import pickle
-from mapfm.solve import solve, solve_enum
+
+from map.map_parser import MapParser
+from mapfm.solve import solve, solve_enum, solve_enum_sorted
 from slim_testbench import TestBench, TimeoutSolver
+
+
+class BenchmarkQueue:
+
+    def __init__(self, name):
+        self.name = name
+        with open(name, 'a'):
+            pass
+
+    def get_next(self):
+        with open(self.name, 'r') as f:
+            return f.readline().strip()
+
+    def completed(self):
+        with open(self.name, 'r') as fin:
+            data = fin.read().splitlines(True)
+        with open(self.name, 'w') as fout:
+            fout.writelines(data[1:])
+
+    def add(self, data):
+        with open(self.name, 'a') as f:
+            f.write(data + "\n")
 
 
 def p_bool(p):
@@ -28,28 +56,24 @@ def gen_legal_point(taken, grid, width, height):
 
 
 
-def gen_agent_goals(grid, width, height, k):
-    num_agents = k
-    num_teams = random.randrange(1, num_agents)
+def gen_agent_goals(grid, width, height, t,k_team):
     starts = []
     goals = []
     taken_starts = set()
     taken_goals = set()
     taken = set()
-    for agent in range(num_agents):
-        team = random.randrange(num_teams)
-        if agent < num_teams:
-            team = agent
-        start_x, start_y = gen_legal_point(taken, grid, width, height)
-        taken_starts.add((start_x, start_y))
-        taken.add((start_x, start_y))
-        goal_x, goal_y = gen_legal_point(taken, grid, width, height)
-        taken_goals.add((goal_x, goal_y))
-        taken.add((goal_x, goal_y))
-        start = MarkedLocation(team, start_x, start_y)
-        goal = MarkedLocation(team, goal_x, goal_y)
-        starts.append(start)
-        goals.append(goal)
+    for team in range(t):
+        for agent in range(k_team):
+            start_x, start_y = gen_legal_point(taken, grid, width, height)
+            taken_starts.add((start_x, start_y))
+            taken.add((start_x, start_y))
+            goal_x, goal_y = gen_legal_point(taken, grid, width, height)
+            taken_goals.add((goal_x, goal_y))
+            taken.add((goal_x, goal_y))
+            start = MarkedLocation(team, start_x, start_y)
+            goal = MarkedLocation(team, goal_x, goal_y)
+            starts.append(start)
+            goals.append(goal)
     return starts, goals
 
 
@@ -64,53 +88,76 @@ def show_problem(grid, width, height, starts, goals):
         print(s)
     return starts, goals
 
-def gen_problem(width,height,density,agents):
+def gen_problem(width,height,density,t,k_team):
     grid = gen_rand_grid(width, height, density)
-    starts, goals = gen_agent_goals(grid, width, height, agents)
+    starts, goals = gen_agent_goals(grid, width, height, t,k_team)
     return Problem(grid, width, height, starts, goals)
+
+def gen_problem_random(width,height,density,t,k_team):
+    grid = gen_rand_grid(width, height, density)
+    starts, goals = gen_agent_goals(grid, width, height, t,k_team)
+    return Problem(grid, width, height, starts, goals)
+
 
 # computes success rate and mean solution time
 def process_results(solutions):
-    return np.array([int(bool(x[1]) and bool(x[1][0])) for x in solutions]).mean(),np.array([x[2] for x in solutions]).mean()
+    return np.array([int(bool(x[1]) and bool(x[1][0])) for x in solutions]).mean(),np.array([x[2] for x in solutions]).mean(),np.array([x[2] for x in solutions]).std()
 
-def solve_setting(k):
-    print("k = {}".format(k))
-    problems = [gen_problem(16,16,0.0,k) for i in range(100)]
-    bench = TestBench(-1,60000)
-    print("Solving enumeratively")
-    enum_sols = bench.solve_problems(solve_enum,problems)
-    print("Solving natively")
-    native_sols = bench.solve_problems(solve,problems)
-    return enum_sols,native_sols
+def solve_setting(solver,t,k_team,timeout,samples):
+    print("t = {} (k = {})".format(t,t*k_team))
+    problems = [gen_problem(20,20,0.0,t,k_team) for i in range(samples)]
+    bench = TestBench(-1,timeout)
+    enum_sols = bench.solve_problems(solver,problems)
+    return enum_sols
 
-def solve_debug(k):
-    print("k = {}".format(k))
-    problems = [gen_problem(16,16,0.0,k) for i in range(100)]
-    solve_func = TimeoutSolver(solve, 1000)
-    for problem in problems:
-        print(solve_func(problem))
+
+def test_queue(solver,map_parser, timeout, queue: BenchmarkQueue, output):
+    task = queue.get_next()
+    with open(output, 'a') as f:
+        f.write(f"task_id,completed,avg,std\n")
+    while task is not None and task != "":
+        with open(output, 'a') as f:
+            problems = map_parser.parse_batch(task)
+            bench = TestBench(-1, timeout)
+            enum_sols = bench.solve_problems(solver, problems)
+            res, mean, std = process_results(enum_sols)
+            f.write(f"{task}, {res}, {mean}, {std}\n")
+            print(f"{task}: {res} with average {mean}s and deviaton: {std}\n")
+            queue.completed()
+            task = queue.get_next()
+
 
 
 if __name__ == "__main__":
-    # solve_debug(5)
-    results_summary = []
-    raw_sols = []
-    for k in range(2,17):
-        enum_sols,native_sols = solve_setting(k)
-        raw_sols.append((enum_sols,native_sols))
-        enum_success, enum_mean_time = process_results(enum_sols)
-        native_success, native_mean_time = process_results(native_sols)
-        print(enum_success, native_success, enum_mean_time, native_mean_time)
-        results_summary.append((enum_success, native_success, enum_mean_time, native_mean_time))
-    print(results_summary)
-    results_summary = np.array(results_summary)
-    print(raw_sols)
-    filename = 'raw_results.txt'
-    outfile = open(filename, 'wb')
-    pickle.dump(raw_sols, outfile)
-    outfile.close()
-    # infile = open(filename, 'rb')
-    # loaded_raw_sols = pickle.load(infile)
-    # print(loaded_raw_sols)
-    # infile.close()
-    np.savetxt("results.csv", results_summary, delimiter=",")
+    map_root = "../maps"
+    # for agent in range(1,11):
+    #     for team in [1,3]:
+    #         queue.add("Open-20x20-A{}_T{}".format(agent,team))
+    map_parser = MapParser(map_root)
+    # os.system("cp /dev/null enum_sorted_results.txt; cp full_queue.txt queue.txt")
+    # test_queue(solve_enum_sorted,map_parser,30000, BenchmarkQueue("queue.txt"), "enum_sorted_results.txt")
+    # os.system("cp /dev/null enum_results.txt; cp full_queue.txt queue.txt")
+    # test_queue(solve_enum,map_parser,30000, BenchmarkQueue("queue.txt"), "enum_results.txt")
+    os.system("cp /dev/null results.txt; cp full_queue.txt queue.txt")
+    test_queue(solve,map_parser,30000, BenchmarkQueue("queue.txt"), "results.txt")
+    # # solve_debug(5)
+    # results_summary = []
+    # raw_sols = defaultdict(list)
+    # for team_size in [1, 2, 3, 4, 6, 12]:
+    #     enum_sols = solve_setting(solve_enum, 12//team_size, team_size, 300000, 16)
+    #     raw_sols[team_size].append(enum_sols)
+    #     enum_success, enum_mean_time = process_results(enum_sols)
+    #     print(enum_success, enum_mean_time)
+    #     results_summary.append((enum_success, enum_mean_time))
+    # # print(results_summary)
+    # # results_summary = np.array(results_summary)
+    # print(raw_sols)
+    # filename = 'raw_results.txt'
+    # outfile = open(filename, 'wb')
+    # pickle.dump(raw_sols, outfile)
+    # outfile.close()
+    # # infile = open(filename, 'rb')
+    # # loaded_raw_sols = pickle.load(infile)
+    # # print(loaded_raw_sols)
+    # # infile.close()
+    # np.savetxt("results.csv", results_summary, delimiter=",")

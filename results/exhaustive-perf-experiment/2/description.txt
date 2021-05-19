@@ -1,0 +1,5 @@
+Empty 20x20 grid.
+1-8 pairs (2 agents in same team)
+Timeout of 5m
+16 samples for each setting
+Exhaustive algorithm.

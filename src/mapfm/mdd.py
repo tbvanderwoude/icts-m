@@ -69,7 +69,7 @@ class MDD(object):
             return map(lambda p: p[0], self.mdd[(node, curr_depth)])
 
     # def show(self):
-    #     items = list(sorted(self.mdd.items(), key=lambda x: x[0][1]))
+    #     items = list(sorted(self.mdd.items(), key=lambda x: x[0][2]))
     #     g = Digraph(format="png")
     #     added = set()
     #     plt.tight_layout()

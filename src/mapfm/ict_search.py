@@ -55,12 +55,12 @@ class ICTSearcher(object):
         accumulator: List = [],
         context: Optional[IDContext] = None,
     ):
-        for team in team_agent_indices:
-            indices = team_agent_indices[team]
-            team_size = len(indices)
-            if team_size <= 1:
-                continue
-            for combs in range(2,min(4,team_size)):
+        for combs in range(2, 4):
+            for team in team_agent_indices:
+                indices = team_agent_indices[team]
+                team_size = len(indices)
+                if team_size < combs:
+                    continue
                 for c in combinations(indices, combs):
                     if not seek_solution_in_joint_mdd(
                         [mdds[i] for i in c], False, self.enhanced, accumulator, context
@@ -79,8 +79,6 @@ class ICTSearcher(object):
         n_teams = len(team_agent_indices)
         for combs in range(2,min(4,n_teams)):
             for c in combinations(range(n_teams), combs):
-                if len(c) <= 1:
-                    continue
                 indices = []
                 skip = False
                 for team_i in c:
@@ -107,20 +105,28 @@ class ICTSearcher(object):
         context: Optional[IDContext] = None,
         agents = None,
     ):
-        for combs in range(2,min(4,k)):
-            for c in combinations(range(k), combs):
-                if agents:
-                    team = agents[c[0]][1]
-                    skip = True
-                    for i in c[1:]:
-                        if agents[i][1] != team:
-                            skip = False
-                            break
+        if agents:
+            if k > 2:
+                for combs in [2,3]:
+                    for c in combinations(range(k), combs):
+                        team = agents[c[0]][1]
+                        skip = True
+                        for i in c[1:]:
+                            if agents[i][1] != team:
+                                skip = False
+                                break
 
-                if (not agents or not skip) and not seek_solution_in_joint_mdd(
-                    [mdds[i] for i in c], False, self.enhanced, accumulator, context
-                ):
-                    return c
+                        if not skip and not seek_solution_in_joint_mdd(
+                            [mdds[i] for i in c], False, self.enhanced, accumulator, context
+                        ):
+                            return c
+        else:
+            if k > self.combs:
+                for c in combinations(range(k),self.combs):
+                    if not seek_solution_in_joint_mdd(
+                            [mdds[i] for i in c], False, self.enhanced, accumulator, context
+                    ):
+                        return c
         return None
 
     def get_budget(self,k):
@@ -143,6 +149,9 @@ class ICTSearcher(object):
         frontier.append(root)
         visited = set()
         mdd_cache = dict()
+        team_lens = dict()
+        for team in team_goals:
+            team_lens[team] = len(team_goals[team])
         # print(k, budget, root)
         root_cost = sum(root)
         cost = root_cost
@@ -177,7 +186,7 @@ class ICTSearcher(object):
 
                 conflict_team_combination = None
                 if len(team_agent_indices) > 1:
-                    conflict_team_combination = self.check_within_teams(team_agent_indices, mdds, accumulator, context)
+                    conflict_team_combination = self.check_within_teams(team_agent_indices, mdds, accumulator, context,)
 
                 if not conflict_team_combination:
                     conflict_combination = None

@@ -20,11 +20,15 @@ def solve_api_enum(problem: Problem) -> Solution:
     return solve_enum(problem)[0]
 
 def solve(problem: Problem) -> Solution:
-    solver = Solver(problem, 2, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = False)
+    solver = Solver(problem, 3, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = False)
+    return solver.solve()
+
+def solve_enum_sorted(problem: Problem) -> Solution:
+    solver = Solver(problem, 3, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = True, sorted = True)
     return solver.solve()
 
 def solve_enum(problem: Problem) -> Solution:
-    solver = Solver(problem, 2, prune = True, enhanced = True, id = False, conflict_avoidance = True, enumerative = True)
+    solver = Solver(problem, 3, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = True, sorted = False)
     return solver.solve()
 
 def enumerate_matchings(agents, tasks):
@@ -72,6 +76,8 @@ class Solver:
         "conflict_avoidance",
         "enumerative",
         "ict_searcher",
+        "path_cache",
+        "sorted"
     ]
 
     def __init__(
@@ -83,6 +89,7 @@ class Solver:
         id: bool,
         conflict_avoidance: bool,
         enumerative: bool,
+        sorted: bool = True
     ):
         self.problem = problem
         self.k = len(problem.starts)
@@ -94,6 +101,8 @@ class Solver:
         self.id = id
         self.enumerative = enumerative
         self.ict_searcher = ICTSearcher(self.maze, combs, prune, enhanced,self.k)
+        self.path_cache = dict()
+        self.sorted = sorted
 
     def solve(self) -> Optional[Solution]:
         paths: List[List[Tuple[int, int]]] = []
@@ -111,8 +120,11 @@ class Solver:
         )
         if self.enumerative:
             matchings = enumerate_matchings(agents, goals)
-            rooted_matchings = list(map(lambda m: (m,sum(self.compute_root(m))), matchings))
-            rooted_matchings.sort(key=lambda a: a[1])
+            if self.sorted:
+                rooted_matchings = list(map(lambda m: (m,sum(self.compute_root(m))), matchings))
+                rooted_matchings.sort(key=lambda a: a[1])
+            else:
+                rooted_matchings = list(map(lambda m: (m,0), matchings))
             min_sic = None
             min_sol = None
             for (matching,_) in rooted_matchings:
@@ -195,11 +207,16 @@ class Solver:
     def compute_root(self,matching: List[Tuple[CompactLocation, CompactLocation]],):
         root_list = []
         for (start, goal) in matching:
-            shortest = astar(self.maze, start, goal)
-            if not shortest:
-                return None
-            assert len(shortest) > 0
-            root_list.append(len(shortest) - 1)
+            if (start,goal) in self.path_cache:
+                root_list.append(self.path_cache[(start,goal)])
+            else:
+                shortest = astar(self.maze, start, goal)
+                if not shortest:
+                    return None
+                assert len(shortest) > 0
+                c = len(shortest) - 1
+                self.path_cache[(start, goal)] = c
+                root_list.append(c)
         return tuple(root_list)
 
     def solve_mapf(

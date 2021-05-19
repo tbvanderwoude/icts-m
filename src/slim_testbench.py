@@ -16,9 +16,9 @@ class TimeoutSolver:
 
         except FunctionTimedOut:
             sol = None
-        except Exception as e:
-            print(f"An error occurred while running: {e}")
-            return None
+        # except Exception as e:
+        #     print(f"An error occurred while running: {e}")
+        #     return None
         return sol
 
 

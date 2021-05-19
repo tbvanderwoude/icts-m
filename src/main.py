@@ -16,7 +16,7 @@ from mapfm.solve import solve, solve_api, solve_api_enum
 
 def run_custom(token, p_id):
     headers = {"X-API-Token": token}
-    data = {"algorithm": "ICTS", "version": "0.1.2", "debug": True}
+    data = {"algorithm": "ICTS", "version": "0.2.2", "debug": True}
     r = requests.post(
         "https://mapf.nl/api/benchmark/{}".format(p_id), headers=headers, json=data
     )
@@ -52,7 +52,7 @@ if __name__ == "__main__":
                 token=token,
                 benchmark=p_id,
                 algorithm="ICTS (exhaustive with sorting)",
-                version="0.1.7",
+                version="0.2.7",
                 debug=debug,
                 solver=solve_api_enum,
                 cores=8,
