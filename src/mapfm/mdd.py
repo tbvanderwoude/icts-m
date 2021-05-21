@@ -4,12 +4,15 @@ from typing import Optional, DefaultDict, Tuple, Set, Iterable, Deque
 from graphviz import Digraph
 from matplotlib import pyplot as plt
 
-from mapfm.compact_location import CompactLocation, expand_location
+from mapfm.compact_location import (
+    CompactLocation,
+    expand_location,
+    CompactLocationDepth,
+)
 from mapfm.maze import Maze
 
-MDDGraph = Optional[
-    DefaultDict[Tuple[CompactLocation, int], Set[Tuple[CompactLocation, int]]]
-]
+TimeExpandedGraph = DefaultDict[CompactLocationDepth, Set[CompactLocationDepth]]
+MDDGraph = Optional[TimeExpandedGraph]
 
 
 class MDD(object):
@@ -28,7 +31,7 @@ class MDD(object):
         self.start: CompactLocation = start
         self.goals: Set[CompactLocation] = goals
         self.depth: int = depth
-        self.bfs_tree = {}
+        self.bfs_tree: dict = {}
         self.mdd: MDDGraph = None
         self.level: DefaultDict[int, Set[CompactLocation]] = defaultdict(set)
         if last_mdd and last_mdd.depth < depth and last_mdd.agent == agent:
@@ -47,10 +50,10 @@ class MDD(object):
         if mdd:
             self.populate_levels(self.mdd)
 
-    def populate_levels(self, mdd: MDDGraph):
+    def populate_levels(self, graph: TimeExpandedGraph):
         # all nodes except the start are children of other nodes at a level given by the depth
         self.level[0] = {self.start}
-        for children_sets in mdd.values():
+        for children_sets in graph.values():
             for child in children_sets:
                 self.level[child[1]].add(child[0])
 
@@ -98,7 +101,7 @@ TLDR: turns a child-parents structure into a parent-children structure with some
 
 
 def mdd_from_tree(
-    tree: DefaultDict[Tuple[CompactLocation, int], Set[Tuple[CompactLocation, int]]],
+    tree: DefaultDict[CompactLocationDepth, Set[CompactLocationDepth]],
     goals: Set[CompactLocation],
     depth: int,
 ) -> MDDGraph:
@@ -111,7 +114,7 @@ def mdd_from_tree(
         return None
     visited = set()
     mdd = defaultdict(set)
-    trace_list = deque()
+    trace_list: Deque[Tuple[CompactLocationDepth, CompactLocationDepth]] = deque()
     for goal in reachable_goals:
         for parent in tree[goal]:
             trace_list.append((parent, goal))
@@ -153,7 +156,7 @@ def bootstrap_depth_d_bfs_tree(maze: Maze, depth: int, old_tree):
 def main_bfs_loop(
     maze: Maze,
     depth: int,
-    fringe: Deque[Tuple[CompactLocation, int]],
+    fringe: Deque[CompactLocationDepth],
     prev_dict,
     visited,
 ):

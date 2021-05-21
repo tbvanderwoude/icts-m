@@ -20,9 +20,8 @@ def solve_api_enum(problem: Problem) -> Solution:
     return solve_enum_sorted(problem)[0]
 
 
-def solve(problem: Problem) -> Solution:
+def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
     solver = Solver(
-        problem,
         3,
         prune=True,
         enhanced=True,
@@ -30,35 +29,33 @@ def solve(problem: Problem) -> Solution:
         conflict_avoidance=True,
         enumerative=False,
     )
-    return solver.solve()
+    return solver(problem)
 
 
-def solve_enum_sorted(problem: Problem) -> Solution:
+def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
     solver = Solver(
-        problem,
         3,
         prune=True,
         enhanced=True,
         id=True,
         conflict_avoidance=True,
         enumerative=True,
-        sorted=True,
+        sort_matchings=True,
     )
-    return solver.solve()
+    return solver(problem)
 
 
-def solve_enum(problem: Problem) -> Solution:
+def solve_enum(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
     solver = Solver(
-        problem,
-        3,
+        combs=3,
         prune=True,
         enhanced=True,
         id=True,
         conflict_avoidance=True,
         enumerative=True,
-        sorted=False,
+        sort_matchings=False,
     )
-    return solver.solve()
+    return solver(problem)
 
 
 def enumerate_matchings(agents, tasks):
@@ -107,34 +104,41 @@ class Solver:
         "enumerative",
         "ict_searcher",
         "path_cache",
-        "sorted",
+        "sort_matchings",
     ]
 
     def __init__(
         self,
-        problem: Problem,
         combs: int,
         prune: bool,
         enhanced: bool,
         id: bool,
         conflict_avoidance: bool,
         enumerative: bool,
-        sorted: bool = True,
+        sort_matchings: bool = True,
     ):
-        self.problem = problem
-        self.k = len(problem.starts)
-        self.maze: Maze = Maze(problem.grid, problem.width, problem.height)
         self.max_k_solved = 0
         self.combs = combs
         self.prune = prune
         self.conflict_avoidance = conflict_avoidance
         self.id = id
         self.enumerative = enumerative
-        self.ict_searcher = ICTSearcher(self.maze, combs, prune, enhanced, self.k)
         self.path_cache = dict()
-        self.sorted = sorted
+        self.enhanced = enhanced
+        self.sort_matchings = sort_matchings
+        self.ict_searcher = None
+        self.problem = None
+        self.k = None
+        self.maze: None
 
-    def solve(self) -> Optional[Solution]:
+    def __call__(self, problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
+        self.problem = problem
+        self.k = len(problem.starts)
+        self.maze: Maze = Maze(problem.grid, problem.width, problem.height)
+        self.ict_searcher = ICTSearcher(
+            self.maze, self.combs, self.prune, self.enhanced, self.k
+        )
+
         paths: List[List[Tuple[int, int]]] = []
         agents = list(
             map(
@@ -150,7 +154,7 @@ class Solver:
         )
         if self.enumerative:
             matchings = enumerate_matchings(agents, goals)
-            if self.sorted:
+            if self.sort_matchings:
                 rooted_matchings = list(
                     map(lambda m: (m, sum(self.compute_root(m))), matchings)
                 )

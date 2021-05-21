@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Iterable, TypeVar, Sized, DefaultDict, Set
 
 from mapfm.compact_location import CompactLocation
 
@@ -10,8 +10,11 @@ from mapfm.compact_location import CompactLocation
 #     seen = set()
 #     return not any(i in seen or seen.add(i) for i in xs)
 
+Conflict = Tuple[int, int]
+a = TypeVar("a")
 
-def all_different(xs):
+
+def all_different(xs: List[a]):
     return len(set(xs)) == len(xs)
 
 
@@ -19,8 +22,8 @@ def is_invalid_move(curr_locs, next_locs):
     return not all_different(curr_locs) or has_edge_collisions(curr_locs, next_locs)
 
 
-def all_different_constructive(xs) -> Optional[Tuple[int, int]]:
-    loc_agent = defaultdict(set)
+def all_different_constructive(xs: Iterable[CompactLocation]) -> Optional[Conflict]:
+    loc_agent: DefaultDict[CompactLocation, Set[int]] = defaultdict(set)
     for (i, curr_loc) in enumerate(xs):
         if len(loc_agent[curr_loc]) > 0:
             return list(loc_agent[curr_loc])[0], i
@@ -29,9 +32,9 @@ def all_different_constructive(xs) -> Optional[Tuple[int, int]]:
     return None
 
 
-def count_all_different(xs) -> int:
+def count_all_different(xs: Iterable[CompactLocation]) -> int:
     count = 0
-    loc_agent = defaultdict(set)
+    loc_agent: DefaultDict[CompactLocation, Set[int]] = defaultdict(set)
     for (i, curr_loc) in enumerate(xs):
         if len(loc_agent[curr_loc]) > 0:
             count += 1
@@ -57,7 +60,7 @@ def count_conflicts(curr_locs, next_locs) -> int:
     return count_all_different(curr_locs) + count_edge_collsions(curr_locs, next_locs)
 
 
-def edge_collisions_constructive(curr_locs, next_locs) -> Optional[Tuple[int, int]]:
+def edge_collisions_constructive(curr_locs, next_locs) -> Optional[Conflict]:
     for (i, ei) in filter(
         lambda p: p[1][0] != p[1][1], enumerate(zip(curr_locs, next_locs))
     ):
@@ -69,7 +72,7 @@ def edge_collisions_constructive(curr_locs, next_locs) -> Optional[Tuple[int, in
     return None
 
 
-def find_conflict(curr_locs, next_locs) -> Optional[Tuple[int, int]]:
+def find_conflict(curr_locs, next_locs) -> Optional[Conflict]:
     all_diff = all_different_constructive(curr_locs)
     if all_diff:
         return all_diff

@@ -1,6 +1,9 @@
+from typing import Tuple
+
 ROW_FACTOR = 4096
 
 CompactLocation = int
+CompactLocationDepth = Tuple[CompactLocation, int]
 
 
 def compact_location(x, y):

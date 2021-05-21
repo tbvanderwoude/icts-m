@@ -1,6 +1,6 @@
 from collections import deque
 from itertools import combinations
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 
 from mapfm.compact_location import CompactLocation
 from mapfm.id_context import IDContext
@@ -47,7 +47,7 @@ class ICTSearcher(object):
         budget: Optional[int] = None,
     ):
         self.maze = maze
-        self.max_delta = [0] * (max_k + 1)
+        self.max_delta: List[int] = [0] * (max_k + 1)
         self.combs = combs
         self.team_combs = combs
         self.prune = prune
@@ -168,7 +168,7 @@ class ICTSearcher(object):
         frontier = deque()
         frontier.append(root)
         visited = set()
-        mdd_cache = dict()
+        mdd_cache: Dict[Tuple[int, int], MDD] = dict()
         team_lens = dict()
         for team in team_goals:
             team_lens[team] = len(team_goals[team])

@@ -3,11 +3,7 @@ import sys
 from pprint import pprint
 
 import requests
-from mapfmclient import (
-    MapfBenchmarker,
-    Problem,
-    MarkedLocation
-)
+from mapfmclient import MapfBenchmarker, Problem, MarkedLocation
 
 from mapfm.solve import solve, solve_api, solve_api_enum
 

@@ -3,7 +3,7 @@ from mapfmclient import Problem, MarkedLocation
 import random
 import numpy as np
 from parsing.map_parser import MapParser
-from mapfm.solve import solve
+from mapfm.solve import solve, solve_enum
 from slim_testbench import TestBench
 
 
@@ -122,7 +122,7 @@ def test_queue(solver, map_parser, timeout, queue: BenchmarkQueue, output):
             enum_sols = bench.solve_problems(solver, problems)
             res, mean, std = process_results(enum_sols)
             f.write(f"{task}, {res}, {mean}, {std}\n")
-            print(f"{task}: {res} with average {mean}s and deviaton: {std}\n")
+            print(f"{task}: {res} with average {mean}s and deviation: {std}\n")
             queue.completed()
             task = queue.get_next()
 
@@ -131,4 +131,6 @@ if __name__ == "__main__":
     map_root = "maps"
     map_parser = MapParser(map_root)
     os.system("cp /dev/null results.txt; cp full_queue.txt queue.txt")
-    test_queue(solve, map_parser, 30000, BenchmarkQueue("queue.txt"), "results.txt")
+    test_queue(
+        solve_enum, map_parser, 30000, BenchmarkQueue("queue.txt"), "results.txt"
+    )
