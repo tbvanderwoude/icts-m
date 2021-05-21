@@ -28,6 +28,7 @@ def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
         id=True,
         conflict_avoidance=True,
         enumerative=False,
+        debug=False,
     )
     return Solver(config, problem)()
 
@@ -41,6 +42,7 @@ def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], 
         conflict_avoidance=True,
         enumerative=True,
         sort_matchings=True,
+        debug=False,
     )
     return Solver(config, problem)()
 
@@ -54,6 +56,7 @@ def solve_enum(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
         conflict_avoidance=True,
         enumerative=True,
         sort_matchings=False,
+        debug = False,
     )
     return Solver(config, problem)()
 
@@ -98,6 +101,7 @@ class SolverConfig:
         "id",
         "conflict_avoidance",
         "enumerative",
+        "debug",
         "sort_matchings",
     ]
 
@@ -109,6 +113,7 @@ class SolverConfig:
         id: bool,
         conflict_avoidance: bool,
         enumerative: bool,
+        debug: bool,
         sort_matchings: bool = True,
     ):
         self.combs = combs
@@ -118,6 +123,7 @@ class SolverConfig:
         self.conflict_avoidance = conflict_avoidance
         self.enumerative = enumerative
         self.sort_matchings = sort_matchings
+        self.debug = debug
 
 
 class Solver:
@@ -144,6 +150,7 @@ class Solver:
             self.config.prune,
             self.config.enhanced,
             self.k,
+            self.config.debug
         )
 
     def __call__(self) -> Tuple[Optional[Solution], List[int], int]:

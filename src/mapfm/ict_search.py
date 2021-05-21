@@ -43,6 +43,7 @@ class ICTSearcher(object):
         prune: bool,
         enhanced: bool,
         max_k: int,
+        debug: bool,
         budget: Optional[int] = None,
     ):
         self.maze = maze
@@ -53,8 +54,8 @@ class ICTSearcher(object):
         self.enhanced = enhanced
         self.open_spaces = find_number_of_open_spaces(maze)
         self.lower_sic_bound = 0
+        self.debug = debug
         self.budget = budget
-        self.debug = False
 
     def calculate_upper_bound_cost(self, k: int):
         return (k ** 2) * self.open_spaces
