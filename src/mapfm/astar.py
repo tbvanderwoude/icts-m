@@ -9,10 +9,6 @@ from mapfm.node import Node
 def astar(
     maze: Maze, start: CompactLocation, goal: CompactLocation
 ) -> List[Tuple[int, int]]:
-    """
-
-    :rtype: object
-    """
     ls: List[Node] = [Node(None, start, 0, manhattan_norm(start, goal))]
     heapq.heapify(ls)
     seen: Set[CompactLocation] = set()

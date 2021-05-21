@@ -103,15 +103,6 @@ def seek_solution_in_joint_mdd(
         return found_path
 
 
-def sample_context_node(context: IDContext, depth: int):
-    return list(
-        map(
-            lambda agent: index_path(context.paths[agent], depth, context.lens[agent]),
-            context.other_agents,
-        )
-    )
-
-
 def joint_mdd_dfs(
     mdds: List[MDD],
     curr: Tuple[Any, int],
@@ -130,8 +121,8 @@ def joint_mdd_dfs(
         return True, visited
     children = get_valid_children(mdds, curr_nodes, curr_depth, unfold, accumulator)
     if context:
-        curr_context = sample_context_node(context, curr_depth)
-        next_context = sample_context_node(context, curr_depth + 1)
+        curr_context = context.sample_context_node(curr_depth)
+        next_context = context.sample_context_node(curr_depth + 1)
         children.sort(
             key=lambda child: count_conflicts(
                 curr_context + list(curr_nodes), next_context + list(child)
@@ -167,8 +158,8 @@ def joint_mdd_dfs_constructive(
         return [curr], visited
     children = get_valid_children(mdds, curr_nodes, curr_depth)
     if context:
-        curr_context = sample_context_node(context, curr_depth)
-        next_context = sample_context_node(context, curr_depth + 1)
+        curr_context = context.sample_context_node(curr_depth)
+        next_context = context.sample_context_node(curr_depth + 1)
         children.sort(
             key=lambda child: count_conflicts(
                 curr_context + list(curr_nodes), next_context + list(child)

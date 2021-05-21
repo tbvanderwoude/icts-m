@@ -9,4 +9,6 @@
 *.synctex.gz
 *.run.xml
 *-blx.bib
+results.txt
+queue.txt
 __pycache__/
