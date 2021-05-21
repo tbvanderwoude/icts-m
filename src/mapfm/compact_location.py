@@ -4,7 +4,7 @@ ROW_FACTOR = 4096
 
 CompactLocation = int
 CompactLocationDepth = Tuple[CompactLocation, int]
-
+MarkedCompactLocation = Tuple[CompactLocation,int]
 
 def compact_location(x, y):
     return x + y * ROW_FACTOR

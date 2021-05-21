@@ -1,5 +1,7 @@
 from typing import Dict, List
 
+from mapfm.compact_location import MarkedCompactLocation
+
 
 class MAPFMProblem:
     __slots__ = [
@@ -12,7 +14,7 @@ class MAPFMProblem:
         "teams",
     ]
     def __init__(self,agents,team_agent_indices: Dict[int, List[int]],team_goals):
-        self.agents = agents
+        self.agents: List[MarkedCompactLocation] = agents
         self.team_agent_indices = team_agent_indices
         self.team_goals = team_goals
         self.k = len(agents)

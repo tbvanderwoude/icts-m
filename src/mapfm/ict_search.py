@@ -2,6 +2,7 @@ from collections import deque
 from itertools import combinations
 from typing import List, Tuple, Optional, Dict, Deque
 
+from mapfm.compact_location import MarkedCompactLocation
 from mapfm.id_context import IDContext
 from mapfm.mapfm_problem import MAPFMProblem
 from mapfm.maze import Maze
@@ -120,7 +121,7 @@ class ICTSearcher(object):
         k: int,
         accumulator: List = [],
         context: Optional[IDContext] = None,
-        agents=None,
+        agents: Optional[List[MarkedCompactLocation]] =None,
     ):
         if agents:
             if k > 2:

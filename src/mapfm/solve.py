@@ -2,7 +2,8 @@ from typing import List, Tuple, Optional
 
 from mapfmclient import Problem, Solution
 
-from mapfm.solver import SolverConfig, Solver
+from mapfm.solver import Solver
+from mapfm.solver_config import SolverConfig
 
 
 def solve_api(problem: Problem) -> Solution:
@@ -18,7 +19,7 @@ def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
         combs=2,
         prune=True,
         enhanced=True,
-        id=False,
+        id=True,
         conflict_avoidance=True,
         enumerative=False,
         debug=True,
@@ -28,21 +29,21 @@ def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
 
 def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
     config = SolverConfig(
-        combs=3,
+        combs=2,
         prune=True,
         enhanced=True,
-        id=True,
+        id=False,
         conflict_avoidance=True,
         enumerative=True,
         sort_matchings=True,
-        debug=True,
+        debug=False,
     )
     return Solver(config, problem)()
 
 
 def solve_enum(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
     config = SolverConfig(
-        combs=3,
+        combs=2,
         prune=True,
         enhanced=True,
         id=True,

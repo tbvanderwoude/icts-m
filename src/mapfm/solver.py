@@ -1,15 +1,16 @@
 from copy import copy
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional, Dict, Iterator
 
 from mapfmclient import Problem, Solution
 
 from mapfm.astar import astar
-from mapfm.compact_location import compact_location, expand_location, CompactLocation
+from mapfm.compact_location import compact_location, expand_location, CompactLocation, MarkedCompactLocation
 from mapfm.conflicts import find_conflict
 from mapfm.ict_search import ICTSearcher, ICTSolution
 from mapfm.id_context import IDContext
 from mapfm.mapfm_problem import MAPFMProblem
 from mapfm.maze import Maze
+from mapfm.solver_config import SolverConfig
 from mapfm.util import index_path
 
 
@@ -24,12 +25,12 @@ def enumerate_matchings(agents, tasks):
                 if tail:
                     results.extend(
                         map(
-                            lambda rs: [(name, task_name)] + rs,
+                            lambda rs: [(type,(name, task_name))] + rs,
                             enumerate_matchings(tail, tasks_cp),
                         )
                     )
                 else:
-                    results.append([(name, task_name)])
+                    results.append([(type,(name, task_name))])
         return results
     else:
         return []
@@ -43,39 +44,6 @@ def merge_groups(agent_groups, group_i, group_j):
         else:
             new_agent_groups.append(agent_group)
     return new_agent_groups
-
-
-class SolverConfig:
-    __slots__ = [
-        "combs",
-        "prune",
-        "enhanced",
-        "id",
-        "conflict_avoidance",
-        "enumerative",
-        "debug",
-        "sort_matchings",
-    ]
-
-    def __init__(
-        self,
-        combs: int,
-        prune: bool,
-        enhanced: bool,
-        id: bool,
-        conflict_avoidance: bool,
-        enumerative: bool,
-        debug: bool,
-        sort_matchings: bool = True,
-    ):
-        self.combs = combs
-        self.prune = prune
-        self.enhanced = enhanced
-        self.id = id
-        self.conflict_avoidance = conflict_avoidance
-        self.enumerative = enumerative
-        self.sort_matchings = sort_matchings
-        self.debug = debug
 
 
 class Solver:
@@ -108,32 +76,34 @@ class Solver:
 
     def __call__(self) -> Tuple[Optional[Solution], List[int], int]:
         paths: List[List[Tuple[int, int]]] = []
-        agents = list(
+        agents: List[MarkedCompactLocation] = list(
             map(
                 lambda marked: (compact_location(marked.x, marked.y), marked.color),
                 self.problem.starts,
             )
         )
-        goals = list(
+        goals: List[MarkedCompactLocation] = list(
             map(
                 lambda marked: (compact_location(marked.x, marked.y), marked.color),
                 self.problem.goals,
             )
         )
         if self.config.enumerative:
-            matchings = enumerate_matchings(agents, goals)
+            matchings: List[List[Tuple[CompactLocation,CompactLocation]]] = enumerate_matchings(agents, goals)
+            print(matchings)
             if self.config.sort_matchings:
                 rooted_matchings = list(
-                    map(lambda m: (m, sum(self.compute_root(m))), matchings)
+                    map(lambda m: (m, sum(self.compute_root(map(lambda x: x[1],m)))), matchings)
                 )
                 rooted_matchings.sort(key=lambda a: a[1])
             else:
                 rooted_matchings = list(map(lambda m: (m, 0), matchings))
             min_sic = None
             min_sol = None
+            print(len(rooted_matchings))
             for (matching, _) in rooted_matchings:
-                team_agent_indices = dict(map(lambda x: (x, {x}), agents))
-                team_goals = dict(map(lambda x: (x[0], {x[1][1]}), enumerate(matching)))
+                team_agent_indices = dict(map(lambda x: (x[1][1], {x[0]}), enumerate(agents)))
+                team_goals = dict(map(lambda x: (x[0], {x[1][1]}), matching))
                 sol = self.solve_tapf_instance(agents, team_agent_indices, team_goals)
                 if sol:
                     sic = sol.sic
@@ -174,7 +144,7 @@ class Solver:
     def update_lower_sic(self, lower_sic):
         self.ict_searcher.lower_sic_bound = lower_sic
 
-    def solve_tapf_instance(self, agents, team_agent_indices, team_goals):
+    def solve_tapf_instance(self, agents: List[MarkedCompactLocation], team_agent_indices, team_goals):
         if self.config.id:
             return self.solve_tapf_with_id(agents, team_agent_indices, team_goals)
         else:
@@ -182,7 +152,7 @@ class Solver:
 
     def solve_tapf(
         self,
-        agents,
+        agents: List[MarkedCompactLocation],
         team_agent_indices,
         team_goals,
         context: Optional[IDContext] = None,
@@ -213,7 +183,7 @@ class Solver:
 
     def compute_root(
         self,
-        matching: List[Tuple[CompactLocation, CompactLocation]],
+        matching: Iterator[Tuple[CompactLocation, CompactLocation]],
     ):
         root_list = []
         for (start, goal) in matching:
@@ -233,10 +203,10 @@ class Solver:
         self,
         group: int,
         agent_groups: List[int],
-        agents,
+        agents: List[MarkedCompactLocation],
         team_agent_indices,
         team_goals,
-        context: IDContext,
+        context: Optional[IDContext],
         lower_sic_bound=0,
     ):
         agent_group = [x for (i, x) in enumerate(agents) if agent_groups[i] == group]
@@ -254,7 +224,7 @@ class Solver:
 
     def solve_tapf_with_id(
         self,
-        all_agents,
+        all_agents: List[MarkedCompactLocation],
         team_agent_indices,
         team_goals,
     ):
