@@ -172,8 +172,8 @@ class Solver:
             min_sic = None
             min_sol = None
             for (matching, _) in rooted_matchings:
-                team_agent_indices = dict(map(lambda x: (x,{x}),agents))
-                team_goals = dict(map(lambda x: (x[0],{x[1][1]}),enumerate(matching)))
+                team_agent_indices = dict(map(lambda x: (x, {x}), agents))
+                team_goals = dict(map(lambda x: (x[0], {x[1][1]}), enumerate(matching)))
                 sol = self.solve_tapf_instance(agents, team_agent_indices, team_goals)
                 if sol:
                     sic = sol.sic
@@ -214,12 +214,6 @@ class Solver:
     def update_lower_sic(self, lower_sic):
         self.ict_searcher.lower_sic_bound = lower_sic
 
-    def solve_matching(self, matching: List[Tuple[CompactLocation, CompactLocation]]):
-        if self.config.id:
-            return self.solve_mapf_with_id(matching)
-        else:
-            return self.solve_mapf(matching)
-
     def solve_tapf_instance(self, agents, team_agent_indices, team_goals):
         if self.config.id:
             return self.solve_tapf_with_id(agents, team_agent_indices, team_goals)
@@ -233,12 +227,12 @@ class Solver:
         team_goals,
         context: Optional[IDContext] = None,
     ):
-        root = self.compute_root_m(agents,team_goals)
+        root = self.compute_root_m(agents, team_goals)
         return self.ict_searcher.search_tapf(
             agents, team_agent_indices, team_goals, root, context
         )
 
-    def compute_root_m(self,agents,team_goals):
+    def compute_root_m(self, agents, team_goals):
         root_list = []
         for agent in agents:
             min_c = None
@@ -273,14 +267,6 @@ class Solver:
                 self.path_cache[(start, goal)] = c
                 root_list.append(c)
         return tuple(root_list)
-
-    def solve_mapf(
-        self,
-        matching: List[Tuple[CompactLocation, CompactLocation]],
-        context: Optional[IDContext] = None,
-    ) -> Optional[ICTSolution]:
-        root = self.compute_root(matching)
-        return self.ict_searcher.search(matching, root, context)
 
     def solve_tapf_group(
         self,
@@ -386,91 +372,6 @@ class Solver:
 
                 for (i, agent_index) in enumerate(group_agent_indices):
                     agent_paths[agent_index] = group_agent_paths[i]
-                kprime = max(kprime, k_solved)
-            else:
-                break
-        return ICTSolution(final_path, sum(group_sic.values()))
-
-    def solve_mapf_group(
-        self,
-        group: int,
-        agent_groups: List[int],
-        matching: List[Tuple[CompactLocation, CompactLocation]],
-        context: Optional[IDContext],
-        lower_sic_bound=0,
-    ):
-        sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
-        self.update_lower_sic(lower_sic_bound)
-        return self.solve_mapf(sub_matching, context)
-
-    def solve_mapf_with_id(
-        self,
-        matching: List[Tuple[CompactLocation, CompactLocation]],
-    ):
-        agent_groups = list(range(self.k))
-        agent_paths: List[List[Tuple[CompactLocation]]] = []
-        group_sic: Dict[int, int] = {}
-        for (i, match) in enumerate(matching):
-            solution = self.solve_mapf([match])
-            if solution:
-                agent_paths.append(list(map(lambda x: x[0], solution.solution)))
-                group_sic[i] = solution.sic
-            else:
-                return None
-        kprime = 1
-        while True:
-            unique_groups = set(agent_groups)
-            lens = [len(path) for path in agent_paths]
-            max_len = max(lens)
-            prev = tuple([path[0] for path in agent_paths])
-            conflict = False
-            conflicting_pair = None
-            final_path = [prev]
-            for t in range(1, max_len):
-                node = tuple(
-                    [index_path(agent_paths[i], t, lens[i]) for i in range(self.k)]
-                )
-                conflicting_pair = find_conflict(node, prev)
-                if conflicting_pair:
-                    conflict = True
-                    break
-                else:
-                    final_path.append(node)
-                    prev = node
-            if conflict and len(unique_groups) > 1:
-                merged_group = agent_groups[conflicting_pair[0]]
-                conflict_group = agent_groups[conflicting_pair[1]]
-                lower_sic_bound = group_sic[merged_group] + group_sic[conflict_group]
-                group_sic[conflict_group] = 0
-                agent_groups = merge_groups(agent_groups, merged_group, conflict_group)
-                agents = [i for i in range(self.k) if agent_groups[i] == merged_group]
-
-                k_solved = len(agents)
-                self.max_k_solved = max(k_solved, self.max_k_solved)
-                context = None
-                if self.config.conflict_avoidance and k_solved < self.k:
-                    other_agents = [
-                        i for i in range(self.k) if agent_groups[i] != merged_group
-                    ]
-                    other_sum = 0
-                    for group in unique_groups:
-                        if group != merged_group and group != conflict_group:
-                            other_sum += group_sic[group]
-                    context = IDContext(other_sum, other_agents, agent_paths, lens)
-                group_sol = self.solve_mapf_group(
-                    agent_groups[conflicting_pair[0]],
-                    agent_groups,
-                    matching,
-                    context,
-                    0,
-                )
-                if not group_sol:
-                    return None
-                group_sic[merged_group] = group_sol.sic
-                group_agent_paths = list(zip(*group_sol.solution))
-
-                for (i, agent) in enumerate(agents):
-                    agent_paths[agent] = group_agent_paths[i]
                 kprime = max(kprime, k_solved)
             else:
                 break

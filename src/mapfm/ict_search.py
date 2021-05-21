@@ -2,7 +2,6 @@ from collections import deque
 from itertools import combinations
 from typing import List, Tuple, Optional, Dict
 
-from mapfm.compact_location import CompactLocation
 from mapfm.id_context import IDContext
 from mapfm.maze import Maze
 from mapfm.mdd import MDD
@@ -259,83 +258,6 @@ class ICTSearcher(object):
                         node_list[i] += 1
                         if not tuple(node_list) in visited:
                             frontier.append(tuple(node_list))
-                for (i, p, c) in accumulator:
-                    mdds[i].mdd[p].add(c)
-        return None
-
-    def search(
-        self,
-        subproblems: List[Tuple[CompactLocation, CompactLocation]],
-        root: Tuple[int, ...],
-        context: Optional[IDContext] = None,
-    ) -> Optional[ICTSolution]:
-        k = len(subproblems)
-        budget = self.get_budget(k)
-        if self.budget and context:
-            budget -= context.other_sum
-        frontier = deque()
-        frontier.append(root)
-        visited = set()
-        mdd_cache = dict()
-        root_cost = sum(root)
-        cost = root_cost
-        if self.debug:
-            print(k, budget, root)
-        while frontier:
-            node = frontier.popleft()
-            if (self.lower_sic_bound - k) <= sum(
-                node
-            ) <= budget and not node in visited:
-                if self.debug:
-                    if sum(node) > cost:
-                        cost = sum(node)
-                        print(cost)
-                self.max_delta[k] = max(self.max_delta[k], sum(node) - root_cost)
-                accumulator = []
-                visited.add(node)
-                mdds = []
-                for (i, c) in enumerate(node):
-                    if not (i, c) in mdd_cache:
-                        if (i, c - 1) in mdd_cache:
-                            mdd_cache[(i, c)] = MDD(
-                                self.maze,
-                                i,
-                                subproblems[i][0],
-                                {subproblems[i][1]},
-                                c,
-                                mdd_cache[(i, c - 1)],
-                            )
-                        else:
-                            mdd_cache[(i, c)] = MDD(
-                                self.maze, i, subproblems[i][0], {subproblems[i][1]}, c
-                            )
-                    mdds.append(mdd_cache[(i, c)])
-                conflict_combination = None
-                if self.prune and k > self.combs:
-                    conflict_combination = self.check_combinations(
-                        mdds, k, accumulator, context
-                    )
-
-                if not conflict_combination:
-                    solution: JointTimedSolution = seek_solution_in_joint_mdd(
-                        mdds, True, False, [], context
-                    )
-                    if solution:
-                        return ICTSolution(
-                            list(map(lambda x: x[0], solution)), sum(node)
-                        )
-                    for (i, c) in enumerate(node):
-                        node_list = list(node)
-                        node_list[i] += 1
-                        if not tuple(node_list) in visited:
-                            frontier.append(tuple(node_list))
-                else:
-                    for i in conflict_combination:
-                        node_list = list(node)
-                        node_list[i] += 1
-                        if not tuple(node_list) in visited:
-                            frontier.append(tuple(node_list))
-
                 for (i, p, c) in accumulator:
                     mdds[i].mdd[p].add(c)
         return None
