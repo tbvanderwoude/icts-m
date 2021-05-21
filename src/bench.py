@@ -1,36 +1,30 @@
 import os
-from collections import defaultdict
-from math import floor
-
 from mapfmclient import Problem, MarkedLocation
 import random
 import numpy as np
-import pickle
-
-from map.map_parser import MapParser
-from mapfm.solve import solve, solve_enum, solve_enum_sorted
-from slim_testbench import TestBench, TimeoutSolver
+from parsing.map_parser import MapParser
+from mapfm.solve import solve
+from slim_testbench import TestBench
 
 
 class BenchmarkQueue:
-
     def __init__(self, name):
         self.name = name
-        with open(name, 'a'):
+        with open(name, "a"):
             pass
 
     def get_next(self):
-        with open(self.name, 'r') as f:
+        with open(self.name, "r") as f:
             return f.readline().strip()
 
     def completed(self):
-        with open(self.name, 'r') as fin:
+        with open(self.name, "r") as fin:
             data = fin.read().splitlines(True)
-        with open(self.name, 'w') as fout:
+        with open(self.name, "w") as fout:
             fout.writelines(data[1:])
 
     def add(self, data):
-        with open(self.name, 'a') as f:
+        with open(self.name, "a") as f:
             f.write(data + "\n")
 
 
@@ -55,8 +49,7 @@ def gen_legal_point(taken, grid, width, height):
     return point
 
 
-
-def gen_agent_goals(grid, width, height, t,k_team):
+def gen_agent_goals(grid, width, height, t, k_team):
     starts = []
     goals = []
     taken_starts = set()
@@ -88,35 +81,42 @@ def show_problem(grid, width, height, starts, goals):
         print(s)
     return starts, goals
 
-def gen_problem(width,height,density,t,k_team):
+
+def gen_problem(width, height, density, t, k_team):
     grid = gen_rand_grid(width, height, density)
-    starts, goals = gen_agent_goals(grid, width, height, t,k_team)
+    starts, goals = gen_agent_goals(grid, width, height, t, k_team)
     return Problem(grid, width, height, starts, goals)
 
-def gen_problem_random(width,height,density,t,k_team):
+
+def gen_problem_random(width, height, density, t, k_team):
     grid = gen_rand_grid(width, height, density)
-    starts, goals = gen_agent_goals(grid, width, height, t,k_team)
+    starts, goals = gen_agent_goals(grid, width, height, t, k_team)
     return Problem(grid, width, height, starts, goals)
 
 
 # computes success rate and avg + std run-time
 def process_results(solutions):
-    return np.array([int(bool(x[1]) and bool(x[1][0])) for x in solutions]).mean(),np.array([x[2] for x in solutions]).mean(),np.array([x[2] for x in solutions]).std()
+    return (
+        np.array([int(bool(x[1]) and bool(x[1][0])) for x in solutions]).mean(),
+        np.array([x[2] for x in solutions]).mean(),
+        np.array([x[2] for x in solutions]).std(),
+    )
 
-def solve_setting(solver,t,k_team,timeout,samples):
-    print("t = {} (k = {})".format(t,t*k_team))
-    problems = [gen_problem(20,20,0.0,t,k_team) for i in range(samples)]
-    bench = TestBench(-1,timeout)
-    enum_sols = bench.solve_problems(solver,problems)
+
+def solve_setting(solver, t, k_team, timeout, samples):
+    print("t = {} (k = {})".format(t, t * k_team))
+    problems = [gen_problem(20, 20, 0.0, t, k_team) for i in range(samples)]
+    bench = TestBench(-1, timeout)
+    enum_sols = bench.solve_problems(solver, problems)
     return enum_sols
 
 
-def test_queue(solver,map_parser, timeout, queue: BenchmarkQueue, output):
+def test_queue(solver, map_parser, timeout, queue: BenchmarkQueue, output):
     task = queue.get_next()
-    with open(output, 'a') as f:
+    with open(output, "a") as f:
         f.write(f"task_id,completed,avg,std\n")
     while task is not None and task != "":
-        with open(output, 'a') as f:
+        with open(output, "a") as f:
             problems = map_parser.parse_batch(task)
             bench = TestBench(-1, timeout)
             enum_sols = bench.solve_problems(solver, problems)
@@ -127,9 +127,8 @@ def test_queue(solver,map_parser, timeout, queue: BenchmarkQueue, output):
             task = queue.get_next()
 
 
-
 if __name__ == "__main__":
     map_root = "maps"
     map_parser = MapParser(map_root)
     os.system("cp /dev/null results.txt; cp full_queue.txt queue.txt")
-    test_queue(solve,map_parser,30000, BenchmarkQueue("queue.txt"), "results.txt")
+    test_queue(solve, map_parser, 30000, BenchmarkQueue("queue.txt"), "results.txt")

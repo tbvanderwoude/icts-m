@@ -12,24 +12,54 @@ from mapfm.maze import Maze
 from mapfm.util import index_path
 
 
-
 def solve_api(problem: Problem) -> Solution:
     return solve(problem)[0]
+
 
 def solve_api_enum(problem: Problem) -> Solution:
     return solve_enum_sorted(problem)[0]
 
+
 def solve(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = False)
+    solver = Solver(
+        problem,
+        3,
+        prune=True,
+        enhanced=True,
+        id=True,
+        conflict_avoidance=True,
+        enumerative=False,
+    )
     return solver.solve()
+
 
 def solve_enum_sorted(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = True, sorted = True)
+    solver = Solver(
+        problem,
+        3,
+        prune=True,
+        enhanced=True,
+        id=True,
+        conflict_avoidance=True,
+        enumerative=True,
+        sorted=True,
+    )
     return solver.solve()
 
+
 def solve_enum(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = True, sorted = False)
+    solver = Solver(
+        problem,
+        3,
+        prune=True,
+        enhanced=True,
+        id=True,
+        conflict_avoidance=True,
+        enumerative=True,
+        sorted=False,
+    )
     return solver.solve()
+
 
 def enumerate_matchings(agents, tasks):
     if agents:
@@ -77,7 +107,7 @@ class Solver:
         "enumerative",
         "ict_searcher",
         "path_cache",
-        "sorted"
+        "sorted",
     ]
 
     def __init__(
@@ -89,7 +119,7 @@ class Solver:
         id: bool,
         conflict_avoidance: bool,
         enumerative: bool,
-        sorted: bool = True
+        sorted: bool = True,
     ):
         self.problem = problem
         self.k = len(problem.starts)
@@ -100,7 +130,7 @@ class Solver:
         self.conflict_avoidance = conflict_avoidance
         self.id = id
         self.enumerative = enumerative
-        self.ict_searcher = ICTSearcher(self.maze, combs, prune, enhanced,self.k)
+        self.ict_searcher = ICTSearcher(self.maze, combs, prune, enhanced, self.k)
         self.path_cache = dict()
         self.sorted = sorted
 
@@ -121,13 +151,15 @@ class Solver:
         if self.enumerative:
             matchings = enumerate_matchings(agents, goals)
             if self.sorted:
-                rooted_matchings = list(map(lambda m: (m,sum(self.compute_root(m))), matchings))
+                rooted_matchings = list(
+                    map(lambda m: (m, sum(self.compute_root(m))), matchings)
+                )
                 rooted_matchings.sort(key=lambda a: a[1])
             else:
-                rooted_matchings = list(map(lambda m: (m,0), matchings))
+                rooted_matchings = list(map(lambda m: (m, 0), matchings))
             min_sic = None
             min_sol = None
-            for (matching,_) in rooted_matchings:
+            for (matching, _) in rooted_matchings:
                 sol = self.solve_matching(matching)
                 if sol:
                     sic = sol.sic
@@ -158,8 +190,12 @@ class Solver:
                 for subsol in subsols:
                     paths.append(list(map(lambda loc: expand_location(loc), subsol)))
             else:
-                return None, self.ict_searcher.max_delta,self.max_k_solved
-        return Solution.from_paths(paths), self.ict_searcher.max_delta,self.max_k_solved
+                return None, self.ict_searcher.max_delta, self.max_k_solved
+        return (
+            Solution.from_paths(paths),
+            self.ict_searcher.max_delta,
+            self.max_k_solved,
+        )
 
     def update_budget(self, budget):
         self.ict_searcher.budget = budget
@@ -204,11 +240,14 @@ class Solver:
             agents, team_agent_indices, team_goals, root, context
         )
 
-    def compute_root(self,matching: List[Tuple[CompactLocation, CompactLocation]],):
+    def compute_root(
+        self,
+        matching: List[Tuple[CompactLocation, CompactLocation]],
+    ):
         root_list = []
         for (start, goal) in matching:
-            if (start,goal) in self.path_cache:
-                root_list.append(self.path_cache[(start,goal)])
+            if (start, goal) in self.path_cache:
+                root_list.append(self.path_cache[(start, goal)])
             else:
                 shortest = astar(self.maze, start, goal)
                 if not shortest:
@@ -222,7 +261,7 @@ class Solver:
     def solve_mapf(
         self,
         matching: List[Tuple[CompactLocation, CompactLocation]],
-        context: Optional[IDContext] = None
+        context: Optional[IDContext] = None,
     ) -> Optional[ICTSolution]:
         root = self.compute_root(matching)
         return self.ict_searcher.search(matching, root, context)
@@ -235,7 +274,7 @@ class Solver:
         team_agent_indices,
         team_goals,
         context: IDContext,
-        lower_sic_bound = 0,
+        lower_sic_bound=0,
     ):
         # print(agents)
         agent_group = [x for (i, x) in enumerate(agents) if agent_groups[i] == group]
@@ -306,13 +345,13 @@ class Solver:
                 ]
                 # print(group_agent_indices,agents)
                 k_solved = len(agents)
-                self.max_k_solved = max(k_solved,self.max_k_solved)
+                self.max_k_solved = max(k_solved, self.max_k_solved)
                 context = None
                 if self.conflict_avoidance and k_solved < self.k:
                     other_agents = [
                         i for i in range(self.k) if agent_groups[i] != merged_group
                     ]
-                    context = IDContext(0,other_agents, agent_paths, lens)
+                    context = IDContext(0, other_agents, agent_paths, lens)
                 group_sol = self.solve_tapf_group(
                     agent_groups[conflicting_pair[0]],
                     agent_groups,
@@ -320,7 +359,7 @@ class Solver:
                     team_agent_indices,
                     team_goals,
                     context,
-                    0
+                    0,
                 )
                 if not group_sol:
                     return None
@@ -342,7 +381,7 @@ class Solver:
         agent_groups: List[int],
         matching: List[Tuple[CompactLocation, CompactLocation]],
         context: IDContext,
-        lower_sic_bound = 0,
+        lower_sic_bound=0,
     ):
         sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
         self.update_lower_sic(lower_sic_bound)
@@ -393,7 +432,7 @@ class Solver:
                 agents = [i for i in range(self.k) if agent_groups[i] == merged_group]
 
                 k_solved = len(agents)
-                self.max_k_solved = max(k_solved,self.max_k_solved)
+                self.max_k_solved = max(k_solved, self.max_k_solved)
                 context = None
                 if self.conflict_avoidance and k_solved < self.k:
                     other_agents = [
@@ -403,9 +442,13 @@ class Solver:
                     for group in unique_groups:
                         if group != merged_group and group != conflict_group:
                             other_sum += group_sic[group]
-                    context = IDContext(other_sum,other_agents, agent_paths, lens)
+                    context = IDContext(other_sum, other_agents, agent_paths, lens)
                 group_sol = self.solve_mapf_group(
-                    agent_groups[conflicting_pair[0]], agent_groups, matching, context,0
+                    agent_groups[conflicting_pair[0]],
+                    agent_groups,
+                    matching,
+                    context,
+                    0,
                 )
                 if not group_sol:
                     return None
@@ -420,5 +463,3 @@ class Solver:
         # print("k': {}".format(kprime))
         # print(group_sic)
         return ICTSolution(final_path, sum(group_sic.values()))
-
-

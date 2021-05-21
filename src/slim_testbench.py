@@ -12,7 +12,9 @@ class TimeoutSolver:
 
     def __call__(self, current_problem):
         try:
-            sol = func_timeout(self.timeout / 1000, self.solver, args=(current_problem,))
+            sol = func_timeout(
+                self.timeout / 1000, self.solver, args=(current_problem,)
+            )
 
         except FunctionTimedOut:
             sol = None
@@ -24,6 +26,7 @@ class TimeoutSolver:
 
 # https://stackoverflow.com/questions/62186218/python-multiprocessing-attributeerror-cant-pickle-local-object
 # I wonder why this approach (like rust closures) is not default...
+
 
 class TimingFunction:
     def __init__(self, solve_func):
@@ -46,20 +49,17 @@ class TestBench:
             solve_func = self.solver
         time_func = TimingFunction(solve_func)
         if self.cores == 1:
-            solutions = list(tqdm(
-                map(time_func, problem_list),
-                total=len(problem_list)
-            ))
+            solutions = list(
+                tqdm(map(time_func, problem_list), total=len(problem_list))
+            )
         elif self.cores == -1:
             with Pool() as p:
-                solutions = list(tqdm(
-                    p.imap(time_func, problem_list),
-                    total=len(problem_list)
-                ))
+                solutions = list(
+                    tqdm(p.imap(time_func, problem_list), total=len(problem_list))
+                )
         else:
             with Pool(self.cores) as p:
-                solutions = list(tqdm(
-                    p.imap(time_func, problem_list),
-                    total=len(problem_list)
-                ))
+                solutions = list(
+                    tqdm(p.imap(time_func, problem_list), total=len(problem_list))
+                )
         return solutions

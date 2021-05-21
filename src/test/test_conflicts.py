@@ -1,7 +1,6 @@
 import unittest
-from typing import List, Tuple
 
-from mapfm.compact_location import CompactLocation, compact_location
+from mapfm.compact_location import compact_location
 from mapfm.conflicts import *
 
 

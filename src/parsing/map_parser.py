@@ -4,7 +4,6 @@ from mapfmclient import MarkedLocation, Problem
 
 
 class MapParser:
-
     def __init__(self, map_root):
         self.map_root = map_root
 

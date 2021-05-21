@@ -6,9 +6,7 @@ import requests
 from mapfmclient import (
     MapfBenchmarker,
     Problem,
-    MarkedLocation,
-    BenchmarkDescriptor,
-    ProgressiveDescriptor,
+    MarkedLocation
 )
 
 from mapfm.solve import solve, solve_api, solve_api_enum

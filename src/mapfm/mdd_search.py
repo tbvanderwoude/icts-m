@@ -10,7 +10,6 @@ from mapfm.conflicts import (
 )
 from mapfm.id_context import IDContext
 from mapfm.mdd import MDD
-from mapfm.util import index_path
 
 JointSolution = List[Tuple[CompactLocation, ...]]
 JointTimedSolution = List[Tuple[Tuple[CompactLocation, ...], int]]

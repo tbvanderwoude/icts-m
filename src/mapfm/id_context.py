@@ -2,7 +2,7 @@ from mapfm.util import index_path
 
 
 class IDContext:
-    def __init__(self, other_sum,other_agents, paths, lens):
+    def __init__(self, other_sum, other_agents, paths, lens):
         self.other_sum = other_sum
         self.other_agents = other_agents
         self.paths = paths
