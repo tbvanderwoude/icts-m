@@ -1,4 +1,4 @@
-ROW_FACTOR = 2048
+ROW_FACTOR = 4096
 
 CompactLocation = int
 

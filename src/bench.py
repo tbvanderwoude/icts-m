@@ -99,7 +99,7 @@ def gen_problem_random(width,height,density,t,k_team):
     return Problem(grid, width, height, starts, goals)
 
 
-# computes success rate and mean solution time
+# computes success rate and avg + std run-time
 def process_results(solutions):
     return np.array([int(bool(x[1]) and bool(x[1][0])) for x in solutions]).mean(),np.array([x[2] for x in solutions]).mean(),np.array([x[2] for x in solutions]).std()
 
@@ -130,34 +130,6 @@ def test_queue(solver,map_parser, timeout, queue: BenchmarkQueue, output):
 
 if __name__ == "__main__":
     map_root = "../maps"
-    # for agent in range(1,11):
-    #     for team in [1,3]:
-    #         queue.add("Open-20x20-A{}_T{}".format(agent,team))
     map_parser = MapParser(map_root)
-    # os.system("cp /dev/null enum_sorted_results.txt; cp full_queue.txt queue.txt")
-    # test_queue(solve_enum_sorted,map_parser,30000, BenchmarkQueue("queue.txt"), "enum_sorted_results.txt")
-    # os.system("cp /dev/null enum_results.txt; cp full_queue.txt queue.txt")
-    # test_queue(solve_enum,map_parser,30000, BenchmarkQueue("queue.txt"), "enum_results.txt")
     os.system("cp /dev/null results.txt; cp full_queue.txt queue.txt")
     test_queue(solve,map_parser,30000, BenchmarkQueue("queue.txt"), "results.txt")
-    # # solve_debug(5)
-    # results_summary = []
-    # raw_sols = defaultdict(list)
-    # for team_size in [1, 2, 3, 4, 6, 12]:
-    #     enum_sols = solve_setting(solve_enum, 12//team_size, team_size, 300000, 16)
-    #     raw_sols[team_size].append(enum_sols)
-    #     enum_success, enum_mean_time = process_results(enum_sols)
-    #     print(enum_success, enum_mean_time)
-    #     results_summary.append((enum_success, enum_mean_time))
-    # # print(results_summary)
-    # # results_summary = np.array(results_summary)
-    # print(raw_sols)
-    # filename = 'raw_results.txt'
-    # outfile = open(filename, 'wb')
-    # pickle.dump(raw_sols, outfile)
-    # outfile.close()
-    # # infile = open(filename, 'rb')
-    # # loaded_raw_sols = pickle.load(infile)
-    # # print(loaded_raw_sols)
-    # # infile.close()
-    # np.savetxt("results.csv", results_summary, delimiter=",")
