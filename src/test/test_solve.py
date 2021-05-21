@@ -1,7 +1,7 @@
 import unittest
 
 from mapfmclient import MarkedLocation, Problem
-from mapfm.solve import solve
+from mapfm.solver import solve
 
 """
 Basic single-agent pathfinding tests using top-level 'solve' interface

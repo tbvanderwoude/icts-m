@@ -1,8 +1,8 @@
 from collections import defaultdict, deque
 from typing import Optional, DefaultDict, Tuple, Set, Iterable, Deque, Dict
 
-from graphviz import Digraph
-from matplotlib import pyplot as plt
+# from graphviz import Digraph
+# from matplotlib import pyplot as plt
 
 from mapfm.compact_location import (
     CompactLocation,

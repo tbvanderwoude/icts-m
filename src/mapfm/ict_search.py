@@ -3,6 +3,7 @@ from itertools import combinations
 from typing import List, Tuple, Optional, Dict, Deque
 
 from mapfm.id_context import IDContext
+from mapfm.mapfm_problem import MAPFMProblem
 from mapfm.maze import Maze
 from mapfm.mdd import MDD
 from mapfm.mdd_search import (
@@ -64,14 +65,14 @@ class ICTSearcher(object):
 
     def check_within_teams(
         self,
-        team_agent_indices: Dict[int, List[int]],
+        problem: MAPFMProblem,
         mdds: List[MDD],
         accumulator: List = [],
         context: Optional[IDContext] = None,
     ):
         for combs in range(2, 4):
-            for team in team_agent_indices:
-                indices = team_agent_indices[team]
+            for team in problem.team_agent_indices:
+                indices = problem.team_agent_indices[team]
                 team_size = len(indices)
                 if team_size < combs:
                     continue
@@ -84,20 +85,18 @@ class ICTSearcher(object):
 
     def check_team_combinations(
         self,
-        team_agent_indices: List[List[int]],
-        agents,
+        problem: MAPFMProblem,
         mdds: List[MDD],
         accumulator: List = [],
         context: Optional[IDContext] = None,
     ):
-        n_teams = len(team_agent_indices)
-        for combs in range(2, min(4, n_teams)):
-            for c in combinations(range(n_teams), combs):
+        for combs in range(2, min(4, problem.n_teams)):
+            for c in combinations(problem.teams, combs):
                 indices = []
                 skip = False
                 for team_i in c:
                     filtered_agents = list(
-                        filter(lambda x: x in agents, team_agent_indices[team_i])
+                        filter(lambda x: x in problem.agents, problem.team_agent_indices[team_i])
                     )
                     if not filtered_agents:
                         skip = True
@@ -157,7 +156,7 @@ class ICTSearcher(object):
         else:
             return self.calculate_upper_bound_cost(k)
 
-    def get_node_mdds(self, node, agents, team_goals):
+    def get_node_mdds(self, node, problem):
         mdds = []
         for (i, c) in enumerate(node):
             if not (i, c) in self.mdd_cache:
@@ -165,56 +164,54 @@ class ICTSearcher(object):
                     self.mdd_cache[(i, c)] = MDD(
                         self.maze,
                         i,
-                        agents[i][0],
-                        team_goals[agents[i][1]],
+                        problem.agents[i][0],
+                        problem.team_goals[problem.agents[i][1]],
                         c,
                         self.mdd_cache[(i, c - 1)],
                     )
                 else:
                     self.mdd_cache[(i, c)] = MDD(
-                        self.maze, i, agents[i][0], team_goals[agents[i][1]], c
+                        self.maze, i, problem.agents[i][0], problem.team_goals[problem.agents[i][1]], c
                     )
             mdds.append(self.mdd_cache[(i, c)])
         return mdds
 
+    def clear_cache(self):
+        self.mdd_cache = dict()
+
     def search_tapf(
         self,
-        agents,
-        team_agent_indices,
-        team_goals,
+        problem: MAPFMProblem,
         root,
-        context: Optional[IDContext] = None,
+        context: Optional[IDContext] = None
     ) -> Optional[ICTSolution]:
-        self.mdd_cache = dict()
-        k = len(agents)
+        self.clear_cache()
+        k = problem.k
         budget = self.get_budget(k)
         frontier: Deque[Tuple[int, ...]] = deque()
         frontier.append(root)
         visited = set()
-        team_lens = dict()
-        for team in team_goals:
-            team_lens[team] = len(team_goals[team])
-
+        if self.debug:
+            print(root)
         root_cost = sum(root)
         cost = root_cost
         while frontier:
             node = frontier.popleft()
-            if (self.lower_sic_bound - k) <= sum(
-                node
-            ) <= budget and not node in visited:
+            node_sum = sum(node)
+            if node_sum <= budget and not node in visited:
                 self.max_delta[k] = max(self.max_delta[k], sum(node) - root_cost)
                 if self.debug:
-                    if sum(node) > cost:
+                    if node_sum > cost:
                         cost = sum(node)
                         print(cost)
                 accumulator = []
                 visited.add(node)
-                mdds = self.get_node_mdds(node, agents, team_goals)
+                mdds = self.get_node_mdds(node, problem)
 
                 conflict_team_combination = None
-                if len(team_agent_indices) > 1:
+                if len(problem.team_agent_indices) > 1:
                     conflict_team_combination = self.check_within_teams(
-                        team_agent_indices,
+                        problem,
                         mdds,
                         accumulator,
                         context,
@@ -224,23 +221,24 @@ class ICTSearcher(object):
                     conflict_combination = None
                     if self.prune and k > self.combs:
                         conflict_combination = self.check_combinations(
-                            mdds, k, accumulator, context, agents
+                            mdds, k, accumulator, context, problem.agents
                         )
 
                     if not conflict_combination:
                         conflict_team_comb = None
-                        if len(team_agent_indices) > self.team_combs:
+                        if len(problem.team_agent_indices) > self.team_combs:
                             conflict_team_comb = self.check_team_combinations(
-                                team_agent_indices, agents, mdds, accumulator, context
+                                problem, mdds, accumulator, context
                             )
                         if not conflict_team_comb:
-                            solution: JointTimedSolution = seek_solution_in_joint_mdd(
-                                mdds, True, False, [], context
-                            )
-                            if solution:
-                                return ICTSolution(
-                                    list(map(lambda x: x[0], solution)), sum(node)
+                            if self.lower_sic_bound <= node_sum:
+                                solution: JointTimedSolution = seek_solution_in_joint_mdd(
+                                    mdds, True, False, [], context
                                 )
+                                if solution:
+                                    return ICTSolution(
+                                        list(map(lambda x: x[0], solution)), sum(node)
+                                    )
                             for (i, c) in enumerate(node):
                                 node_list = list(node)
                                 node_list[i] += 1
@@ -248,7 +246,7 @@ class ICTSearcher(object):
                                     frontier.append(tuple(node_list))
                         else:
                             for team in conflict_team_comb:
-                                for i in team_agent_indices[team]:
+                                for i in problem.team_agent_indices[team]:
                                     node_list = list(node)
                                     node_list[i] += 1
                                     if not tuple(node_list) in visited:

@@ -132,5 +132,5 @@ if __name__ == "__main__":
     map_parser = MapParser(map_root)
     os.system("cp /dev/null results.txt; cp full_queue.txt queue.txt")
     test_queue(
-        solve_enum, map_parser, 30000, BenchmarkQueue("queue.txt"), "results.txt"
+        solve_enum, map_parser, 1000, BenchmarkQueue("queue.txt"), "results.txt"
     )
