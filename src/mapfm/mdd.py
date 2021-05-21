@@ -1,5 +1,5 @@
 from collections import defaultdict, deque
-from typing import Optional, DefaultDict, Tuple, Set, Iterable, Deque
+from typing import Optional, DefaultDict, Tuple, Set, Iterable, Deque, Dict
 
 from graphviz import Digraph
 from matplotlib import pyplot as plt
@@ -130,7 +130,7 @@ def mdd_from_tree(
 
 
 def construct_bfs_tree(maze: Maze, start: CompactLocation, depth: int):
-    fringe = deque()
+    fringe: Deque[CompactLocationDepth] = deque()
     fringe.append((start, 0))
     # DAG represented by child-parents map. This formulation makes it easier to construct the path(s) from the parents
     # to the child later, similar to the get_directions function in the A* Node class
@@ -139,7 +139,7 @@ def construct_bfs_tree(maze: Maze, start: CompactLocation, depth: int):
     return main_bfs_loop(maze, depth, fringe, prev_dict, visited)
 
 
-def bootstrap_depth_d_bfs_tree(maze: Maze, depth: int, old_tree):
+def bootstrap_depth_d_bfs_tree(maze: Maze, depth: int, old_tree: Dict):
     fringe = deque()
     old_fringe = list(old_tree["fringe"])
     old_fringe.sort()

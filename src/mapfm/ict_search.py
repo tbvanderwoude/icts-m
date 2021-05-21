@@ -62,7 +62,7 @@ class ICTSearcher(object):
 
     def check_within_teams(
         self,
-        team_agent_indices: List[List[int]],
+        team_agent_indices: Dict[int, List[int]],
         mdds: List[MDD],
         accumulator: List = [],
         context: Optional[IDContext] = None,

@@ -21,20 +21,20 @@ def solve_api_enum(problem: Problem) -> Solution:
 
 
 def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
-    solver = Solver(
-        3,
+    config = SolverConfig(
+        combs=3,
         prune=True,
         enhanced=True,
         id=True,
         conflict_avoidance=True,
         enumerative=False,
     )
-    return solver(problem)
+    return Solver(config, problem)()
 
 
 def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
-    solver = Solver(
-        3,
+    config = SolverConfig(
+        combs=3,
         prune=True,
         enhanced=True,
         id=True,
@@ -42,11 +42,11 @@ def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], 
         enumerative=True,
         sort_matchings=True,
     )
-    return solver(problem)
+    return Solver(config, problem)()
 
 
 def solve_enum(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
-    solver = Solver(
+    config = SolverConfig(
         combs=3,
         prune=True,
         enhanced=True,
@@ -55,7 +55,7 @@ def solve_enum(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
         enumerative=True,
         sort_matchings=False,
     )
-    return solver(problem)
+    return Solver(config, problem)()
 
 
 def enumerate_matchings(agents, tasks):
@@ -90,20 +90,14 @@ def merge_groups(agent_groups, group_i, group_j):
     return new_agent_groups
 
 
-class Solver:
+class SolverConfig:
     __slots__ = [
-        "problem",
-        "k",
-        "max_k_solved",
-        "maze",
         "combs",
         "prune",
         "enhanced",
         "id",
         "conflict_avoidance",
         "enumerative",
-        "ict_searcher",
-        "path_cache",
         "sort_matchings",
     ]
 
@@ -117,28 +111,42 @@ class Solver:
         enumerative: bool,
         sort_matchings: bool = True,
     ):
-        self.max_k_solved = 0
         self.combs = combs
         self.prune = prune
-        self.conflict_avoidance = conflict_avoidance
-        self.id = id
-        self.enumerative = enumerative
-        self.path_cache = dict()
         self.enhanced = enhanced
+        self.id = id
+        self.conflict_avoidance = conflict_avoidance
+        self.enumerative = enumerative
         self.sort_matchings = sort_matchings
-        self.ict_searcher = None
-        self.problem = None
-        self.k = None
-        self.maze: None
 
-    def __call__(self, problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
+
+class Solver:
+    __slots__ = [
+        "config",
+        "problem",
+        "k",
+        "max_k_solved",
+        "maze",
+        "ict_searcher",
+        "path_cache",
+    ]
+
+    def __init__(self, config: SolverConfig, problem: Problem):
+        self.config: SolverConfig = config
+        self.max_k_solved = 0
+        self.path_cache = dict()
         self.problem = problem
         self.k = len(problem.starts)
         self.maze: Maze = Maze(problem.grid, problem.width, problem.height)
         self.ict_searcher = ICTSearcher(
-            self.maze, self.combs, self.prune, self.enhanced, self.k
+            self.maze,
+            self.config.combs,
+            self.config.prune,
+            self.config.enhanced,
+            self.k,
         )
 
+    def __call__(self) -> Tuple[Optional[Solution], List[int], int]:
         paths: List[List[Tuple[int, int]]] = []
         agents = list(
             map(
@@ -152,9 +160,9 @@ class Solver:
                 self.problem.goals,
             )
         )
-        if self.enumerative:
+        if self.config.enumerative:
             matchings = enumerate_matchings(agents, goals)
-            if self.sort_matchings:
+            if self.config.sort_matchings:
                 rooted_matchings = list(
                     map(lambda m: (m, sum(self.compute_root(m))), matchings)
                 )
@@ -208,13 +216,13 @@ class Solver:
         self.ict_searcher.lower_sic_bound = lower_sic
 
     def solve_matching(self, matching: List[Tuple[CompactLocation, CompactLocation]]):
-        if self.id:
+        if self.config.id:
             return self.solve_mapf_with_id(matching)
         else:
             return self.solve_mapf(matching)
 
     def solve_tapf_instance(self, agents, team_agent_indices, team_goals):
-        if self.id:
+        if self.config.id:
             return self.solve_tapf_with_id(agents, team_agent_indices, team_goals)
         else:
             return self.solve_tapf(agents, team_agent_indices, team_goals)
@@ -351,7 +359,7 @@ class Solver:
                 k_solved = len(agents)
                 self.max_k_solved = max(k_solved, self.max_k_solved)
                 context = None
-                if self.conflict_avoidance and k_solved < self.k:
+                if self.config.conflict_avoidance and k_solved < self.k:
                     other_agents = [
                         i for i in range(self.k) if agent_groups[i] != merged_group
                     ]
@@ -359,6 +367,7 @@ class Solver:
                 group_sol = self.solve_tapf_group(
                     agent_groups[conflicting_pair[0]],
                     agent_groups,
+                    "sort_matchings",
                     all_agents,
                     team_agent_indices,
                     team_goals,
@@ -384,7 +393,7 @@ class Solver:
         group: int,
         agent_groups: List[int],
         matching: List[Tuple[CompactLocation, CompactLocation]],
-        context: IDContext,
+        context: Optional[IDContext],
         lower_sic_bound=0,
     ):
         sub_matching = [x for (i, x) in enumerate(matching) if agent_groups[i] == group]
@@ -438,7 +447,7 @@ class Solver:
                 k_solved = len(agents)
                 self.max_k_solved = max(k_solved, self.max_k_solved)
                 context = None
-                if self.conflict_avoidance and k_solved < self.k:
+                if self.config.conflict_avoidance and k_solved < self.k:
                     other_agents = [
                         i for i in range(self.k) if agent_groups[i] != merged_group
                     ]
