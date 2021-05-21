@@ -56,7 +56,7 @@ def solve_enum(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
         conflict_avoidance=True,
         enumerative=True,
         sort_matchings=False,
-        debug = False,
+        debug=False,
     )
     return Solver(config, problem)()
 
@@ -150,7 +150,7 @@ class Solver:
             self.config.prune,
             self.config.enhanced,
             self.k,
-            self.config.debug
+            self.config.debug,
         )
 
     def __call__(self) -> Tuple[Optional[Solution], List[int], int]:

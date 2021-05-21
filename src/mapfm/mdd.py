@@ -134,13 +134,13 @@ def construct_bfs_tree(maze: Maze, start: CompactLocation, depth: int):
     fringe.append((start, 0))
     # DAG represented by child-parents map. This formulation makes it easier to construct the path(s) from the parents
     # to the child later, similar to the get_directions function in the A* Node class
-    prev_dict = defaultdict(set)
-    visited = set()
+    prev_dict: Dict[CompactLocationDepth, Set[CompactLocationDepth]] = defaultdict(set)
+    visited: Set[CompactLocationDepth] = set()
     return main_bfs_loop(maze, depth, fringe, prev_dict, visited)
 
 
 def bootstrap_depth_d_bfs_tree(maze: Maze, depth: int, old_tree: Dict):
-    fringe = deque()
+    fringe: Deque[CompactLocationDepth] = deque()
     old_fringe = list(old_tree["fringe"])
     old_fringe.sort()
     fringe.extend(old_fringe)
@@ -158,14 +158,14 @@ def main_bfs_loop(
     depth: int,
     fringe: Deque[CompactLocationDepth],
     prev_dict,
-    visited,
+    visited: Set[CompactLocationDepth],
 ):
     depth_d_plus_one_fringe = set()
     fringe_prevs = defaultdict(set)
     while fringe:
         curr = fringe.popleft()
         loc, d = curr
-        children: Iterable[Tuple[CompactLocation, int]] = map(
+        children: Iterable[CompactLocationDepth] = map(
             lambda c: (c, d + 1), maze.get_valid_children(loc)
         )
         for c in children:

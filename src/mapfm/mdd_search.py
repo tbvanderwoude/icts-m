@@ -89,7 +89,7 @@ def seek_solution_in_joint_mdd(
                 return False
     roots: Tuple[Any] = tuple(map(lambda mdd: mdd.start, mdds))
     depths: Iterable[int] = map(lambda mdd: mdd.depth, mdds)
-    visited = set()
+    visited: Set[Tuple[List[CompactLocation], int]] = set()
     if constructive:
         solution, _ = joint_mdd_dfs_constructive(
             mdds, None, (roots, 0), max(depths), visited, context

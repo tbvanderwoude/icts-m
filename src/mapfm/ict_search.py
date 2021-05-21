@@ -1,6 +1,6 @@
 from collections import deque
 from itertools import combinations
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional, Dict, Deque
 
 from mapfm.id_context import IDContext
 from mapfm.maze import Maze
@@ -34,6 +34,7 @@ class ICTSearcher(object):
         "max_delta",
         "lower_sic_bound",
         "debug",
+        "mdd_cache",
     ]
 
     def __init__(
@@ -56,6 +57,7 @@ class ICTSearcher(object):
         self.lower_sic_bound = 0
         self.debug = debug
         self.budget = budget
+        self.mdd_cache: Dict[Tuple[int, int], MDD] = dict()
 
     def calculate_upper_bound_cost(self, k: int):
         return (k ** 2) * self.open_spaces
@@ -149,11 +151,31 @@ class ICTSearcher(object):
                         return c
         return None
 
-    def get_budget(self, k):
+    def get_budget(self, k: int):
         if self.budget:
             return self.budget
         else:
             return self.calculate_upper_bound_cost(k)
+
+    def get_node_mdds(self, node, agents, team_goals):
+        mdds = []
+        for (i, c) in enumerate(node):
+            if not (i, c) in self.mdd_cache:
+                if (i, c - 1) in self.mdd_cache:
+                    self.mdd_cache[(i, c)] = MDD(
+                        self.maze,
+                        i,
+                        agents[i][0],
+                        team_goals[agents[i][1]],
+                        c,
+                        self.mdd_cache[(i, c - 1)],
+                    )
+                else:
+                    self.mdd_cache[(i, c)] = MDD(
+                        self.maze, i, agents[i][0], team_goals[agents[i][1]], c
+                    )
+            mdds.append(self.mdd_cache[(i, c)])
+        return mdds
 
     def search_tapf(
         self,
@@ -163,16 +185,16 @@ class ICTSearcher(object):
         root,
         context: Optional[IDContext] = None,
     ) -> Optional[ICTSolution]:
+        self.mdd_cache = dict()
         k = len(agents)
         budget = self.get_budget(k)
-        frontier = deque()
+        frontier: Deque[Tuple[int, ...]] = deque()
         frontier.append(root)
         visited = set()
-        mdd_cache: Dict[Tuple[int, int], MDD] = dict()
         team_lens = dict()
         for team in team_goals:
             team_lens[team] = len(team_goals[team])
-        # print(k, budget, root)
+
         root_cost = sum(root)
         cost = root_cost
         while frontier:
@@ -187,23 +209,7 @@ class ICTSearcher(object):
                         print(cost)
                 accumulator = []
                 visited.add(node)
-                mdds = []
-                for (i, c) in enumerate(node):
-                    if not (i, c) in mdd_cache:
-                        if (i, c - 1) in mdd_cache:
-                            mdd_cache[(i, c)] = MDD(
-                                self.maze,
-                                i,
-                                agents[i][0],
-                                team_goals[agents[i][1]],
-                                c,
-                                mdd_cache[(i, c - 1)],
-                            )
-                        else:
-                            mdd_cache[(i, c)] = MDD(
-                                self.maze, i, agents[i][0], team_goals[agents[i][1]], c
-                            )
-                    mdds.append(mdd_cache[(i, c)])
+                mdds = self.get_node_mdds(node, agents, team_goals)
 
                 conflict_team_combination = None
                 if len(team_agent_indices) > 1:
