@@ -17,14 +17,14 @@ def solve_api(problem: Problem) -> Solution:
     return solve(problem)[0]
 
 def solve_api_enum(problem: Problem) -> Solution:
-    return solve_enum(problem)[0]
+    return solve_enum_sorted(problem)[0]
 
 def solve(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = False)
+    solver = Solver(problem, 3, prune = True, enhanced = True, id = False, conflict_avoidance = True, enumerative = False)
     return solver.solve()
 
 def solve_enum_sorted(problem: Problem) -> Solution:
-    solver = Solver(problem, 3, prune = True, enhanced = True, id = True, conflict_avoidance = True, enumerative = True, sorted = True)
+    solver = Solver(problem, 3, prune = True, enhanced = True, id = False, conflict_avoidance = True, enumerative = True, sorted = True)
     return solver.solve()
 
 def solve_enum(problem: Problem) -> Solution:

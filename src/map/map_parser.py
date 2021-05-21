@@ -45,9 +45,3 @@ class MapParser:
     def parse_batch(self, folder):
         paths = os.listdir(os.path.join(self.map_root, folder))
         return [self.parse_map(str(os.path.join(folder, path))) for path in paths]
-
-
-if __name__ == "__main__":
-    parser = MapParser("../maps")
-    problems = parser.parse_batch("test2")
-    print(problems)
