@@ -9,6 +9,7 @@ class IDContext:
         self.lens = lens
         self.len = 0
         self.path = []
+        self.cache = dict()
 
     def sample_context_node(self, depth: int):
         while depth >= self.len:

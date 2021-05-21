@@ -172,14 +172,15 @@ class Solver:
             min_sic = None
             min_sol = None
             for (matching, _) in rooted_matchings:
-                sol = self.solve_matching(matching)
+                team_agent_indices = dict(map(lambda x: (x,{x}),agents))
+                team_goals = dict(map(lambda x: (x[0],{x[1][1]}),enumerate(matching)))
+                sol = self.solve_tapf_instance(agents, team_agent_indices, team_goals)
                 if sol:
                     sic = sol.sic
                     if not min_sic or min_sic > sic:
                         min_sic = sic
                         min_sol = sol.solution
                         self.update_budget(min_sic)
-            # print("Enumerative SIC: " + str(min_sic))
             subsols = list(zip(*min_sol))
             for subsol in subsols:
                 paths.append(list(map(lambda loc: expand_location(loc), subsol)))
@@ -194,11 +195,9 @@ class Solver:
                     for team in teams
                 ]
             )
-            # print(agents, teams, team_goals, team_agent_indices)
             min_sol = self.solve_tapf_instance(agents, team_agent_indices, team_goals)
             if min_sol:
                 subsols = list(zip(*min_sol.solution))
-                # print("Native SIC: " + str(min_sol.sic))
                 for subsol in subsols:
                     paths.append(list(map(lambda loc: expand_location(loc), subsol)))
             else:
@@ -234,23 +233,28 @@ class Solver:
         team_goals,
         context: Optional[IDContext] = None,
     ):
-        subproblems = []
-        root_list = []
-        for agent in agents:
-            min_len = None
-            for goal in team_goals[agent[1]]:
-                subproblems.append((agent[0], goal))
-                shortest_path = astar(self.maze, agent[0], goal)
-                if not shortest_path:
-                    return None
-                assert len(shortest_path) > 0
-                if not min_len or min_len >= len(shortest_path):
-                    min_len = len(shortest_path)
-            root_list.append(min_len - 1)
-        root = tuple(root_list)
+        root = self.compute_root_m(agents,team_goals)
         return self.ict_searcher.search_tapf(
             agents, team_agent_indices, team_goals, root, context
         )
+
+    def compute_root_m(self,agents,team_goals):
+        root_list = []
+        for agent in agents:
+            min_c = None
+            start = agent[0]
+            for goal in team_goals[agent[1]]:
+                if not (start, goal) in self.path_cache:
+                    shortest_path = astar(self.maze, start, goal)
+                    if not shortest_path:
+                        return None
+                    self.path_cache[(start, goal)] = len(shortest_path)
+                c = self.path_cache[(start, goal)]
+                assert c > 0
+                if not min_c or min_c >= c:
+                    min_c = c
+            root_list.append(min_c - 1)
+        return tuple(root_list)
 
     def compute_root(
         self,
@@ -288,7 +292,6 @@ class Solver:
         context: IDContext,
         lower_sic_bound=0,
     ):
-        # print(agents)
         agent_group = [x for (i, x) in enumerate(agents) if agent_groups[i] == group]
 
         local_team_agent_indices = dict(
@@ -341,7 +344,6 @@ class Solver:
             if conflict and len(unique_groups) > 1:
                 merged_group = agent_groups[conflicting_pair[0]]
                 conflict_group = agent_groups[conflicting_pair[1]]
-                # print("{} into {}".format(merged_group,conflict_group))
                 lower_sic_bound = group_sic[merged_group] + group_sic[conflict_group]
                 group_sic[conflict_group] = 0
                 agent_groups = merge_groups(agent_groups, merged_group, conflict_group)
@@ -355,7 +357,6 @@ class Solver:
                     for (i, a) in enumerate(all_agents)
                     if agent_groups[i] == merged_group
                 ]
-                # print(group_agent_indices,agents)
                 k_solved = len(agents)
                 self.max_k_solved = max(k_solved, self.max_k_solved)
                 context = None
@@ -363,11 +364,15 @@ class Solver:
                     other_agents = [
                         i for i in range(self.k) if agent_groups[i] != merged_group
                     ]
-                    context = IDContext(0, other_agents, agent_paths, lens)
+                    other_sum = 0
+                    for group in unique_groups:
+                        if group != merged_group and group != conflict_group:
+                            other_sum += group_sic[group]
+                    context = IDContext(other_sum, other_agents, agent_paths, lens)
+
                 group_sol = self.solve_tapf_group(
                     agent_groups[conflicting_pair[0]],
                     agent_groups,
-                    "sort_matchings",
                     all_agents,
                     team_agent_indices,
                     team_goals,
@@ -384,8 +389,6 @@ class Solver:
                 kprime = max(kprime, k_solved)
             else:
                 break
-        # print("k': {}".format(kprime))
-        # print(group_sic)
         return ICTSolution(final_path, sum(group_sic.values()))
 
     def solve_mapf_group(
@@ -416,7 +419,6 @@ class Solver:
                 return None
         kprime = 1
         while True:
-            # print(group_sic)
             unique_groups = set(agent_groups)
             lens = [len(path) for path in agent_paths]
             max_len = max(lens)
@@ -438,7 +440,6 @@ class Solver:
             if conflict and len(unique_groups) > 1:
                 merged_group = agent_groups[conflicting_pair[0]]
                 conflict_group = agent_groups[conflicting_pair[1]]
-                # print("{} into {}".format(merged_group,conflict_group))
                 lower_sic_bound = group_sic[merged_group] + group_sic[conflict_group]
                 group_sic[conflict_group] = 0
                 agent_groups = merge_groups(agent_groups, merged_group, conflict_group)
@@ -473,6 +474,4 @@ class Solver:
                 kprime = max(kprime, k_solved)
             else:
                 break
-        # print("k': {}".format(kprime))
-        # print(group_sic)
         return ICTSolution(final_path, sum(group_sic.values()))
