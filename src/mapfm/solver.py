@@ -112,9 +112,12 @@ class Solver:
                         min_sic = sic
                         min_sol = sol.solution
                         self.update_budget(min_sic)
-            subsols = list(zip(*min_sol))
-            for subsol in subsols:
-                paths.append(list(map(lambda loc: expand_location(loc), subsol)))
+            if min_sol:
+                subsols = list(zip(*min_sol))
+                for subsol in subsols:
+                    paths.append(list(map(lambda loc: expand_location(loc), subsol)))
+            else:
+                return None, self.ict_searcher.max_delta, self.max_k_solved
         else:
             teams = set(map(lambda a: a.color, self.problem.starts))
             team_goals = dict(
@@ -174,12 +177,11 @@ class Solver:
                     shortest_path = astar(self.maze, start, goal)
                     if not shortest_path:
                         return None
-                    self.path_cache[(start, goal)] = len(shortest_path)
+                    self.path_cache[(start, goal)] = len(shortest_path) - 1
                 c = self.path_cache[(start, goal)]
-                assert c > 0
                 if not min_c or min_c >= c:
                     min_c = c
-            root_list.append(min_c - 1)
+            root_list.append(min_c)
         return tuple(root_list)
 
     def compute_root(
@@ -194,7 +196,6 @@ class Solver:
                 shortest = astar(self.maze, start, goal)
                 if not shortest:
                     return None
-                assert len(shortest) > 0
                 c = len(shortest) - 1
                 self.path_cache[(start, goal)] = c
                 root_list.append(c)
