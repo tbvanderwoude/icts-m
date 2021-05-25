@@ -24,6 +24,8 @@ class ICTSolution:
         self.sic = sic
 
 
+
+
 class ICTSearcher(object):
     __slots__ = [
         "maze",
@@ -31,6 +33,7 @@ class ICTSearcher(object):
         "team_combs",
         "prune",
         "enhanced",
+        "pruned_child_gen",
         "open_spaces",
         "budget",
         "max_delta",
@@ -45,6 +48,7 @@ class ICTSearcher(object):
         combs: int,
         prune: bool,
         enhanced: bool,
+        pruned_child_gen: bool,
         max_k: int,
         debug: bool,
         budget: Optional[int] = None,
@@ -55,6 +59,7 @@ class ICTSearcher(object):
         self.team_combs = combs
         self.prune = prune
         self.enhanced = enhanced
+        self.pruned_child_gen = pruned_child_gen
         self.open_spaces = find_number_of_open_spaces(maze)
         self.lower_sic_bound = 0
         self.debug = debug
@@ -209,57 +214,95 @@ class ICTSearcher(object):
                 visited.add(node)
                 mdds = self.get_node_mdds(node, problem)
 
-                conflict_team_combination = None
-                if len(problem.team_agent_indices) > 1:
-                    conflict_team_combination = self.check_within_teams(
-                        problem,
-                        mdds,
-                        accumulator,
-                        context,
-                    )
-
-                if not conflict_team_combination:
-                    conflict_combination = None
-                    if self.prune and k > self.combs:
-                        conflict_combination = self.check_combinations(
-                            mdds, k, accumulator, context, problem.agents
+                if self.pruned_child_gen:
+                    conflict_team_combination = None
+                    if len(problem.team_agent_indices) > 1:
+                        conflict_team_combination = self.check_within_teams(
+                            problem,
+                            mdds,
+                            accumulator,
+                            context,
                         )
 
-                    if not conflict_combination:
-                        conflict_team_comb = None
-                        if len(problem.team_agent_indices) > self.team_combs:
-                            conflict_team_comb = self.check_team_combinations(
-                                problem, mdds, accumulator, context
+                    if not conflict_team_combination:
+                        conflict_combination = None
+                        if self.prune and k > self.combs:
+                            conflict_combination = self.check_combinations(
+                                mdds, k, accumulator, context, problem.agents
                             )
-                        if not conflict_team_comb:
-                            if self.lower_sic_bound <= node_sum:
-                                solution: JointTimedSolution = seek_solution_in_joint_mdd(
-                                    mdds, True, False, [], context
+
+                        if not conflict_combination:
+                            conflict_team_comb = None
+                            if len(problem.team_agent_indices) > self.team_combs:
+                                conflict_team_comb = self.check_team_combinations(
+                                    problem, mdds, accumulator, context
                                 )
-                                if solution:
-                                    return ICTSolution(
-                                        list(map(lambda x: x[0], solution)), sum(node)
+                            if not conflict_team_comb:
+                                if self.lower_sic_bound <= node_sum:
+                                    solution: JointTimedSolution = seek_solution_in_joint_mdd(
+                                        mdds, True, False, [], context
                                     )
-                            for (i, c) in enumerate(node):
-                                node_list = list(node)
-                                node_list[i] += 1
-                                if not tuple(node_list) in visited:
-                                    frontier.append(tuple(node_list))
-                        else:
-                            for team in conflict_team_comb:
-                                for i in problem.team_agent_indices[team]:
+                                    if solution:
+                                        return ICTSolution(
+                                            list(map(lambda x: x[0], solution)), sum(node)
+                                        )
+                                for (i, c) in enumerate(node):
                                     node_list = list(node)
                                     node_list[i] += 1
                                     if not tuple(node_list) in visited:
                                         frontier.append(tuple(node_list))
+                            else:
+                                for team in conflict_team_comb:
+                                    for i in problem.team_agent_indices[team]:
+                                        node_list = list(node)
+                                        node_list[i] += 1
+                                        if not tuple(node_list) in visited:
+                                            frontier.append(tuple(node_list))
+                        else:
+                            for i in conflict_combination:
+                                node_list = list(node)
+                                node_list[i] += 1
+                                if not tuple(node_list) in visited:
+                                    frontier.append(tuple(node_list))
                     else:
-                        for i in conflict_combination:
+                        for i in conflict_team_combination:
                             node_list = list(node)
                             node_list[i] += 1
                             if not tuple(node_list) in visited:
                                 frontier.append(tuple(node_list))
                 else:
-                    for i in conflict_team_combination:
+                    conflict_team_combination = None
+                    if len(problem.team_agent_indices) > 1:
+                        conflict_team_combination = self.check_within_teams(
+                            problem,
+                            mdds,
+                            accumulator,
+                            context,
+                        )
+
+                    if not conflict_team_combination:
+                        conflict_combination = None
+                        if self.prune and k > self.combs:
+                            conflict_combination = self.check_combinations(
+                                mdds, k, accumulator, context, problem.agents
+                            )
+
+                        if not conflict_combination:
+                            conflict_team_comb = None
+                            if len(problem.team_agent_indices) > self.team_combs:
+                                conflict_team_comb = self.check_team_combinations(
+                                    problem, mdds, accumulator, context
+                                )
+                            if not conflict_team_comb:
+                                if self.lower_sic_bound <= node_sum:
+                                    solution: JointTimedSolution = seek_solution_in_joint_mdd(
+                                        mdds, True, False, [], context
+                                    )
+                                    if solution:
+                                        return ICTSolution(
+                                            list(map(lambda x: x[0], solution)), sum(node)
+                                        )
+                    for (i, c) in enumerate(node):
                         node_list = list(node)
                         node_list[i] += 1
                         if not tuple(node_list) in visited:

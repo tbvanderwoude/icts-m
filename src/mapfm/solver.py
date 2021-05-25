@@ -70,6 +70,7 @@ class Solver:
             self.config.combs,
             self.config.prune,
             self.config.enhanced,
+            self.config.pruned_child_gen,
             self.k,
             self.config.debug,
         )
@@ -90,7 +91,7 @@ class Solver:
         )
         if self.config.enumerative:
             matchings: List[List[Tuple[CompactLocation,CompactLocation]]] = enumerate_matchings(agents, goals)
-            print(matchings)
+            # print(matchings)
             if self.config.sort_matchings:
                 rooted_matchings = list(
                     map(lambda m: (m, sum(self.compute_root(map(lambda x: x[1],m)))), matchings)
@@ -100,7 +101,7 @@ class Solver:
                 rooted_matchings = list(map(lambda m: (m, 0), matchings))
             min_sic = None
             min_sol = None
-            print(len(rooted_matchings))
+            # print(len(rooted_matchings))
             for (matching, _) in rooted_matchings:
                 team_agent_indices = dict(map(lambda x: (x[1][1], {x[0]}), enumerate(agents)))
                 team_goals = dict(map(lambda x: (x[0], {x[1][1]}), matching))

@@ -19,19 +19,21 @@ def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
         combs=2,
         prune=True,
         enhanced=True,
+        pruned_child_gen=False,
         id=True,
         conflict_avoidance=True,
         enumerative=False,
-        debug=True,
+        debug=False,
     )
     return Solver(config, problem)()
 
 
 def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
     config = SolverConfig(
-        combs=2,
+        combs=3,
         prune=True,
         enhanced=True,
+        pruned_child_gen=False,
         id=True,
         conflict_avoidance=True,
         enumerative=True,
@@ -46,6 +48,7 @@ def solve_enum(problem: Problem) -> Tuple[Optional[Solution], List[int], int]:
         combs=2,
         prune=True,
         enhanced=True,
+        pruned_child_gen=False,
         id=True,
         conflict_avoidance=True,
         enumerative=True,

@@ -3,7 +3,7 @@ from mapfmclient import Problem, MarkedLocation
 import random
 import numpy as np
 from parsing.map_parser import MapParser
-from mapfm.solve import solve, solve_enum
+from mapfm.solve import solve, solve_enum, solve_enum_sorted
 from slim_testbench import TestBench
 
 
@@ -132,5 +132,5 @@ if __name__ == "__main__":
     map_parser = MapParser(map_root)
     os.system("cp /dev/null results.txt; cp full_queue.txt queue.txt")
     test_queue(
-        solve_enum, map_parser, 1000, BenchmarkQueue("queue.txt"), "results.txt"
+        solve, map_parser, 30000, BenchmarkQueue("queue.txt"), "results.txt"
     )
