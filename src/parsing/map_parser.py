@@ -1,4 +1,5 @@
 import os.path
+from typing import List
 
 from mapfmclient import MarkedLocation, Problem
 
@@ -7,7 +8,7 @@ class MapParser:
     def __init__(self, map_root):
         self.map_root = map_root
 
-    def parse_map(self, location: str):
+    def parse_map(self, location: str) -> Problem:
         if location.endswith(".map"):
             path = os.path.join(self.map_root, location)
         else:
@@ -41,6 +42,6 @@ class MapParser:
             goals.append(MarkedLocation(color, x, y))
         return Problem(grid, width, height, starts, goals)
 
-    def parse_batch(self, folder):
+    def parse_batch(self, folder) -> List[Problem]:
         paths = os.listdir(os.path.join(self.map_root, folder))
         return [self.parse_map(str(os.path.join(folder, path))) for path in paths]

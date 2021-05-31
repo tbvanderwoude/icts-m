@@ -1,5 +1,6 @@
 class SolverConfig:
     __slots__ = [
+        "name",
         "combs",
         "prune",
         "enhanced",
@@ -22,7 +23,9 @@ class SolverConfig:
         enumerative: bool,
         debug: bool,
         sort_matchings: bool = True,
+        name: str = "unnamed",
     ):
+        self.name = name
         self.combs = combs
         self.prune = prune
         self.enhanced = enhanced

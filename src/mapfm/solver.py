@@ -75,7 +75,7 @@ class Solver:
             self.config.debug,
         )
 
-    def __call__(self) -> Tuple[Optional[Solution], List[int], int]:
+    def __call__(self) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:
         paths: List[List[Tuple[int, int]]] = []
         agents: List[MarkedCompactLocation] = list(
             map(
@@ -99,7 +99,6 @@ class Solver:
                 rooted_matchings.sort(key=lambda a: a[1])
             else:
                 rooted_matchings = list(map(lambda m: (m, 0), matchings))
-            min_sic = None
             min_sol = None
             # print(len(rooted_matchings))
             for (matching, _) in rooted_matchings:
@@ -107,17 +106,15 @@ class Solver:
                 team_goals = dict(map(lambda x: (x[0], {x[1][1]}), matching))
                 sol = self.solve_tapf_instance(agents, team_agent_indices, team_goals)
                 if sol:
-                    sic = sol.sic
-                    if not min_sic or min_sic > sic:
-                        min_sic = sic
-                        min_sol = sol.solution
-                        self.update_budget(min_sic)
+                    if not min_sol or min_sol.sic > sol.sic:
+                        min_sol = sol
+                        self.update_budget(min_sol.sic)
             if min_sol:
-                subsols = list(zip(*min_sol))
+                subsols = list(zip(*min_sol.solution))
                 for subsol in subsols:
                     paths.append(list(map(lambda loc: expand_location(loc), subsol)))
             else:
-                return None, self.ict_searcher.max_delta, self.max_k_solved
+                return None, self.ict_searcher.max_delta, self.max_k_solved,None
         else:
             teams = set(map(lambda a: a.color, self.problem.starts))
             team_goals = dict(
@@ -135,11 +132,12 @@ class Solver:
                 for subsol in subsols:
                     paths.append(list(map(lambda loc: expand_location(loc), subsol)))
             else:
-                return None, self.ict_searcher.max_delta, self.max_k_solved
+                return None, self.ict_searcher.max_delta, self.max_k_solved, None
         return (
             Solution.from_paths(paths),
             self.ict_searcher.max_delta,
             self.max_k_solved,
+            min_sol.sic
         )
 
     def update_budget(self, budget):
@@ -179,7 +177,7 @@ class Solver:
                         return None
                     self.path_cache[(start, goal)] = len(shortest_path) - 1
                 c = self.path_cache[(start, goal)]
-                if not min_c or min_c >= c:
+                if not min_c or c < min_c:
                     min_c = c
             root_list.append(min_c)
         return tuple(root_list)
@@ -197,7 +195,7 @@ class Solver:
                 if not shortest:
                     return None
                 c = len(shortest) - 1
-                self.path_cache[(start, goal)] = c
+                self.path_cache[(start, goal)] = len(shortest) - 1
                 root_list.append(c)
         return tuple(root_list)
 

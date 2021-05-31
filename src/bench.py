@@ -1,10 +1,18 @@
 import os
+import pickle
+from typing import List
+
 from mapfmclient import Problem, MarkedLocation
 import random
 import numpy as np
+import shutil
+
+from mapfm.solver import Solver
+from mapfm.solver_config import SolverConfig
 from parsing.map_parser import MapParser
-from mapfm.solve import solve, solve_enum, solve_enum_sorted
-from slim_testbench import TestBench
+from mapfm.solve import solve, solve_enum, solve_enum_sorted, solve_enum_sorted_prune_child, solve_pc, \
+    solver_from_config
+from mapfmclient.test_bench import TestBench
 
 
 class BenchmarkQueue:
@@ -107,30 +115,75 @@ def solve_setting(solver, t, k_team, timeout, samples):
     print("t = {} (k = {})".format(t, t * k_team))
     problems = [gen_problem(20, 20, 0.0, t, k_team) for i in range(samples)]
     bench = TestBench(-1, timeout)
-    enum_sols = bench.solve_problems(solver, problems)
+    enum_sols = bench.run(solver, problems)
     return enum_sols
 
 
-def test_queue(solver, map_parser, timeout, queue: BenchmarkQueue, output):
+def test_queue(solver, map_parser, timeout, queue: BenchmarkQueue):
+    output = solver.name
     task = queue.get_next()
     with open(output, "a") as f:
         f.write(f"task_id,completed,avg,std\n")
+    raw_dir = "raw/{}".format(output)
+    if os.path.exists(raw_dir):
+        shutil.rmtree(raw_dir)
+    os.mkdir(raw_dir)
     while task is not None and task != "":
         with open(output, "a") as f:
             problems = map_parser.parse_batch(task)
-            bench = TestBench(-1, timeout)
-            enum_sols = bench.solve_problems(solver, problems)
+            bench = TestBench(1, timeout)
+            enum_sols = bench.run(solver, problems)
+            with open("{}/{}".format(raw_dir,task),"wb+") as raw:
+                pickle.dump(enum_sols, raw)
             res, mean, std = process_results(enum_sols)
             f.write(f"{task}, {res}, {mean}, {std}\n")
             print(f"{task}: {res} with average {mean}s and deviation: {std}\n")
             queue.completed()
             task = queue.get_next()
 
-
-if __name__ == "__main__":
+def compare_configs(configs: List[SolverConfig]):
     map_root = "maps"
     map_parser = MapParser(map_root)
-    os.system("cp /dev/null results.txt; cp full_queue.txt queue.txt")
-    test_queue(
-        solve_enum_sorted, map_parser, 30000, BenchmarkQueue("queue.txt"), "results.txt"
-    )
+    for (i,config) in enumerate(configs):
+        os.system("cp /dev/null results_{}.txt; cp full_queue.txt queue.txt".format(i))
+        test_queue(ConfiguredSolver(config), map_parser, 100, BenchmarkQueue("queue.txt"))
+
+class ConfiguredSolver:
+    def __init__(self,config: SolverConfig):
+        self.config = config
+        self.name = config.name
+
+    def __call__(self,problem):
+        return Solver(self.config,problem)()
+
+    def __name__(self):
+        return self.name
+
+if __name__ == "__main__":
+    configs = [
+        SolverConfig(
+        name = "enum_no_cp",
+        combs=3,
+        prune=True,
+        enhanced=True,
+        pruned_child_gen=True,
+        id=True,
+        conflict_avoidance=True,
+        enumerative=True,
+        debug=False,
+        sort_matchings=True,
+        ),
+        SolverConfig(
+            name="enum_cp",
+            combs=2,
+            prune=True,
+            enhanced=False,
+            pruned_child_gen=True,
+            id=True,
+            conflict_avoidance=True,
+            enumerative=True,
+            debug=False,
+            sort_matchings=True,
+        )
+    ]
+    compare_configs(configs)

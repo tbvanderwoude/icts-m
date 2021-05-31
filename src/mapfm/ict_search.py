@@ -271,6 +271,11 @@ class ICTSearcher(object):
                             if not tuple(node_list) in visited:
                                 frontier.append(tuple(node_list))
                 else:
+                    for (i, c) in enumerate(node):
+                        node_list = list(node)
+                        node_list[i] += 1
+                        if not tuple(node_list) in visited:
+                            frontier.append(tuple(node_list))
                     conflict_team_combination = None
                     if len(problem.team_agent_indices) > 1:
                         conflict_team_combination = self.check_within_teams(
@@ -302,11 +307,6 @@ class ICTSearcher(object):
                                         return ICTSolution(
                                             list(map(lambda x: x[0], solution)), sum(node)
                                         )
-                    for (i, c) in enumerate(node):
-                        node_list = list(node)
-                        node_list[i] += 1
-                        if not tuple(node_list) in visited:
-                            frontier.append(tuple(node_list))
                 for (i, p, c) in accumulator:
                     mdds[i].mdd[p].add(c)
         return None
