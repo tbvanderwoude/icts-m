@@ -204,7 +204,7 @@ class MapGenerator:
         while frontier:
             pos = frontier.pop()
             for dx, dy in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
-                if uniform(0, 1) < open_factor:
+                if uniform(0, 1) <= open_factor:
                     new_x = pos.x + dx
                     new_y = pos.y + dy
 

@@ -34,13 +34,14 @@ def process_results(solutions):
 
 def test_queue(solver, map_parser, timeout,queue: BenchmarkQueue, num: int = 200):
     num = min(num,200)
-    output = pathlib.Path(solver.name)
+    output_file_path = pathlib.Path("results/{}".format(solver.name))
+    file_name = solver.name
     task = queue.get_next()
-    if output.exists():
-        output.unlink()
-    with output.open("a") as f:
+    if output_file_path.exists():
+        output_file_path.unlink()
+    with output_file_path.open("a") as f:
         f.write(f"task_id,completed,avg,std\n")
-    raw_dir = pathlib.Path("raw/{}".format(output))
+    raw_dir = pathlib.Path("raw/{}".format(file_name))
     if raw_dir.exists():
         shutil.rmtree(raw_dir)
     raw_dir.mkdir(parents=True)
@@ -48,7 +49,7 @@ def test_queue(solver, map_parser, timeout,queue: BenchmarkQueue, num: int = 200
         shutil.rmtree(raw_dir)
     os.mkdir(raw_dir)
     while task is not None and task != "":
-        with open(output, "a") as f:
+        with open(output_file_path, "a") as f:
             problems = map_parser.parse_batch(task)[:num]
             bench = TestBench(-1, timeout)
             enum_sols = bench.run(solver, problems)
@@ -81,7 +82,7 @@ class ConfiguredSolver:
 if __name__ == "__main__":
     configs = [
         SolverConfig(
-        name = "exh. icts",
+        name = "exh",
         combs=3,
         prune=True,
         enhanced=True,
@@ -98,8 +99,8 @@ if __name__ == "__main__":
         prune=True,
         enhanced=True,
         pruned_child_gen=True,
-        id=False,
-        conflict_avoidance=False,
+        id=True,
+        conflict_avoidance=True,
         enumerative=False,
         debug=False,
         sort_matchings=False,

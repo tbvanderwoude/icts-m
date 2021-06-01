@@ -100,7 +100,7 @@ class Solver:
             else:
                 rooted_matchings = list(map(lambda m: (m, 0), matchings))
             min_sol = None
-            # print(len(rooted_matchings))
+            print(len(rooted_matchings))
             for (matching, _) in rooted_matchings:
                 team_agent_indices = dict(map(lambda x: (x[1][1], {x[0]}), enumerate(agents)))
                 team_goals = dict(map(lambda x: (x[0], {x[1][1]}), matching))
