@@ -6,33 +6,11 @@ import numpy as np
 import shutil
 import pathlib
 
+from ictsm.benchmark_queue import BenchmarkQueue
 from ictsm.solver import Solver
 from ictsm.solver_config import SolverConfig
 from mapfmclient.parser import MapParser
-from ictsm.solve import solve, solve_enum, solve_enum_sorted, solve_enum_sorted_prune_child, solve_pc, \
-    solver_from_config
 from mapfmclient.test_bench import TestBench
-
-
-class BenchmarkQueue:
-    def __init__(self, name):
-        self.name = name
-        with open(name, "a"):
-            pass
-
-    def get_next(self):
-        with open(self.name, "r") as f:
-            return f.readline().strip()
-
-    def completed(self):
-        with open(self.name, "r") as fin:
-            data = fin.read().splitlines(True)
-        with open(self.name, "w") as fout:
-            fout.writelines(data[1:])
-
-    def add(self, data):
-        with open(self.name, "a") as f:
-            f.write(data + "\n")
 
 def show_problem(grid, width, height, starts, goals):
     for y in range(height):
@@ -54,7 +32,8 @@ def process_results(solutions):
     )
 
 
-def test_queue(solver, map_parser, timeout, queue: BenchmarkQueue):
+def test_queue(solver, map_parser, timeout,queue: BenchmarkQueue, num: int = 200):
+    num = min(num,200)
     output = pathlib.Path(solver.name)
     task = queue.get_next()
     if output.exists():
@@ -70,7 +49,7 @@ def test_queue(solver, map_parser, timeout, queue: BenchmarkQueue):
     os.mkdir(raw_dir)
     while task is not None and task != "":
         with open(output, "a") as f:
-            problems = map_parser.parse_batch(task)
+            problems = map_parser.parse_batch(task)[:num]
             bench = TestBench(-1, timeout)
             enum_sols = bench.run(solver, problems)
             with (raw_dir / task).open("wb+") as raw:
@@ -86,7 +65,7 @@ def compare_configs(configs: List[SolverConfig]):
     map_parser = MapParser(map_root)
     for (i,config) in enumerate(configs):
         os.system("cp full_queue.txt queue.txt")
-        test_queue(ConfiguredSolver(config), map_parser, 100, BenchmarkQueue("queue.txt"))
+        test_queue(ConfiguredSolver(config), map_parser, 30000, BenchmarkQueue("queue.txt"),50)
 
 class ConfiguredSolver:
     def __init__(self,config: SolverConfig):
@@ -102,7 +81,7 @@ class ConfiguredSolver:
 if __name__ == "__main__":
     configs = [
         SolverConfig(
-        name = "enum_no_cp",
+        name = "exh. icts",
         combs=3,
         prune=True,
         enhanced=True,
@@ -114,16 +93,16 @@ if __name__ == "__main__":
         sort_matchings=True,
         ),
         SolverConfig(
-            name="enum_cp",
-            combs=2,
-            prune=True,
-            enhanced=False,
-            pruned_child_gen=True,
-            id=True,
-            conflict_avoidance=True,
-            enumerative=True,
-            debug=False,
-            sort_matchings=True,
+        name="icts-m",
+        combs=3,
+        prune=True,
+        enhanced=True,
+        pruned_child_gen=True,
+        id=False,
+        conflict_avoidance=False,
+        enumerative=False,
+        debug=False,
+        sort_matchings=False,
         )
     ]
     compare_configs(configs)

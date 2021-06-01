@@ -13,3 +13,5 @@ results.txt
 queue.txt
 __pycache__/
 .idea/
+venv
+raw

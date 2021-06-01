@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from ictsm.compact_location import CompactLocation, expand_location, compact_location
+from .compact_location import CompactLocation, expand_location, compact_location
 
 
 class Maze(object):

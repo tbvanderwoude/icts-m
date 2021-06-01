@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List, Optional, Tuple, Iterable, TypeVar, Sized, DefaultDict, Set
 
-from ictsm.compact_location import CompactLocation
+from .compact_location import CompactLocation
 
 # early-exit variant of the version below. Intuitively, it should be faster
 # https://stackoverflow.com/questions/5278122/checking-if-all-elements-in-a-list-are-unique

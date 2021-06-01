@@ -2,8 +2,8 @@ from typing import List, Tuple, Optional
 
 from mapfmclient import Problem, Solution
 
-from ictsm.solver import Solver
-from ictsm.solver_config import SolverConfig
+from .solver import Solver
+from .solver_config import SolverConfig
 
 
 def solve_api(problem: Problem) -> Solution:

@@ -2,16 +2,12 @@ from collections import deque
 from itertools import combinations
 from typing import List, Tuple, Optional, Dict, Deque
 
-from ictsm.compact_location import MarkedCompactLocation
-from ictsm.id_context import IDContext
-from ictsm.mapfm_problem import MAPFMProblem
-from ictsm.maze import Maze
-from ictsm.mdd import MDD
-from ictsm.mdd_search import (
-    JointSolution,
-    seek_solution_in_joint_mdd,
-    JointTimedSolution,
-)
+from .compact_location import MarkedCompactLocation
+from .id_context import IDContext
+from .mapfm_problem import MAPFMProblem
+from .maze import Maze
+from .mdd import MDD
+from .mdd_search import (JointSolution,seek_solution_in_joint_mdd,JointTimedSolution)
 
 
 def find_number_of_open_spaces(maze: Maze):

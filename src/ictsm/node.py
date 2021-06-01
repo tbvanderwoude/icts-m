@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ictsm.compact_location import CompactLocation
+from .compact_location import CompactLocation
 
 
 class Node(object):

@@ -1,4 +1,4 @@
-from ictsm.util import index_path
+from .util import index_path
 
 
 class IDContext:
