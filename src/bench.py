@@ -88,9 +88,9 @@ if __name__ == "__main__":
         enhanced=True,
         pruned_child_gen=True,
         id=True,
-        conflict_avoidance=True,
+        conflict_avoidance=False,
         enumerative=True,
-        debug=False,
+        debug=True,
         sort_matchings=True,
         ),
         SolverConfig(

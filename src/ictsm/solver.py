@@ -25,12 +25,12 @@ def enumerate_matchings(agents, tasks):
                 if tail:
                     results.extend(
                         map(
-                            lambda rs: [(type,(name, task_name))] + rs,
+                            lambda rs: [(name, task_name)] + rs,
                             enumerate_matchings(tail, tasks_cp),
                         )
                     )
                 else:
-                    results.append([(type,(name, task_name))])
+                    results.append([(name, task_name)])
         return results
     else:
         return []
@@ -92,19 +92,22 @@ class Solver:
         if self.config.enumerative:
             matchings: List[List[Tuple[CompactLocation,CompactLocation]]] = enumerate_matchings(agents, goals)
             # print(matchings)
+            # print(matchings)
             if self.config.sort_matchings:
                 rooted_matchings = list(
-                    map(lambda m: (m, sum(self.compute_root(map(lambda x: x[1],m)))), matchings)
+                    map(lambda m: (m, sum(self.compute_root(m))), matchings)
                 )
                 rooted_matchings.sort(key=lambda a: a[1])
             else:
                 rooted_matchings = list(map(lambda m: (m, 0), matchings))
             min_sol = None
-            print(len(rooted_matchings))
+            # print(len(rooted_matchings))
             for (matching, _) in rooted_matchings:
-                team_agent_indices = dict(map(lambda x: (x[1][1], {x[0]}), enumerate(agents)))
-                team_goals = dict(map(lambda x: (x[0], {x[1][1]}), matching))
-                sol = self.solve_tapf_instance(agents, team_agent_indices, team_goals)
+                matching_agents = list(map(lambda x: (x[1][0],x[0]),enumerate(matching)))
+                team_agent_indices = dict(map(lambda x: (x[0], {x[0]}), enumerate(matching)))
+                team_goals = dict(map(lambda x: (x[0], {x[1][1]}), enumerate(matching)))
+                # print(agents,matching_agents,matching,team_agent_indices,team_goals)
+                sol = self.solve_tapf_instance(matching_agents, team_agent_indices, team_goals)
                 if sol:
                     if not min_sol or min_sol.sic > sol.sic:
                         min_sol = sol

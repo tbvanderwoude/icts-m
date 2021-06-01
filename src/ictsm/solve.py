@@ -48,11 +48,11 @@ def solve_pc(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optio
 
 def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:
     config = SolverConfig(
-        combs=2,
+        combs=3,
         prune=True,
         enhanced=True,
-        pruned_child_gen=False,
-        id=True,
+        pruned_child_gen=True,
+        id=False,
         conflict_avoidance=True,
         enumerative=True,
         sort_matchings=True,

@@ -1,5 +1,3 @@
-Open-20x20-A1_T1
-Open-20x20-A2_T1
 Open-20x20-A3_T1
 Open-20x20-A4_T1
 Open-20x20-A5_T1
