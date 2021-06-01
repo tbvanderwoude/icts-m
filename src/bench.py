@@ -6,6 +6,7 @@ from mapfmclient import Problem, MarkedLocation
 import random
 import numpy as np
 import shutil
+import pathlib
 
 from ictsm.solver import Solver
 from ictsm.solver_config import SolverConfig
@@ -120,20 +121,25 @@ def solve_setting(solver, t, k_team, timeout, samples):
 
 
 def test_queue(solver, map_parser, timeout, queue: BenchmarkQueue):
-    output = solver.name
+    output = pathlib.Path(solver.name)
     task = queue.get_next()
-    with open(output, "a") as f:
+    if output.exists():
+        output.unlink()
+    with output.open("a") as f:
         f.write(f"task_id,completed,avg,std\n")
-    raw_dir = "raw/{}".format(output)
+    raw_dir = pathlib.Path("raw/{}".format(output))
+    if raw_dir.exists():
+        shutil.rmtree(raw_dir)
+    raw_dir.mkdir(parents=True)
     if os.path.exists(raw_dir):
         shutil.rmtree(raw_dir)
     os.mkdir(raw_dir)
     while task is not None and task != "":
         with open(output, "a") as f:
             problems = map_parser.parse_batch(task)
-            bench = TestBench(1, timeout)
+            bench = TestBench(-1, timeout)
             enum_sols = bench.run(solver, problems)
-            with open("{}/{}".format(raw_dir,task),"wb+") as raw:
+            with (raw_dir / task).open("wb+") as raw:
                 pickle.dump(enum_sols, raw)
             res, mean, std = process_results(enum_sols)
             f.write(f"{task}, {res}, {mean}, {std}\n")
@@ -145,7 +151,7 @@ def compare_configs(configs: List[SolverConfig]):
     map_root = "maps"
     map_parser = MapParser(map_root)
     for (i,config) in enumerate(configs):
-        os.system("cp /dev/null results_{}.txt; cp full_queue.txt queue.txt".format(i))
+        os.system("cp full_queue.txt queue.txt")
         test_queue(ConfiguredSolver(config), map_parser, 100, BenchmarkQueue("queue.txt"))
 
 class ConfiguredSolver:
