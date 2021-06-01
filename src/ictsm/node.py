@@ -1,6 +1,6 @@
 from typing import Optional
 
-from mapfm.compact_location import CompactLocation
+from ictsm.compact_location import CompactLocation
 
 
 class Node(object):

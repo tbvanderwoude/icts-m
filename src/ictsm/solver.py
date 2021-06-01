@@ -3,15 +3,15 @@ from typing import List, Tuple, Optional, Dict, Iterator
 
 from mapfmclient import Problem, Solution
 
-from mapfm.astar import astar
-from mapfm.compact_location import compact_location, expand_location, CompactLocation, MarkedCompactLocation
-from mapfm.conflicts import find_conflict
-from mapfm.ict_search import ICTSearcher, ICTSolution
-from mapfm.id_context import IDContext
-from mapfm.mapfm_problem import MAPFMProblem
-from mapfm.maze import Maze
-from mapfm.solver_config import SolverConfig
-from mapfm.util import index_path
+from ictsm.astar import astar
+from ictsm.compact_location import compact_location, expand_location, CompactLocation, MarkedCompactLocation
+from ictsm.conflicts import find_conflict
+from ictsm.ict_search import ICTSearcher, ICTSolution
+from ictsm.id_context import IDContext
+from ictsm.mapfm_problem import MAPFMProblem
+from ictsm.maze import Maze
+from ictsm.solver_config import SolverConfig
+from ictsm.util import index_path
 
 
 def enumerate_matchings(agents, tasks):

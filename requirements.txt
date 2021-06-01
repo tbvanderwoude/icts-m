@@ -1,0 +1,5 @@
+graphviz==0.16
+numpy==1.19.2
+matplotlib==3.3.4
+requests==2.25.1
+mapfmclient==0.2.5

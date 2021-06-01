@@ -2,12 +2,12 @@ from collections import deque
 from itertools import combinations
 from typing import List, Tuple, Optional, Dict, Deque
 
-from mapfm.compact_location import MarkedCompactLocation
-from mapfm.id_context import IDContext
-from mapfm.mapfm_problem import MAPFMProblem
-from mapfm.maze import Maze
-from mapfm.mdd import MDD
-from mapfm.mdd_search import (
+from ictsm.compact_location import MarkedCompactLocation
+from ictsm.id_context import IDContext
+from ictsm.mapfm_problem import MAPFMProblem
+from ictsm.maze import Maze
+from ictsm.mdd import MDD
+from ictsm.mdd_search import (
     JointSolution,
     seek_solution_in_joint_mdd,
     JointTimedSolution,

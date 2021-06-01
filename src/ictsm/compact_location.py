@@ -1,5 +1,6 @@
 from typing import Tuple
 
+# Set to max grid width of problem instances
 ROW_FACTOR = 4096
 
 CompactLocation = int

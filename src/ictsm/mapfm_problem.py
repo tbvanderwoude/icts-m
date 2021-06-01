@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from mapfm.compact_location import MarkedCompactLocation
+from ictsm.compact_location import MarkedCompactLocation
 
 
 class MAPFMProblem:

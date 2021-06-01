@@ -1,15 +1,15 @@
 import itertools
 from typing import List, Tuple, Iterable, Any, Union, Set, Optional
 
-from mapfm.compact_location import CompactLocation
-from mapfm.conflicts import (
+from ictsm.compact_location import CompactLocation
+from ictsm.conflicts import (
     is_invalid_move,
     has_edge_collisions,
     all_different,
     count_conflicts,
 )
-from mapfm.id_context import IDContext
-from mapfm.mdd import MDD
+from ictsm.id_context import IDContext
+from ictsm.mdd import MDD
 
 JointSolution = List[Tuple[CompactLocation, ...]]
 JointTimedSolution = List[Tuple[Tuple[CompactLocation, ...], int]]

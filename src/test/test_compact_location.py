@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from mapfm.compact_location import compact_location, expand_location, ROW_FACTOR
+from ictsm.compact_location import compact_location, expand_location, ROW_FACTOR
 
 param_list = [(0, 0), (0, 1), (1, 0), (1, 1), (ROW_FACTOR - 1, 0)]
 

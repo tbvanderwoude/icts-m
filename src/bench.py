@@ -7,10 +7,10 @@ import random
 import numpy as np
 import shutil
 
-from mapfm.solver import Solver
-from mapfm.solver_config import SolverConfig
-from parsing.map_parser import MapParser
-from mapfm.solve import solve, solve_enum, solve_enum_sorted, solve_enum_sorted_prune_child, solve_pc, \
+from ictsm.solver import Solver
+from ictsm.solver_config import SolverConfig
+from mapfmclient.parser import MapParser
+from ictsm.solve import solve, solve_enum, solve_enum_sorted, solve_enum_sorted_prune_child, solve_pc, \
     solver_from_config
 from mapfmclient.test_bench import TestBench
 

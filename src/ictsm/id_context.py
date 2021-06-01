@@ -1,4 +1,4 @@
-from mapfm.util import index_path
+from ictsm.util import index_path
 
 
 class IDContext:

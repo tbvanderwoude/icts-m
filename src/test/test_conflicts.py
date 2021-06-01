@@ -1,7 +1,7 @@
 import unittest
 
-from mapfm.compact_location import compact_location
-from mapfm.conflicts import *
+from ictsm.compact_location import compact_location
+from ictsm.conflicts import *
 
 
 def construct_node(ns: List[Tuple[int, int]]) -> List[CompactLocation]:

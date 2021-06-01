@@ -1,9 +1,9 @@
 import unittest
 from typing import List
 
-from mapfm.astar import astar
-from mapfm.compact_location import CompactLocation, compact_location
-from mapfm.maze import Maze
+from ictsm.astar import astar
+from ictsm.compact_location import CompactLocation, compact_location
+from ictsm.maze import Maze
 
 
 class AStarTest(unittest.TestCase):

@@ -1,15 +1,15 @@
 from collections import defaultdict, deque
 from typing import Optional, DefaultDict, Tuple, Set, Iterable, Deque, Dict
 
-# from graphviz import Digraph
-# from matplotlib import pyplot as plt
+from graphviz import Digraph
+from matplotlib import pyplot as plt
 
-from mapfm.compact_location import (
+from ictsm.compact_location import (
     CompactLocation,
     expand_location,
     CompactLocationDepth,
 )
-from mapfm.maze import Maze
+from ictsm.maze import Maze
 
 TimeExpandedGraph = DefaultDict[CompactLocationDepth, Set[CompactLocationDepth]]
 MDDGraph = Optional[TimeExpandedGraph]

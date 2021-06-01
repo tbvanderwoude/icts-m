@@ -1,9 +1,9 @@
 import heapq
 from typing import List, Set, Tuple
 
-from mapfm.compact_location import CompactLocation, manhattan_norm, expand_location
-from mapfm.maze import Maze
-from mapfm.node import Node
+from ictsm.compact_location import CompactLocation, manhattan_norm, expand_location
+from ictsm.maze import Maze
+from ictsm.node import Node
 
 
 def astar(
