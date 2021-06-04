@@ -164,6 +164,7 @@ class Solver:
     ):
         root = self.compute_root_m(agents, team_goals)
         problem = MAPFMProblem(agents, team_agent_indices, team_goals)
+        self.max_k_solved = max(problem.k, self.max_k_solved)
         return self.ict_searcher.search_tapf(
             problem, root, context
         )
@@ -278,7 +279,6 @@ class Solver:
                     if agent_groups[i] == merged_group
                 ]
                 k_solved = len(agents)
-                self.max_k_solved = max(k_solved, self.max_k_solved)
                 context = None
                 if self.config.conflict_avoidance and k_solved < self.k:
                     other_agents = [

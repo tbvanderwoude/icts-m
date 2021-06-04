@@ -34,9 +34,8 @@ def process_results(solutions):
 
 def test_queue(solver, map_parser, timeout,queue: BenchmarkQueue, num: int = 200):
     num = min(num,200)
-    output_file_path = pathlib.Path("results/{}".format(solver.name))
     file_name = solver.name
-    task = queue.get_next()
+    output_file_path = pathlib.Path("raw/{}.txt".format(file_name))
     if output_file_path.exists():
         output_file_path.unlink()
     with output_file_path.open("a") as f:
@@ -48,10 +47,11 @@ def test_queue(solver, map_parser, timeout,queue: BenchmarkQueue, num: int = 200
     if os.path.exists(raw_dir):
         shutil.rmtree(raw_dir)
     os.mkdir(raw_dir)
+    task = queue.get_next()
     while task is not None and task != "":
         with open(output_file_path, "a") as f:
             problems = map_parser.parse_batch(task)[:num]
-            bench = TestBench(-1, timeout)
+            bench = TestBench(4, timeout)
             enum_sols = bench.run(solver, problems)
             with (raw_dir / task).open("wb+") as raw:
                 pickle.dump(enum_sols, raw)
@@ -66,7 +66,7 @@ def compare_configs(configs: List[SolverConfig]):
     map_parser = MapParser(map_root)
     for (i,config) in enumerate(configs):
         os.system("cp full_queue.txt queue.txt")
-        test_queue(ConfiguredSolver(config), map_parser, 30000, BenchmarkQueue("queue.txt"),50)
+        test_queue(ConfiguredSolver(config), map_parser, 120000, BenchmarkQueue("queue.txt"),200)
 
 class ConfiguredSolver:
     def __init__(self,config: SolverConfig):
@@ -82,28 +82,100 @@ class ConfiguredSolver:
 if __name__ == "__main__":
     configs = [
         SolverConfig(
-        name = "exh",
-        combs=3,
-        prune=True,
-        enhanced=True,
-        pruned_child_gen=True,
-        id=True,
-        conflict_avoidance=False,
-        enumerative=True,
-        debug=True,
-        sort_matchings=True,
+            name="(exh)-(simple-child)-(no-id)",
+            combs=3,
+            prune=True,
+            enhanced=False,
+            pruned_child_gen=True,
+            id=False,
+            conflict_avoidance=False,
+            enumerative=True,
+            debug=False,
+            sort_matchings=False,
         ),
         SolverConfig(
-        name="icts-m",
-        combs=3,
-        prune=True,
-        enhanced=True,
-        pruned_child_gen=True,
-        id=True,
-        conflict_avoidance=True,
-        enumerative=False,
-        debug=False,
-        sort_matchings=False,
-        )
+            name="(exh)-(simple-child)-(id)",
+            combs=3,
+            prune=True,
+            enhanced=False,
+            pruned_child_gen=True,
+            id=True,
+            conflict_avoidance=False,
+            enumerative=True,
+            debug=False,
+            sort_matchings=False,
+        ),
+        SolverConfig(
+            name="(exh)-(enhanced)-(no-id)",
+            combs=3,
+            prune=True,
+            enhanced=False,
+            pruned_child_gen=True,
+            id=False,
+            conflict_avoidance=False,
+            enumerative=True,
+            debug=False,
+            sort_matchings=False,
+        ),
+        SolverConfig(
+            name="(exh)-(enhanced)-(id)",
+            combs=3,
+            prune=True,
+            enhanced=True,
+            pruned_child_gen=False,
+            id=True,
+            conflict_avoidance=False,
+            enumerative=True,
+            debug=False,
+            sort_matchings=False,
+        ),
+        SolverConfig(
+            name="(ictsm)-(simple-child)-(no-id)",
+            combs=3,
+            prune=True,
+            enhanced=False,
+            pruned_child_gen=True,
+            id=False,
+            conflict_avoidance=False,
+            enumerative=False,
+            debug=False,
+            sort_matchings=False,
+        ),
+        SolverConfig(
+            name="(ictsm)-(simple-child)-(id)",
+            combs=3,
+            prune=True,
+            enhanced=False,
+            pruned_child_gen=True,
+            id=True,
+            conflict_avoidance=False,
+            enumerative=False,
+            debug=False,
+            sort_matchings=False,
+        ),
+        SolverConfig(
+            name="(ictsm)-(enhanced)-(no-id)",
+            combs=3,
+            prune=True,
+            enhanced=False,
+            pruned_child_gen=True,
+            id=False,
+            conflict_avoidance=False,
+            enumerative=False,
+            debug=False,
+            sort_matchings=False,
+        ),
+        SolverConfig(
+            name="(ictsm)-(enhanced)-(id)",
+            combs=3,
+            prune=True,
+            enhanced=True,
+            pruned_child_gen=False,
+            id=True,
+            conflict_avoidance=False,
+            enumerative=False,
+            debug=False,
+            sort_matchings=False,
+        ),
     ]
     compare_configs(configs)

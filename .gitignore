@@ -16,3 +16,4 @@ __pycache__/
 results/
 venv
 raw
+raw-backup

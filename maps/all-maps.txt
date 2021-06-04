@@ -10,6 +10,9 @@ Open-20x20-A9_T1
 Open-20x20-A10_T1
 Open-20x20-A11_T1
 Open-20x20-A12_T1
+Open-20x20-A13_T1
+Open-20x20-A14_T1
+Open-20x20-A15_T1
 Open-20x20-A1_T3
 Open-20x20-A2_T3
 Open-20x20-A3_T3
@@ -22,6 +25,9 @@ Open-20x20-A9_T3
 Open-20x20-A10_T3
 Open-20x20-A11_T3
 Open-20x20-A12_T3
+Open-20x20-A13_T3
+Open-20x20-A14_T3
+Open-20x20-A15_T3
 Obstacle-20x20-A1_T1
 Obstacle-20x20-A2_T1
 Obstacle-20x20-A3_T1
@@ -34,6 +40,9 @@ Obstacle-20x20-A9_T1
 Obstacle-20x20-A10_T1
 Obstacle-20x20-A11_T1
 Obstacle-20x20-A12_T1
+Obstacle-20x20-A13_T1
+Obstacle-20x20-A14_T1
+Obstacle-20x20-A15_T1
 Obstacle-20x20-A1_T3
 Obstacle-20x20-A2_T3
 Obstacle-20x20-A3_T3
@@ -46,6 +55,9 @@ Obstacle-20x20-A9_T3
 Obstacle-20x20-A10_T3
 Obstacle-20x20-A11_T3
 Obstacle-20x20-A12_T3
+Obstacle-20x20-A13_T3
+Obstacle-20x20-A14_T3
+Obstacle-20x20-A15_T3
 Maze-20x20-A1_T1
 Maze-20x20-A2_T1
 Maze-20x20-A3_T1

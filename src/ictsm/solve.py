@@ -13,19 +13,33 @@ def solve_api(problem: Problem) -> Solution:
 def solve_api_enum(problem: Problem) -> Solution:
     return solve_enum_sorted(problem)[0]
 
-
 def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:
     config = SolverConfig(
         combs=2,
         prune=True,
-        enhanced=False,
-        pruned_child_gen=False,
+        enhanced=True,
+        pruned_child_gen=True,
         id=True,
         conflict_avoidance=True,
         enumerative=False,
-        debug=False,
+        debug=True,
     )
     return Solver(config, problem)()
+
+def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:
+    config = SolverConfig(
+        combs=3,
+        prune=True,
+        enhanced=True,
+        pruned_child_gen=True,
+        id=True,
+        conflict_avoidance=True,
+        enumerative=True,
+        sort_matchings=True,
+        debug=True,
+    )
+    return Solver(config, problem)()
+
 
 
 def solver_from_config(config: SolverConfig):
@@ -38,7 +52,7 @@ def solve_pc(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optio
         prune=True,
         enhanced=False,
         pruned_child_gen=True,
-        id=True,
+        id=False,
         conflict_avoidance=True,
         enumerative=False,
         debug=False,
@@ -46,19 +60,7 @@ def solve_pc(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optio
     return Solver(config, problem)()
 
 
-def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:
-    config = SolverConfig(
-        combs=3,
-        prune=True,
-        enhanced=True,
-        pruned_child_gen=True,
-        id=False,
-        conflict_avoidance=True,
-        enumerative=True,
-        sort_matchings=True,
-        debug=False,
-    )
-    return Solver(config, problem)()
+
 
 
 def solve_enum_sorted_prune_child(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:
@@ -82,7 +84,7 @@ def solve_enum(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Opt
         prune=True,
         enhanced=False,
         pruned_child_gen=False,
-        id=True,
+        id=False,
         conflict_avoidance=True,
         enumerative=True,
         sort_matchings=False,

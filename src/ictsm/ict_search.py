@@ -72,7 +72,7 @@ class ICTSearcher(object):
         accumulator: List = [],
         context: Optional[IDContext] = None,
     ):
-        for combs in range(2, 4):
+        for combs in range(self.combs, 4):
             for team in problem.team_agent_indices:
                 indices = problem.team_agent_indices[team]
                 team_size = len(indices)
@@ -92,28 +92,29 @@ class ICTSearcher(object):
         accumulator: List = [],
         context: Optional[IDContext] = None,
     ):
-        for combs in range(2, min(4, problem.n_teams)):
-            for c in combinations(problem.teams, combs):
-                indices = []
-                skip = False
-                for team_i in c:
-                    filtered_agents = list(
-                        filter(lambda x: x in problem.agents, problem.team_agent_indices[team_i])
-                    )
-                    if not filtered_agents:
-                        skip = True
-                        break
-                    indices.extend(filtered_agents)
-                if skip:
-                    continue
-                if not seek_solution_in_joint_mdd(
-                    [mdds[i] for i in indices],
-                    False,
-                    self.enhanced,
-                    accumulator,
-                    context,
-                ):
-                    return indices
+        if problem.n_teams > 2:
+            for combs in range(2, min(4, problem.n_teams)):
+                for c in combinations(problem.teams, combs):
+                    indices = []
+                    skip = False
+                    for team_i in c:
+                        filtered_agents = list(
+                            filter(lambda x: x in problem.agents, problem.team_agent_indices[team_i])
+                        )
+                        if not filtered_agents:
+                            skip = True
+                            break
+                        indices.extend(filtered_agents)
+                    if skip:
+                        continue
+                    if not seek_solution_in_joint_mdd(
+                        [mdds[i] for i in indices],
+                        False,
+                        self.enhanced,
+                        accumulator,
+                        context,
+                    ):
+                        return indices
         return None
 
     def check_combinations(
@@ -124,32 +125,33 @@ class ICTSearcher(object):
         context: Optional[IDContext] = None,
         agents: Optional[List[MarkedCompactLocation]] =None,
     ):
-        if agents:
-            if k > 2:
-                for combs in [2, 3]:
-                    for c in combinations(range(k), combs):
-                        team = agents[c[0]][1]
-                        skip = True
-                        for i in c[1:]:
-                            if agents[i][1] != team:
-                                skip = False
-                                break
+        if k > self.combs:
+            if agents:
+                for c in combinations(range(k), self.combs):
+                    team = agents[c[0]][1]
+                    skip = True
+                    for i in c[1:]:
+                        if agents[i][1] != team:
+                            skip = False
+                            break
 
-                        if not skip and not seek_solution_in_joint_mdd(
+                    if not skip and not seek_solution_in_joint_mdd(
                             [mdds[i] for i in c],
                             False,
                             self.enhanced,
                             accumulator,
                             context,
-                        ):
-                            return c
-        else:
-            if k > self.combs:
-                for c in combinations(range(k), self.combs):
-                    if not seek_solution_in_joint_mdd(
-                        [mdds[i] for i in c], False, self.enhanced, accumulator, context
                     ):
                         return c
+            else:
+                for c in combinations(range(k), self.combs):
+                    if not seek_solution_in_joint_mdd(
+                            [mdds[i] for i in c], False, self.enhanced, accumulator, context
+                    ):
+                        return c
+        else:
+            return None
+
         return None
 
     def get_budget(self, k: int):
@@ -212,7 +214,7 @@ class ICTSearcher(object):
 
                 if self.pruned_child_gen:
                     conflict_team_combination = None
-                    if len(problem.team_agent_indices) > 1:
+                    if False and len(problem.team_agent_indices) > 1:
                         conflict_team_combination = self.check_within_teams(
                             problem,
                             mdds,
@@ -224,12 +226,12 @@ class ICTSearcher(object):
                         conflict_combination = None
                         if self.prune and k > self.combs:
                             conflict_combination = self.check_combinations(
-                                mdds, k, accumulator, context, problem.agents
+                                mdds, k, accumulator, context
                             )
 
                         if not conflict_combination:
                             conflict_team_comb = None
-                            if len(problem.team_agent_indices) > self.team_combs:
+                            if False and len(problem.team_agent_indices) > self.team_combs:
                                 conflict_team_comb = self.check_team_combinations(
                                     problem, mdds, accumulator, context
                                 )
@@ -272,8 +274,9 @@ class ICTSearcher(object):
                         node_list[i] += 1
                         if not tuple(node_list) in visited:
                             frontier.append(tuple(node_list))
+
                     conflict_team_combination = None
-                    if len(problem.team_agent_indices) > 1:
+                    if False and len(problem.team_agent_indices) > 1:
                         conflict_team_combination = self.check_within_teams(
                             problem,
                             mdds,
@@ -285,12 +288,12 @@ class ICTSearcher(object):
                         conflict_combination = None
                         if self.prune and k > self.combs:
                             conflict_combination = self.check_combinations(
-                                mdds, k, accumulator, context, problem.agents
+                                mdds, k, accumulator, context
                             )
 
                         if not conflict_combination:
                             conflict_team_comb = None
-                            if len(problem.team_agent_indices) > self.team_combs:
+                            if False and len(problem.team_agent_indices) > self.team_combs:
                                 conflict_team_comb = self.check_team_combinations(
                                     problem, mdds, accumulator, context
                                 )
