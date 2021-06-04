@@ -73,6 +73,7 @@ class Solver:
             self.config.pruned_child_gen,
             self.k,
             self.config.debug,
+            self.config.mem_limit
         )
 
     def __call__(self) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:

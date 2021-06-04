@@ -1,3 +1,4 @@
+import resource
 from collections import deque
 from itertools import combinations
 from typing import List, Tuple, Optional, Dict, Deque
@@ -8,6 +9,7 @@ from .mapfm_problem import MAPFMProblem
 from .maze import Maze
 from .mdd import MDD
 from .mdd_search import (JointSolution,seek_solution_in_joint_mdd,JointTimedSolution)
+from .solver_config import MegaByte
 
 
 def find_number_of_open_spaces(maze: Maze):
@@ -36,6 +38,8 @@ class ICTSearcher(object):
         "lower_sic_bound",
         "debug",
         "mdd_cache",
+        "mem_limit",
+        "mem_check_tick"
     ]
 
     def __init__(
@@ -47,7 +51,8 @@ class ICTSearcher(object):
         pruned_child_gen: bool,
         max_k: int,
         debug: bool,
-        budget: Optional[int] = None,
+        mem_limit: Optional[int] = None,
+        budget: Optional[int] = None
     ):
         self.maze = maze
         self.max_delta: List[int] = [0] * (max_k + 1)
@@ -61,6 +66,22 @@ class ICTSearcher(object):
         self.debug = debug
         self.budget = budget
         self.mdd_cache: Dict[Tuple[int, int], MDD] = dict()
+        self.mem_limit = mem_limit
+        # tick to avoid potential overhead
+        self.mem_check_tick = 0
+
+    def memory_usage_ok(self) -> bool:
+        if not self.mem_limit:
+            return True
+        if self.mem_check_tick == 100:
+            self.mem_check_tick = 0
+            usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+            if self.debug:
+                print(f"{usage / MegaByte} megabytes used out of {self.mem_limit / MegaByte}")
+            return usage < self.mem_limit
+        else:
+            self.mem_check_tick += 1
+            return True
 
     def calculate_upper_bound_cost(self, k: int):
         return (k ** 2) * self.open_spaces
@@ -200,6 +221,8 @@ class ICTSearcher(object):
         root_cost = sum(root)
         cost = root_cost
         while frontier:
+            if not self.memory_usage_ok():
+                return None
             node = frontier.popleft()
             node_sum = sum(node)
             if node_sum <= budget and not node in visited:
