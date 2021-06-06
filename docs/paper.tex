@@ -1,5 +1,6 @@
 \documentclass[english]{article}
 \usepackage{geometry}
+\usepackage{hyperref}
 \usepackage{inputenc}
 \geometry{verbose,tmargin=3.5cm,bmargin=4cm,lmargin=3.8cm,rmargin=3.8cm}
 \usepackage[backend=biber,style=ieee]{biblatex}
@@ -27,8 +28,9 @@
 	The problem of scheduling the trains and personnel to achieve this is called the Train Unit Shunting and Servicing (TUSS) problem \cite{mulderij2020}. 
 	It is an NP-hard problem with many different subproblems in addition to the basic train unit routing, such as the timetabling of personnel and coupling and decoupling of train units entering and leaving the yard. % introduce heuristics here.
 	
-	As was shown by Geiger et al. \cite{geiger2018}, in practical scenarios, only heuristic methods can solve TUSS instances. 
-	Such methods are in general suboptimal so solutions to instances defined for a set shunting yard can be thought of as crudely characterising a lower bound on the capacity of the shunting yard, as each solution cost gives a (loose) upper-bound for the optimal solution cost. 
+	As was shown by Geiger et al.\cite{geiger2018}, in practical scenarios, only heuristic methods can solve TUSS instances. 
+	Such methods are suboptimal so solutions to instances defined for a set shunting yard can be
+ said to characterise a lower bound on the capacity of the shunting yard, as each solution cost gives a (loose) upper-bound for the optimal solution cost. 
 	The company, however, is interested in learning tight upper bounds for the capacity of existing shunting yards to inform decisions about infrastructure expansion. 
 	Mulderij et al. \cite{mulderij2020} propose the multi-agent pathfinding (MAPF) problem \cite{stern2019} extended with a matching subproblem (hereafter MAPFM) as a suitable relaxation for finding such upper-bounds using an approach analogous to that outlined above.
 	For this to succeed, a way to optimally solve MAPFM instances is needed.
@@ -47,8 +49,11 @@
 	Formally, a MAPFM instance can be described as follows. Let $G = (V,E)$ be an undirected connected graph, with each $v\in V$ representing an obstacle-free tile on a 4-grid and each $e = (u,v)\in E$ representing a legal uniform-cost move between two such tiles. Let there be $K$ teams $t_1,\ldots, t_K$, where $t_i$ consists of $k_i$ agents with start positions $s_1^i,\ldots,s_{k_i}^i$ together with an equal number of team goals $g_1^i,\ldots,g_{k_i}^i$. 
 	
 	Within each team $t_i$, agent $a_j^i$ are to be \textit{matched} to a unique goal $g_k^i$, so that exactly one agent is assigned to each goal within team $i$; once all agents are matched to goals, for each agent $a_j^i$ matched to $g_k^i$, a path from $s_j^i$ to $g_k^i$ is to be found such that all agents paths taken together are non-conflicting and therefore make up a solution \cite{ma2016}. In this work, non-conflicting means, in the conflict-terminology of \cite{stern2019}, that there are no vertex conflicts (and thus no edge conflicts) and no swapping conflicts. Practically, this means that no two agents may be at $v\in V$ at the same timestep and that if agents $i,j$ are at locations $u,v$ respectively at timestep $t$, they may not be at locations $v,u$ at timestep $t+1$. 
+	\section{Matching in ICTS} % Your contribution
+	Two classes of algorithms were found to solve MAPFM using ICTS-based methods: exhaustively enumerating MAPF instances corresponding to matchings solving these using a variant of regular ICTS, and modifying the increasing cost tree search itself to accomodate for the matching extension. In the following, both 
 	
-	\section{Extending ICTS with matching} % Your contribution
+	
+	
 	Increasing Cost Tree Search with Matching (ICTS-m) generalizes ICTS to optimally solve MAPFM instances. Few changes to ICTS were necessary to accomodate for matching in this increasing cost tree scheme. Specifically, the ICT root generation and the MDD generation had to be changed. In regular ICTS, given a MAPF instance with agents $a_1,\ldots,a_k$ with goals $g_1,\ldots,g_k$ starting at locations $s_1,\ldots,s_k$, the root is given by the cost $c_i$ for each agent $a_i$ of the shortest path from $s_i$ to $g_i$, i.e. without taking conflicts into account. Any optimal pathfinding algorithm can be used for this. The root of the ICT then is the vector $(c_1,c_2,\ldots,c_k)$ with $k$ children $(c_1 + 1, c_2,\ldots,c_k), (c_1, c_2 + 1,\ldots,c_k),\ldots,(c_1, c_2,\ldots,c_k + 1)$ so that each component of the parent is incremented by 1 in exactly one child. This child-generation rule holds for all ICT nodes. 
 	
 	As described in \cite{sharon2011}, given $a_i$, generating all paths $(s_i,g_i)$ of a certain target cost $c_i$ can be accomplished by a breadth-first search on the $c_i$-steps time-expanded graph. Storing the resulting paths in an MDD, which has at most $|V|$ nodes at each timestep or depth, avoids the cost of storing all paths explicitly and also facilitates the efficient search of the $k$-agent space of path combinations.
@@ -60,6 +65,15 @@
 	
 	\subsection{Properties of ICTS-m}
 	<insert proof>
+	\section{Experimental results}
+	\section{Responsible Research}
+	In experiments used to compare the different MAPFM algorithms within the peer group, care was taken to make the comparison fair: all algorithms are implemented in Python 3 and run on the same system: a server with a 12-core Intel Xeon E5-2683 with 8Gb of RAM dedicated to running experiments for this project. Still, some implementations might be more optimized than others so this might be a factor in performance characteristics and in particular in relative performance differences.
+	
+	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository \footnote{\url{https://github.com/tbvanderwoude/icts-m}}. Included is also code used to benchmark different configurations of the ICTS solver.
+	
+	\section{Discussion}
+	\section{Conclusions}
+	\section{Future work}
 	\printbibliography
 	
 \end{document}
