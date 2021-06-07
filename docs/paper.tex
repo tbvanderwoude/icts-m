@@ -13,6 +13,13 @@
 \usepackage{subcaption}
 \makeatother
 \usepackage{babel}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\newcommand{\Desc}[2]{\State \makebox[2em][l]{#1}#2}
+\usepackage[noend]{algpseudocode}
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
 
 \begin{document}
 	
@@ -133,7 +140,34 @@
 		\item Simple pruning: the $j$-agent MDD is searched using DFS for a solution.
 		\item Enhanced pruning: the $j$-agent MDD is searched using BFS and when children are generated, for each agent, all children that do not appear in any unified node are removed from the MDD. In \ref{fig:mdds}, the $C$ node of $MDD_1$ would be removed as it cannot be unified with any node of $MDD_2$ at that level. 
 	\end{enumerate}
-	In addition, repeated enhanced pairwise pruning is described in which the enhanced pruning procedure is repeated for all combinations until a fixpoint is reached, which is when no child node is removed from any of the agent MDDs in an iteration. This was not used in this work.
+	In addition, repeated enhanced pairwise pruning is described in which the enhanced pruning procedure is repeated for all combinations until a fixpoint is reached, which is when no child node is removed from any of the agent MDDs in an iteration. This was not used in this work. 
+	
+	The full ICT-search algorithm including a pruning step is described by pseudocode listing \ref{icts-algo}. It is reproduced from \cite{sharon2011} for completeness.
+	\begin{algorithm}
+		\begin{algorithmic}[1]
+			\Procedure{ICT-search}{MAPF instance}
+			\State \text{Construct ICT root}
+			\ForAll{\text{ICT nodes }$(c_1,\ldots,c_k)$\text{ in breadth-first order }} 
+				\ForAll{\text{agents} $a_i$} 
+					\text{Construct} $MDD_i^{c_i}$
+				\EndFor
+				\ForAll{$j$-\text{agent combinations} $(i_1,\ldots,i_j)$} 
+				\State \text{Run node-pruning procedure with MDDs }$MDD_{i_1}^{c_{i_1}},\ldots,MDD_{i_j}^{c_{i_j}}$
+				\If{\text{no solution was found for a combination in pruning}}
+					\State \textbf{Break}\text{ and continue with next ICT node}
+				\EndIf
+				\EndFor
+				\State \text{Search }$k$\text{-agent MDD space}
+				\If{\text{solution was found}}
+				\State \textbf{return solution}
+				\EndIf
+			\EndFor
+
+			\EndProcedure
+		\end{algorithmic}
+		\caption{Increasing Cost Tree Search}
+		\label{icts-algo}
+	\end{algorithm}
 	\subsection{Extending MAPF with matching}
 	With the multi-agent pathfinding problem as well as the ICTS method of solving it defined, the matching extension of MAPF (MAPFM) that is the subject of this paper can be described. Possible extensions of ICTS to match these changes will be discussed in Section \ref{section:icts-matching}.
 	
@@ -145,19 +179,28 @@
 	\label{section:icts-matching}
 	Taking ICTS for MAPF as starting point, two methods to use ICTS for MAPFM were identified. The first method relies on the well-known reduction from MAPFM to repeated MAPF: any optimal solution to MAPFM corresponds to a matching of agents to goals, so by exhaustively enumerating all matchings and solving these as MAPF instances, an optimal solution to the MAPFM instance can be found. In the second method, the increasing cost trees search itself is modified to allow an agent $a_j^i$ to be matched to any $g_k^i$. For each method, some properties and method-specific optimizations and variations will be discussed. Afterwards, some more general considerations will be discussed.
 	\subsection{Exhaustive ICTS}
-	For $K$ teams $t_1,\ldots,t_K$ of size $t_i$, there are in total $n = \prod_{i} k_i!$ ways to match team agents to team goals.
-	Exhaustive ICTS is $\mathcal{O}(\prod_{i} k_i!)$
+	For $K$ teams $t_1,\ldots,t_K$ of size $t_i$, there are in total $M = \prod_{i} k_i!$ matchings from team agents to team goals. Let $C_1$ through $C_M$ denote the optimal SIC costs of each MAPF instance corresponding to the instance, with $C_m = \infty$ for unfeasible $m$. Let $\Delta_m$ be similarly defined and represent the difference between $C_m$ and the root cost of $m$.
+	
+	In order to find the optimal solution, $m$ with lowest $C_m$ has to be found, which requires all $M$ to be solved or marked as unfeasible, meaning that $\mathcal{O}(M)$ MAPF instance have to be solved. However, once the first solution is found with cost $C_m$, this can be used in the next search as an (exclusive) upper-bound for the SIC of nodes, effectively depth-limiting the ICT traversal.
 	
 	\subsection{ICTS-m}
 	ICTS with Matching (ICTS-m) generalizes ICTS to optimally solve MAPFM instances. Few changes to ICTS were necessary to accomodate for matching in this increasing cost tree scheme. Specifically, the ICT root generation and the MDD generation had to be changed. As described in \ref{icts}, in ICTS the root cost for each agent $a_i$ is given by $c^*_i$, the cost of the shortest path from $s_i$ to $g_i$, i.e. without taking conflicts into account. $MDD_i^{c_i}$ is generated using a breadth-first search from $s_i$ to $g_i$ followed by some additional processing.
 	\subsubsection{Root generation for matching}
-	Given a team $t_i$ of size $k_i$, for any agent $a_j^i$ there are $k_i$ costs $c_j(1),c_j(2),\ldots,c_j(k_i)$ for shortest paths from $s_j^i$ to each goal $g_k^i$. Making no assumptions about what goals other agents in $t_i$ are assigned to, it could be that in the optimal solution $a_j^i$ is assigned to a goal $g_{m}^i$ with cost $c_j(m)$ such that $c_j(m) = \min_{n\in\{0,\ldots,k_i\}} c_j(n)$. Therefore, to guarantee optimality, this minimal cost to any matching goal has to take the place of the shortest path cost from the original ICTS root. The resulting root is equivalent in the case that all teams are singleton. Intuitively, the sum of individual costs of this root is highly optimistic. Often, agents will not move to their closest matching goal in an optimal solution, even without considering conflicts.
+	Given a team $t_i$ of size $k_i$, for any agent $a_j^i$ there are $k_i$ costs $c_j(1),c_j(2),\ldots,c_j(k_i)$ for shortest paths from $s_j^i$ to each goal $g_k^i$. Making no assumptions about what goals other agents in $t_i$ are assigned to, it could be that in the optimal solution $a_j^i$ is assigned to a goal $g_{m}^i$ with path cost $c^*_j = c_j(m)$ such that $c_j(m) = \min_{n\in\{0,\ldots,k_i\}} c_j(n)$. Therefore, to guarantee optimality, this minimal cost to any matching goal has to take the place of the shortest path cost from the original ICTS root. The resulting root is equivalent to that generated in regular ICTS in the case that all teams are singleton, which is equivalent to a MAPF instance. Intuitively, the sum of individual costs of this root is highly optimistic, in particular if the teams are large. This is because often, agents will not move to their closest matching goal in an optimal solution, even without considering conflicts.
 	
 	\subsubsection{MDD generation for matching}
 	In MDD generation, each agent also has to consider not one goal but all matching goals. By following a BFS-based approach, with all team goals being goals in the search and in turn endpoints from which, using the time-expanded graph, the MDD was generated that is used in the low-level search, agent MDDs can be made to represent all possible paths of a set length to any matching goal. Once again, if all teams are singleton, the MDDs generated using this goal-set approach are the same as in regular ICTS.
-
+	\begin{wrapfigure}{R}{.35\textwidth}
+	\centering
+	\includegraphics[width=\linewidth]{img/path}
+	\caption{Pathelogical case for ICTS-m [Placeholder graphic]}
+	\label{fig:path}
+\end{wrapfigure}
 	\subsubsection{Properties of ICTS-m}
-	<insert proof>
+	As a consequence of the $\min$ operation in the root definition, a pathelogical case can be derived. Consider a team of 4 agents $a_1^1$ through $a_4^1$. Let them be arranged in a configuration as depicted in Figure \ref{fig:path}. As indicated by the color, all four agents match the colour of the centre goal and hence for each $i$, $c^*_i = 1$, so that the root is $(1,1,1,1)$ with SIC $4$. The optimal solution however is, numbering the agents clockwise, $(1,3,3,3)$ with SIC $10$, meaning that $\Delta = 6$. It can be seen that instances of this form with arbitrarily large $\Delta$ can be constructed. As ICTS-m being generalization of ICTS is $\mathcal{O}(k^\Delta)$, even just extending the 'arms' of the instance to yield an ICT root of $(1,9,9,9)$ with $\Delta = 24$ will result in an unfathomably large number of nodes being evaluated assuming no pruning or other modifications to the base algorithm.
+	
+
+	
 	\section{Experimental results}
 	\section{Responsible Research}
 	In experiments used to compare the different MAPFM algorithms within the peer group, care was taken to make the comparison fair: all algorithms are implemented in Python 3 and run on the same system: a server with a 12-core Intel Xeon E5-2683 with 8Gb of RAM dedicated to running experiments for this project. Still, some implementations might be more optimized than others so this might be a factor in performance characteristics and in particular in relative performance differences.
@@ -168,6 +211,7 @@
 	\section{Conclusions}
 	
 	\section{Future work}
+	The ICTS-m algorithm described in this work scales quite poorly for a number of reasons including the highly optimistic root SIC value. It might be possible to conceive of a different ICTS-m algorithm that is better able to take advantage of the agents being divided into teams, for instance by first solving all intra-team conflicts before proceeding to consider inter-team conflicts. Some early experiments with pruning techniques were in this vein but experimentally there was no observable improvement.
 	\printbibliography
 	
 \end{document}
