@@ -1,0 +1,37 @@
+\documentclass[english]{article}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{inputenc}
+\geometry{verbose,tmargin=3.5cm,bmargin=4cm,lmargin=3.8cm,rmargin=3.8cm}
+\usepackage[backend=biber,style=ieee]{biblatex}
+\addbibresource{sources.bib}
+\makeatletter
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{wrapfig}
+\usepackage{subcaption}
+\makeatother
+\usepackage{babel}
+
+\begin{document}
+	
+	\title{Dump}
+	
+	\author{Thom van der Woude}
+	\date{}
+	
+	\maketitle
+
+	\section{Introduction}
+		
+	\paragraph{Old}
+	MAPFM is the problem of finding agent-goal matchings that induce a non-conflicting routing of agents to their goals. Each matching corresponds to a MAPF instance, so each feasible matching has an optimal solution, i.e. a solution with a minimal Sum of Individual Costs (SIC). In approaching MAPFM as a TUSS relaxation to find upper-bounds for instances, optimal MAPFM solutions are the most interesting as they can characterise such upper-bounds. Furthermore, defining optimality as minimal SIC corresponds more closely to TUSS objective functions such as personnel cost than the other common MAPF objective, minimal makespan. Optimally solving MAPFM is equivalent to finding a feasible matching such that there is no other matching for which the corresponding MAPF instance has a lower optimal SIC. This motivates the joint nature of MAPFM: some matchings might be infeasible and others may have sub-optimal SIC costs, so especially in larger instances where there may be thousands of matchings, it is preferable to integrate the generation of matchings with the search for non-conflicting path-combinations to avoid having to exhaustively process all matchings. In this work, both integrated approaches and exhaustive methods using ICTS are considered.
+		
+	\subsection{Formulation}
+	Formally, a MAPFM instance can be described as follows. Let $G = (V,E)$ be an undirected connected graph, with each $v\in V$ representing an obstacle-free tile on a 4-grid and each $e = (u,v)\in E$ representing a legal uniform-cost move between two such tiles. Let there be $K$ teams $t_1,\ldots, t_K$, where $t_i$ consists of $k_i$ agents with start positions $s_1^i,\ldots,s_{k_i}^i$ together with an equal number of team goals $g_1^i,\ldots,g_{k_i}^i$. 
+	
+	Within each team $t_i$, agent $a_j^i$ are to be \textit{matched} to a unique goal $g_k^i$, so that exactly one agent is assigned to each goal within team $i$; once all agents are matched to goals, for each agent $a_j^i$ matched to $g_k^i$, a path from $s_j^i$ to $g_k^i$ is to be found such that all agents paths taken together are non-conflicting and therefore make up a solution \cite{ma2016}. In this work, non-conflicting means, in the conflict-terminology of \cite{stern2019}, that there are no vertex conflicts (and thus no edge conflicts) and no swapping conflicts. Practically, this means that no two agents may be at $v\in V$ at the same timestep and that if agents $i,j$ are at locations $u,v$ respectively at timestep $t$, they may not be at locations $v,u$ at timestep $t+1$. 
+	\printbibliography
+	
+\end{document}
