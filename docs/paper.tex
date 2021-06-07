@@ -217,107 +217,118 @@
 	\label{fig:path}
 \end{wrapfigure}
 	\subsubsection{Properties of ICTS-m}
-	As a consequence of the $\min$ operation in the root definition, a pathelogical case can be derived. Consider a team of 4 agents $a_1^1$ through $a_4^1$. Let them be arranged in a configuration as depicted in Figure \ref{fig:path}. As indicated by the color, all four agents match the colour of the centre goal and hence for each $i$, $c^*_i = 1$, so that the root is $(1,1,1,1)$ with SIC $4$. The optimal solution however is, numbering the agents clockwise, $(1,3,3,3)$ with SIC $10$, meaning that $\Delta = 6$. It can be seen that instances of this form with arbitrarily large $\Delta$ can be constructed. As ICTS-m being generalization of ICTS is $\mathcal{O}(k^\Delta)$, even just extending the 'arms' of the instance to yield an ICT root of $(1,9,9,9)$ with $\Delta = 24$ will result in an unfathomably large number of nodes being evaluated assuming no pruning or other modifications to the base algorithm.
+As a consequence of the $\min$ operation in the root definition, a pathelogical case can be derived. Consider a team of 4 agents $a_1^1$ through $a_4^1$. Let them be arranged in a configuration as depicted in Figure \ref{fig:path}. As indicated by the color, all four agents match the colour of the centre goal and hence for each $i$, $c^*_i = 1$, so that the root is $(1,1,1,1)$ with SIC $4$. The optimal solution however is, numbering the agents clockwise, $(1,3,3,3)$ with SIC $10$, meaning that $\Delta = 6$. It can be seen that instances of this form with arbitrarily large $\Delta$ can be constructed. As ICTS-m being generalization of ICTS is $\mathcal{O}(k^\Delta)$, even just extending the 'limbs' of the instance to yield an ICT root of $(1,9,9,9)$ with $\Delta = 24$ will result in an unfathomably large number of nodes being evaluated assuming no pruning or other modifications to the base algorithm.
+	\subsection{General optimization: child pruning}
+An optimization of ICTS that hitherto appears to not have been described in the literature was found in the process of optimizing ICTS-m. The idea is simple: when pruning, in the original ICTS formulation all $k$-children are generated in every case because pruning only controls skipping the low-level search, assumed to be the most expensive operation. However, in simple pruning in any case, when there is a conflict between two or more agents at a given ICT node $(c_1,\ldots,c_k)$, in any solution, one or more of the path costs corresponding to these conflicting agents will have to be incremented in any solution node. This reduces the number of children generated to the number of conflicting agents, which quite drastically can improve the branching factor of the ICT search if say $k = 12$ but a conflicting pair is found.
+
+It is conjectured that child pruning combined with enhanced pruning does not in general guarantee optimality, but despite extensive search no counter-example has been found. [TODO: find counter-example/proof optimality]
+	\begin{figure*}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/open-1}
+		\caption{Open, 1 team}
+		\label{fig:open1}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/open-3}
+		\caption{Open, 3 teams}
+		\label{fig:open3}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/obstacle-1}
+		\caption{Obstacle, 1 team}
+		\label{fig:obstacle1}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/obstacle-3}
+		\caption{Obstacle, 3 teams}
+		\label{fig:obstacle3}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/maze-1}
+		\caption{Maze, 1 team}
+		\label{fig:m1}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/maze-3}
+		\caption{Maze, 3 teams}
+		\label{fig:m3}
+	\end{subfigure}
+	\caption{Average solving time of algorithm variants on various types of 20x20 grids with a 30s timeout}
+	\label{fig:times}
+\end{figure*}
+
+\begin{figure*}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/open-1-p}
+		\caption{Open, 1 team}
+		\label{fig:open1p}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/open-3-p}
+		\caption{Open, 3 teams}
+		\label{fig:open3p}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/obstacle-1-p}
+		\caption{Obstacle, 1 team}
+		\label{fig:obstacle1p}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/obstacle-3-p}
+		\caption{Obstacle, 3 teams}
+		\label{fig:obstacle3p}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/maze-1-p}
+		\caption{Maze, 1 team}
+		\label{fig:maze1p}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/maze-3-p}
+		\caption{Maze, 3 teams}
+		\label{fig:maze3p}
+	\end{subfigure}
+	\caption{Fraction solved out of 50 maps of algorithm variants on various types of 20x20 grids with a 30s timeout}
+	\label{fig:probs}
+\end{figure*}
 	
-	\section{Experimental results}
+	\section{Experiments}
 	Because MAPFM lies on the fringe of pathfinding research, no standard benchmarks exist\footnote{That is, to the knowledge of the author.}. For MAPF there are the Moving AI benchmarks \cite{sturtevant2012} and potentially a new MAPFM standard benchmark could be defined by generating suitable partitions of agents into teams for these MAPF instances. It was noticed however that optimally solving even small MAPFM instances with comparatively few agents and short distances to goals was computationally already a challenge. This observation informed the creation of a map generator within the peer group with various parameters. Using this map generator, three types of 20x20 grids were generated:
 	\begin{enumerate}
 		\item Open: An obstacle-free grid
 		\item Obstacle: A grid with some obstacles
 		\item Maze: A grid with many obstructed tiles
 	\end{enumerate}
+	For each of these types, two sets of maps were generated with between $1$ and $10$ agents and 50 instances generated for each such agent-setting: one set where all agents belong to one team, another in which the agents were divided into three teams (or $1,2$ teams respectively for the datapoints with $1,2$ agents). The results are shown in Figure \ref{fig:times} and \ref{fig:probs}, that respectively show the average time to solution and the fraction of problems solved out of 50 instances. The algorithms and interpretation of results are discussed below.
+	\subsection{Algorithms}
+	Various improvements and variations of algorithms were tried out, as shown in the legend. S and E denote simple and enhanced pruning respectively; ID means that Independence Detection was used; C means that child pruning was used.
+	\subsection{Results}
+	A first observation is that exhaustive methods, while dominant throughout all settings, fare much better when agents are divided into three teams as opposed to when there is just one team. This can be explained by exhaustive algorithms having to process $M = k!$ matchings, which grows quite large for say $k = 10$. Another is that simple pruning combined with child pruning appears to outperform enhanced in many cases, as in Subfigure \ref{fig:maze1p}. More analysis is necessary however before any conclusions can be drawn.
 	
-	\begin{figure*}
-		\centering
-		\begin{subfigure}{0.49\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{img/results/open-1}
-			\caption{Open, 1 team}
-			\label{fig:open1}
-		\end{subfigure}
-		\begin{subfigure}{0.49\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/open-3}
-		\caption{Open, 3 teams}
-		\label{fig:open3}
-		\end{subfigure}
-		\begin{subfigure}{0.49\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{img/results/obstacle-1}
-			\caption{Obstacle, 1 team}
-			\label{fig:obstacle1}
-		\end{subfigure}
-		\begin{subfigure}{0.49\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/obstacle-3}
-		\caption{Obstacle, 3 teams}
-		\label{fig:obstacle3}
-		\end{subfigure}
-		\begin{subfigure}{0.49\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{img/results/maze-1}
-			\caption{Maze, 1 team}
-			\label{fig:m1}
-		\end{subfigure}
-		\begin{subfigure}{0.49\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{img/results/maze-3}
-			\caption{Maze, 3 teams}
-			\label{fig:m3}
-		\end{subfigure}
-		\caption{Average solving time of algorithm variants on various types of 20x20 grids with a 30s timeout}
-		\label{fig:bottom}
-	\end{figure*}
 
-	\begin{figure*}
-	\centering
-	\begin{subfigure}{0.49\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/open-1-p}
-		\caption{Open, 1 team}
-		\label{fig:open1}
-	\end{subfigure}
-	\begin{subfigure}{0.49\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/open-3-p}
-		\caption{Open, 3 teams}
-		\label{fig:open3}
-	\end{subfigure}
-	\begin{subfigure}{0.49\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/obstacle-1-p}
-		\caption{Obstacle, 1 team}
-		\label{fig:obstacle1}
-	\end{subfigure}
-	\begin{subfigure}{0.49\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/obstacle-3-p}
-		\caption{Obstacle, 3 teams}
-		\label{fig:obstacle3}
-	\end{subfigure}
-	\begin{subfigure}{0.49\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/maze-1-p}
-		\caption{Maze, 1 team}
-		\label{fig:m1}
-	\end{subfigure}
-	\begin{subfigure}{0.49\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/maze-3-p}
-		\caption{Maze, 3 teams}
-		\label{fig:m3}
-	\end{subfigure}
-	\caption{Fraction solved out of 50 maps of algorithm variants on various types of 20x20 grids with a 30s timeout}
-	\label{fig:bottom}
-\end{figure*}
 	\section{Responsible Research}
 	In experiments used to compare the different MAPFM algorithms within the peer group, care was taken to make the comparison fair: all algorithms are implemented in Python 3 and run on the same system: a server with a 12-core Intel Xeon E5-2683 with 8Gb of RAM dedicated to running experiments for this project. Still, some implementations might be more optimized than others so this might be a factor in performance characteristics and in particular in relative performance differences.
 	
 	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository \footnote{\url{https://github.com/tbvanderwoude/icts-m}}. Included is also code used to benchmark different configurations of the ICTS solver.
 	
 	\section{Discussion}
+	Compared to the results achieved by \cite{ma2016}, the results recorded are somewhat disappointing.
 	\section{Conclusions}
-	
+	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this the research has succeeded, but the performance and in particular the scalability of the algorithms leaves something to be desired. 
 	\section{Future work}
 	The ICTS-m algorithm described in this work scales quite poorly for a number of reasons including the highly optimistic root SIC value. It might be possible to conceive of a different ICTS-m algorithm that is better able to take advantage of the agents being divided into teams, for instance by first solving all intra-team conflicts before proceeding to consider inter-team conflicts. Some early experiments with pruning techniques were in this vein but experimentally there was no observable improvement.
 	\printbibliography
