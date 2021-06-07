@@ -212,42 +212,83 @@
 			\centering
 			\includegraphics[width=\linewidth]{img/results/open-1}
 			\caption{Open, 1 team}
-			\label{fig:problem}
+			\label{fig:open1}
 		\end{subfigure}
 		\begin{subfigure}{0.49\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{img/results/open-3}
 		\caption{Open, 3 teams}
-		\label{fig:problem}
+		\label{fig:open3}
 		\end{subfigure}
 		\begin{subfigure}{0.49\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/obstacle-1}
 			\caption{Obstacle, 1 team}
-			\label{fig:ict2}
+			\label{fig:obstacle1}
 		\end{subfigure}
 		\begin{subfigure}{0.49\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{img/results/obstacle-3}
 		\caption{Obstacle, 3 teams}
-		\label{fig:ict2}
+		\label{fig:obstacle3}
 		\end{subfigure}
 		\begin{subfigure}{0.49\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/maze-1}
 			\caption{Maze, 1 team}
-			\label{fig:mdds}
+			\label{fig:m1}
 		\end{subfigure}
 		\begin{subfigure}{0.49\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/maze-3}
 			\caption{Maze, 3 teams}
-			\label{fig:mdds}
+			\label{fig:m3}
 		\end{subfigure}
-		
 		\caption{Average solving time of algorithm variants on various types of 20x20 grids with a 30s timeout}
 		\label{fig:bottom}
 	\end{figure*}
+
+	\begin{figure*}
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/open-1-p}
+		\caption{Open, 1 team}
+		\label{fig:open1}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/open-3-p}
+		\caption{Open, 3 teams}
+		\label{fig:open3}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/obstacle-1-p}
+		\caption{Obstacle, 1 team}
+		\label{fig:obstacle1}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/obstacle-3-p}
+		\caption{Obstacle, 3 teams}
+		\label{fig:obstacle3}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/maze-1-p}
+		\caption{Maze, 1 team}
+		\label{fig:m1}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/maze-3-p}
+		\caption{Maze, 3 teams}
+		\label{fig:m3}
+	\end{subfigure}
+	\caption{Fraction solved out of 50 maps of algorithm variants on various types of 20x20 grids with a 30s timeout}
+	\label{fig:bottom}
+\end{figure*}
 	\section{Responsible Research}
 	In experiments used to compare the different MAPFM algorithms within the peer group, care was taken to make the comparison fair: all algorithms are implemented in Python 3 and run on the same system: a server with a 12-core Intel Xeon E5-2683 with 8Gb of RAM dedicated to running experiments for this project. Still, some implementations might be more optimized than others so this might be a factor in performance characteristics and in particular in relative performance differences.
 	
