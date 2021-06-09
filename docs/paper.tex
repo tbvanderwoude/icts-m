@@ -195,9 +195,9 @@
 	%
 	\section{Solving MAPF with Matching using ICTS} % Your contribution
 	\label{section:icts-matching}
-	Taking ICTS for MAPF as starting point, two methods to use ICTS for MAPFM were identified. The first method relies on the well-known reduction from MAPFM to repeated MAPF: any optimal solution to MAPFM corresponds to a matching of agents to goals, so by exhaustively enumerating all matchings and solving these as MAPF instances, an optimal solution to the MAPFM instance can be found. In the second method, the increasing cost trees search itself is modified to allow an agent $a_j^i$ to be matched to any $g_k^i$. For each method, some properties and method-specific optimizations and variations will be discussed. Afterwards, some more general considerations will be discussed.
+	Taking ICTS for MAPF as starting point, two methods to use ICTS for MAPFM were identified. The first method relies on the well-known reduction from MAPFM to repeated MAPF: an optimal solution to MAPFM corresponds to a matching of agents to goals, so by exhaustively enumerating all matchings and solving these as MAPF instances, an optimal solution to the MAPFM instance can be found. In the second method, the increasing cost trees search itself is modified to allow an agent $a_j^i$ to be matched to any $g_k^i$. For each method, some properties and method-specific optimizations and variations will be discussed. Afterwards, some more general considerations will be discussed.
 	\subsection{Exhaustive ICTS}
-	For $K$ teams $t_1,\ldots,t_K$ of size $t_i$, there are in total $M = \prod_{i} k_i!$ matchings from team agents to team goals. Let $C_1$ through $C_M$ denote the optimal SIC costs of each MAPF instance corresponding to the instance, with $C_m = \infty$ for unfeasible $m$. Let $\Delta_m$ be similarly defined and represent the difference between $C_m$ and the root cost of $m$. In order to find the optimal solution, $m$ with lowest $C_m$ has to be found, which requires all $M$ to be solved or marked as unfeasible, meaning that $\mathcal{O}(M)$ MAPF instances have to be solved. 
+	For $K$ teams $t_1,\ldots,t_K$ of size $k_i$, there are in total $M = \prod_{i} k_i!$ matchings from team agents to team goals. Let $C_1$ through $C_M$ denote the optimal SIC costs of each MAPF instance corresponding to the instance, with $C_m = \infty$ for unfeasible $m$. Let $\Delta_m$ be similarly defined and represent the difference between $C_m$ and the root cost of $m$. In order to find the optimal solution, $m$ with lowest $C_m$ has to be found, which requires all $M$ to be solved or marked as unfeasible, meaning that $\mathcal{O}(M)$ MAPF instances have to be solved. 
 	
 	However, once the first solution is found with cost $C_m$, this can be used in the next search as an (exclusive) upper-bound $B$ for the SIC of nodes. Formally, let $B = \infty$ represent the initial SIC bound of the ICT search. After solving each $C_m$, let $B_{m+1} = \min(B_m,C_m)$. By successively updating this $B$ in this manner, as more matchings are solved, the effort needed to solve the remaining matchings can be expected to be reduced significantly.
 	
@@ -307,13 +307,13 @@
 	\end{figure*}
 	
 	\section{Experiments}
-	Because MAPFM lies on the fringe of pathfinding research, no standard benchmarks exist\footnote{That is, to the knowledge of the author.}. For MAPF there are the Moving AI benchmarks \cite{sturtevant2012} and potentially a new MAPFM standard benchmark could be defined by generating suitable partitions of agents into teams for these MAPF instances. It was noticed however that optimally solving even small MAPFM instances with comparatively few agents and short distances to goals was computationally already a challenge. This observation informed the creation of a map generator within the peer group with various parameters. Using this map generator, three types of 20x20 grids were generated:
+	Because MAPFM lies on the fringe of pathfinding research, no standard benchmarks exist\footnote{That is, to the knowledge of the author.}. For MAPF, there are the Moving AI benchmarks \cite{sturtevant2012} and potentially a new MAPFM standard benchmark could be defined by generating suitable partitions of agents into teams for these MAPF instances. It was noticed however that optimally solving even small MAPFM instances with comparatively few agents and short distances to goals was computationally already a challenge. This observation informed the creation of a map generator within the peer group with various parameters. Using this map generator, three types of 20x20 grids were generated:
 	\begin{enumerate}
 		\item Open: An obstacle-free grid
 		\item Obstacle: A grid with some obstacles
 		\item Maze: A grid with many obstructed tiles
 	\end{enumerate}
-	For each of these types, two sets of maps were generated with between $1$ and $10$ agents and 50 instances generated for each such agent-setting: one set where all agents belong to one team, another in which the agents were divided into three teams (or $1,2$ teams respectively for the datapoints with $1,2$ agents). The results are shown in Figure \ref{fig:times} and \ref{fig:probs}, that respectively show the average time to solution and the fraction of problems solved out of 50 instances. The algorithms and interpretation of results are discussed below.
+	For each of these types, two sets of maps were generated with between $1$ and $10$ agents and 50 instances generated for each such agent-setting: one set where all agents belong to one team, another in which the agents were divided into three teams (or $1,2$ teams respectively for the datapoints with $1,2$ agents). The results are shown in Figure \ref{fig:times} and \ref{fig:probs}, which respectively show the average time to solution and the fraction of problems solved out of 50 instances. The algorithms and interpretation of results are discussed below.
 	\subsection{Algorithms}
 	Various improvements and variations of algorithms were tried out, as shown in the legend. S and E denote simple and enhanced pruning respectively; ID means that Independence Detection was used; C means that child pruning was used.
 	\subsection{Results}
@@ -328,9 +328,9 @@
 	\section{Discussion}
 	Compared to the results achieved by \cite{ma2016}, the results recorded are somewhat disappointing.
 	\section{Conclusions}
-	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this the research has succeeded, but the performance and in particular the scalability of the algorithms leaves something to be desired. 
+	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this, the research has succeeded, but the performance and in particular the scalability of the algorithms leaves something to be desired. 
 	\section{Future work}
-	The ICTS-m algorithm described in this work scales quite poorly for a number of reasons including the highly optimistic root SIC value. It might be possible to conceive of a different ICTS-m algorithm that is better able to take advantage of the agents being divided into teams, for instance by first solving all intra-team conflicts before proceeding to consider inter-team conflicts. Some early experiments with pruning techniques were in this vein but experimentally there was no observable improvement.
+	The ICTS-m algorithm described in this work scales quite poorly for several reasons including the highly optimistic root SIC value. It might be possible to conceive of a different ICTS-m algorithm that is better able to take advantage of the agents being divided into teams, for instance by first solving all intra-team conflicts before proceeding to consider inter-team conflicts. Some early experiments with pruning techniques were in this vein but experimentally there was no observable improvement.
 	\printbibliography
 	
 \end{document}
