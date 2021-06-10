@@ -96,13 +96,12 @@ def seek_solution_in_joint_mdd(
             mdds, None, (roots, 0), max(depths), visited, context
         )
         return solution
+    elif unfold:
+        return joint_mdd_bfs(mdds,(roots,0),max(depths),unfold,accumulator,context)
     else:
-        if unfold:
-            found_path = joint_mdd_bfs(mdds,(roots,0),max(depths),unfold,accumulator,context)
-        else:
-            found_path, _ = joint_mdd_dfs(
-            mdds, (roots, 0), max(depths), visited, unfold, accumulator, context
-            )
+        found_path, _ = joint_mdd_dfs(
+        mdds, (roots, 0), max(depths), visited, unfold, accumulator, context
+        )
         return found_path
 
 
