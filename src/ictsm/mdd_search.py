@@ -1,4 +1,5 @@
 import itertools
+from collections import deque
 from typing import List, Tuple, Iterable, Any, Union, Set, Optional
 
 from .compact_location import CompactLocation
@@ -96,11 +97,50 @@ def seek_solution_in_joint_mdd(
         )
         return solution
     else:
-        found_path, visited = joint_mdd_dfs(
+        if unfold:
+            found_path = joint_mdd_bfs(mdds,(roots,0),max(depths),unfold,accumulator,context)
+        else:
+            found_path, _ = joint_mdd_dfs(
             mdds, (roots, 0), max(depths), visited, unfold, accumulator, context
-        )
+            )
         return found_path
 
+
+def get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, context):
+    children = get_valid_children(mdds, curr_nodes, curr_depth, unfold, accumulator)
+    if context:
+        curr_context = context.sample_context_node(curr_depth)
+        next_context = context.sample_context_node(curr_depth + 1)
+        children.sort(
+            key=lambda child: count_conflicts(
+                curr_context + list(curr_nodes), next_context + list(child)
+            )
+        )
+
+    return children
+
+def joint_mdd_bfs(
+    mdds: List[MDD],
+    root: Tuple[Any, int],
+    max_depth: int,
+    unfold: bool = False,
+    accumulator: List = [],
+    context: Optional[IDContext] = None,
+) -> bool:
+    visited = set()
+    frontier = deque()
+    frontier.append(root)
+    while frontier:
+        curr = frontier.popleft()
+        curr_nodes: List[CompactLocation] = curr[0]
+        curr_depth: int = curr[1]
+        if curr_depth <= max_depth and not curr in visited:
+            visited.add(curr)
+            if is_goal_state(mdds, curr_nodes, curr_depth):
+                return True
+            children = get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, context)
+            frontier.extend(list(map(lambda x: (x,curr_depth + 1),children)))
+    return False
 
 def joint_mdd_dfs(
     mdds: List[MDD],
@@ -118,15 +158,7 @@ def joint_mdd_dfs(
     visited.add(curr)
     if is_goal_state(mdds, curr_nodes, curr_depth):
         return True, visited
-    children = get_valid_children(mdds, curr_nodes, curr_depth, unfold, accumulator)
-    if context:
-        curr_context = context.sample_context_node(curr_depth)
-        next_context = context.sample_context_node(curr_depth + 1)
-        children.sort(
-            key=lambda child: count_conflicts(
-                curr_context + list(curr_nodes), next_context + list(child)
-            )
-        )
+    children = get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, context)
     for node in children:
         child = (node, curr_depth + 1)
         found_path, visited = joint_mdd_dfs(
