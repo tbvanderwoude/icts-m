@@ -55,7 +55,7 @@ def test_queue(solver, map_parser, timeout,queue: BenchmarkQueue, cores: int = -
     task = queue.get_next()
     while task is not None and task != "":
         with open(output_file_path, "a") as f:
-            m = re.match('([A-Za-z]*)-20x20-A(\d+)_T(\d+)', task)
+            m = re.match('([A-Za-z0-9]*)-20x20-A(\d+)_T(\d+)', task)
             map_type = m.group(1)
             agents = int(m.group(2))
             teams = int(m.group(3))
