@@ -78,7 +78,7 @@ def compare_configs(configs: List[SolverConfig]):
     map_parser = MapParser(map_root)
     for (i,config) in enumerate(configs):
         os.system("cp full_queue.txt queue.txt")
-        test_queue(ConfiguredSolver(config), map_parser, 10, BenchmarkQueue("queue.txt"),-1,200)
+        test_queue(ConfiguredSolver(config), map_parser, 120000, BenchmarkQueue("queue.txt"),-1,50)
 
 class ConfiguredSolver:
     def __init__(self,config: SolverConfig):
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         #     prune=True,
         #     enhanced=True,
         #     pruned_child_gen=False,
-        #     id=False,
+        #     id=True,
         #     conflict_avoidance=True,
         #     enumerative=True,
         #     debug=False,
@@ -117,18 +117,18 @@ if __name__ == "__main__":
         #     debug=False,
         #     sort_matchings=False,
         # ),
-        # SolverConfig(
-        #     name="(exh)-(enhanced)-(id)",
-        #     combs=3,
-        #     prune=True,
-        #     enhanced=True,
-        #     pruned_child_gen=False,
-        #     id=True,
-        #     conflict_avoidance=True,
-        #     enumerative=True,
-        #     debug=False,
-        #     sort_matchings=False,
-        # ),
+        SolverConfig(
+            name="(exh)-(enhanced)-(id)",
+            combs=3,
+            prune=True,
+            enhanced=True,
+            pruned_child_gen=False,
+            id=True,
+            conflict_avoidance=False,
+            enumerative=True,
+            debug=False,
+            sort_matchings=True,
+        ),
         # SolverConfig(
         #     name="(ictsm)-(enhanced)-(no-id)",
         #     combs=3,
@@ -153,17 +153,17 @@ if __name__ == "__main__":
         #     debug=False,
         #     sort_matchings=False,
         # ),
-        SolverConfig(
-            name="test",
-            combs=3,
-            prune=True,
-            enhanced=True,
-            pruned_child_gen=True,
-            id=False,
-            conflict_avoidance=True,
-            enumerative=True,
-            debug=False,
-            sort_matchings=True,
-        ),
+        # SolverConfig(
+        #     name="test",
+        #     combs=3,
+        #     prune=True,
+        #     enhanced=True,
+        #     pruned_child_gen=True,
+        #     id=False,
+        #     conflict_avoidance=True,
+        #     enumerative=True,
+        #     debug=False,
+        #     sort_matchings=True,
+        # ),
     ]
     compare_configs(configs)

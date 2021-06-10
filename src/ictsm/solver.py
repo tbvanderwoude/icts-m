@@ -150,6 +150,9 @@ class Solver:
     def update_lower_sic(self, lower_sic):
         self.ict_searcher.lower_sic_bound = lower_sic
 
+    def update_other_sum(self, other_sum):
+        self.ict_searcher.other_sum = other_sum
+
     def solve_tapf_instance(self, agents: List[MarkedCompactLocation], team_agent_indices, team_goals):
         if self.config.id:
             return self.solve_tapf_with_id(agents, team_agent_indices, team_goals)
@@ -281,7 +284,7 @@ class Solver:
                 ]
                 k_solved = len(agents)
                 context = None
-                if self.config.conflict_avoidance and k_solved < self.k:
+                if k_solved < self.k:
                     other_agents = [
                         i for i in range(self.k) if agent_groups[i] != merged_group
                     ]
@@ -289,7 +292,9 @@ class Solver:
                     for group in unique_groups:
                         if group != merged_group and group != conflict_group:
                             other_sum += group_sic[group]
-                    context = IDContext(other_sum, other_agents, agent_paths, lens)
+                    self.update_other_sum(other_sum)
+                    if self.config.conflict_avoidance:
+                        context = IDContext(other_agents, agent_paths, lens)
 
                 group_sol = self.solve_tapf_group(
                     agent_groups[conflicting_pair[0]],

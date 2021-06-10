@@ -37,6 +37,7 @@ class ICTSearcher(object):
         "max_delta",
         "lower_sic_bound",
         "debug",
+        "other_sum",
         "mdd_cache",
         "mem_limit",
         "mem_check_tick"
@@ -63,6 +64,7 @@ class ICTSearcher(object):
         self.pruned_child_gen = pruned_child_gen
         self.open_spaces = find_number_of_open_spaces(maze)
         self.lower_sic_bound = 0
+        self.other_sum = 0
         self.debug = debug
         self.budget = budget
         self.mdd_cache: Dict[Tuple[int, int], MDD] = dict()
@@ -177,7 +179,7 @@ class ICTSearcher(object):
 
     def get_budget(self, k: int):
         if self.budget:
-            return self.budget
+            return self.budget - self.other_sum
         else:
             return self.calculate_upper_bound_cost(k)
 
@@ -306,7 +308,6 @@ class ICTSearcher(object):
                             accumulator,
                             context,
                         )
-
                     if not conflict_team_combination:
                         conflict_combination = None
                         if self.prune and k > self.combs:
