@@ -13,7 +13,7 @@ results.txt
 queue.txt
 __pycache__/
 .idea/
-results/
+/results/
 venv
 raw
 raw-backup
