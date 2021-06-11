@@ -21,7 +21,7 @@ def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optional
         pruned_child_gen=True,
         id=True,
         conflict_avoidance=True,
-        enumerative=False,
+        enumerative=True,
         debug=True,
     )
     return Solver(config, problem)()
@@ -36,7 +36,7 @@ def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], 
         conflict_avoidance=True,
         enumerative=True,
         sort_matchings=True,
-        debug=True,
+        debug=False,
     )
     return Solver(config, problem)()
 

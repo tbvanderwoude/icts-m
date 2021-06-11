@@ -1,5 +1,10 @@
+import heapq
+import itertools
+from collections import defaultdict
 from copy import copy
-from typing import List, Tuple, Optional, Dict, Iterator
+from itertools import product
+from math import factorial
+from typing import List, Tuple, Optional, Dict, Iterator, Generator, Set
 
 from mapfmclient import Problem, Solution
 
@@ -14,9 +19,40 @@ from .solver_config import SolverConfig
 from .util import index_path
 
 
+# https://stackoverflow.com/questions/28909238/indexing-a-list-of-permutations-in-python
+def permutation(xs, n):
+    """
+    Return the n'th permutation of xs (counting from 0)
+    """
+    xs = list(xs)
+    len_ = len(xs)
+    base = factorial(len_)
+    assert n < base, "n is too high ({} >= {})".format(n, base)
+    for i in range(len_ - 1):
+        base //= len_ - i
+        offset = n // base
+        if offset:
+            # rotate selected value into position
+            xs[i + 1:i + offset + 1], xs[i] = xs[i:i + offset], xs[i + offset]
+        n %= base
+    return xs
+
+
+def matching_gen(goal_teams):
+    perm_ranges = []
+    teams = []
+    for team in goal_teams:
+        t_list = goal_teams[team]
+        teams.append(team)
+        perm_ranges.append(range(0, factorial(len(t_list))))
+    for (perm_indices) in product(*perm_ranges):
+        matching = []
+        for (t, i) in zip(teams, perm_indices):
+            matching.extend(permutation(goal_teams[t], i))
+        yield tuple(matching)
+
+
 def enumerate_matchings(agents, tasks):
-
-
     if agents:
         (name, type), *tail = agents
         results = []
@@ -48,6 +84,19 @@ def merge_groups(agent_groups, group_i, group_j):
     return new_agent_groups
 
 
+class RankedMatching:
+    __slots__ = [
+        "cost",
+        "matching"
+    ]
+
+    def __init__(self, cost, matching):
+        self.cost = cost
+        self.matching = matching
+
+    def __lt__(self, other):
+        return self.cost < other.cost
+
 class Solver:
     __slots__ = [
         "config",
@@ -78,7 +127,8 @@ class Solver:
             self.config.mem_limit
         )
 
-    def __call__(self) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:
+    # Assumes that agents are sorted in increasing order of teams
+    def __call__(self) -> Tuple[Optional[Solution], List[int], int, Optional[int]]:
         paths: List[List[Tuple[int, int]]] = []
         agents: List[MarkedCompactLocation] = list(
             map(
@@ -93,36 +143,63 @@ class Solver:
             )
         )
         if self.config.enumerative:
-            # print(agents,goals)
-            matchings: List[List[Tuple[CompactLocation,CompactLocation]]] = enumerate_matchings(agents, goals)
-            # print(matchings)
-            # print(matchings)
-            if self.config.sort_matchings:
-                rooted_matchings = list(
-                    map(lambda m: (m, sum(self.compute_root(m))), matchings)
-                )
-                rooted_matchings.sort(key=lambda a: a[1])
-            else:
-                rooted_matchings = list(map(lambda m: (m, 0), matchings))
+            # print("Solving enumerative")
+            indexed_agents = list(enumerate(agents))
+            indexed_agents.sort(key=lambda x: x[1][1])
+            indices, agents = list(zip(*indexed_agents))
+            index_map = dict(enumerate(indices))
+            # print(indices,agents)
+
+            goals.sort(key=lambda x: x[1])
+            goal_teams = defaultdict(list)
+            for goal in goals:
+                goal_teams[index_map[goal[1]]].append(goal[0])
+            agent_locs = list(map(lambda x: x[0],agents))
+            matchings: Generator[Tuple[CompactLocation, ...]] = matching_gen(goal_teams)
             min_sol = None
-            # print(len(rooted_matchings))
-            for (matching, _) in rooted_matchings:
-                matching_agents = list(map(lambda x: (x[1][0],x[0]),enumerate(matching)))
-                team_agent_indices = dict(map(lambda x: (x[0], {x[0]}), enumerate(matching)))
-                team_goals = dict(map(lambda x: (x[0], {x[1][1]}), enumerate(matching)))
-                # print(agents,matching_agents,matching,team_agent_indices,team_goals)
-                sol = self.solve_tapf_instance(matching_agents, team_agent_indices, team_goals)
-                if sol:
-                    if not min_sol or min_sol.sic > sol.sic:
-                        min_sol = sol
-                        if self.config.budget_search:
-                            self.update_budget(min_sol.sic)
+            matching_agents = list(map(lambda x: (x[1][0], x[0]), enumerate(agents)))
+            team_agent_indices = dict(map(lambda x: (x[0], {x[0]}), enumerate(agents)))
+            if self.config.sort_matchings:
+                start_matchings = itertools.islice(matchings,10000)
+                rank_func = lambda m: RankedMatching(sum(self.compute_root(list(zip(agent_locs,m)))),m)
+                ls: List[RankedMatching] = list(map(rank_func,start_matchings))
+                # print("Initialized list")
+                heapq.heapify(ls)
+                while ls:
+                    ranked_matching: RankedMatching = heapq.heappop(ls)
+                    team_goals = dict(map(lambda x: (x[0], {x[1]}), enumerate(ranked_matching.matching)))
+                    sol = self.solve_tapf_instance(matching_agents, team_agent_indices, team_goals)
+                    if sol:
+                        if not min_sol or min_sol.sic > sol.sic:
+                            min_sol = sol
+                            if self.config.budget_search:
+                                self.update_budget(min_sol.sic)
+                    next_matching = next(matchings,False)
+                    if next_matching:
+                        heapq.heappush(ls,rank_func(next_matching))
+            else:
+                for matching in matchings:
+                    # print(matching)
+                    team_goals = dict(map(lambda x: (x[0], {x[1]}), enumerate(matching)))
+                    # print(agents,matching_agents,matching,team_agent_indices,team_goals)
+                    sol = self.solve_tapf_instance(matching_agents, team_agent_indices, team_goals)
+                    if sol:
+                        if not min_sol or min_sol.sic > sol.sic:
+                            min_sol = sol
+                            if self.config.budget_search:
+                                self.update_budget(min_sol.sic)
             if min_sol:
+                # print("Min sol was found")
                 subsols = list(zip(*min_sol.solution))
-                for subsol in subsols:
+                # print(indices)
+                indexed_subsols = list(enumerate(subsols))
+                indexed_subsols.sort(key = lambda x: index_map[x[0]])
+                print(indexed_subsols)
+                # print(indexed_subsols)
+                for (i,subsol) in indexed_subsols:
                     paths.append(list(map(lambda loc: expand_location(loc), subsol)))
             else:
-                return None, self.ict_searcher.max_delta, self.max_k_solved,None
+                return None, self.ict_searcher.max_delta, self.max_k_solved, None
         else:
             teams = set(map(lambda a: a.color, self.problem.starts))
             team_goals = dict(
@@ -164,11 +241,11 @@ class Solver:
             return self.solve_tapf(agents, team_agent_indices, team_goals)
 
     def solve_tapf(
-        self,
-        agents: List[MarkedCompactLocation],
-        team_agent_indices,
-        team_goals,
-        context: Optional[IDContext] = None,
+            self,
+            agents: List[MarkedCompactLocation],
+            team_agent_indices,
+            team_goals,
+            context: Optional[IDContext] = None,
     ):
         root = self.compute_root_m(agents, team_goals)
         problem = MAPFMProblem(agents, team_agent_indices, team_goals)
@@ -195,8 +272,8 @@ class Solver:
         return tuple(root_list)
 
     def compute_root(
-        self,
-        matching: Iterator[Tuple[CompactLocation, CompactLocation]],
+            self,
+            matching: Iterator[Tuple[CompactLocation, CompactLocation]],
     ):
         root_list = []
         for (start, goal) in matching:
@@ -212,19 +289,19 @@ class Solver:
         return tuple(root_list)
 
     def solve_tapf_group(
-        self,
-        group: int,
-        agent_groups: List[int],
-        agents: List[MarkedCompactLocation],
-        team_agent_indices,
-        team_goals,
-        context: Optional[IDContext],
-        lower_sic_bound=0,
+            self,
+            group: int,
+            agent_groups: List[int],
+            agents: List[MarkedCompactLocation],
+            team_agent_indices,
+            team_goals,
+            context: Optional[IDContext],
+            lower_sic_bound=0,
     ):
         agent_group = [x for (i, x) in enumerate(agents) if agent_groups[i] == group]
 
         local_team_agent_indices = dict(
-            filter(lambda x: x[1],[
+            filter(lambda x: x[1], [
                 (team, [j for (j, a) in enumerate(agent_group) if a[1] == team])
                 for team in team_agent_indices.keys()
             ])
@@ -235,10 +312,10 @@ class Solver:
         )
 
     def solve_tapf_with_id(
-        self,
-        all_agents: List[MarkedCompactLocation],
-        team_agent_indices,
-        team_goals,
+            self,
+            all_agents: List[MarkedCompactLocation],
+            team_agent_indices,
+            team_goals,
     ):
         agent_groups = list(range(self.k))
         agent_paths: List[List[Tuple[CompactLocation]]] = []
