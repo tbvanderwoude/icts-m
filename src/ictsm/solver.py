@@ -318,6 +318,7 @@ class Solver:
             team_goals,
     ):
         self.update_other_sum(0)
+        self.update_lower_sic(0)
         agent_groups = list(range(self.k))
         agent_paths: List[List[Tuple[CompactLocation]]] = []
         group_sic: Dict[int, int] = {}
