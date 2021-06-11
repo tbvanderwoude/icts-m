@@ -15,6 +15,8 @@ from .util import index_path
 
 
 def enumerate_matchings(agents, tasks):
+
+
     if agents:
         (name, type), *tail = agents
         results = []
@@ -91,6 +93,7 @@ class Solver:
             )
         )
         if self.config.enumerative:
+            # print(agents,goals)
             matchings: List[List[Tuple[CompactLocation,CompactLocation]]] = enumerate_matchings(agents, goals)
             # print(matchings)
             # print(matchings)
@@ -112,7 +115,8 @@ class Solver:
                 if sol:
                     if not min_sol or min_sol.sic > sol.sic:
                         min_sol = sol
-                        self.update_budget(min_sol.sic)
+                        if self.config.budget_search:
+                            self.update_budget(min_sol.sic)
             if min_sol:
                 subsols = list(zip(*min_sol.solution))
                 for subsol in subsols:

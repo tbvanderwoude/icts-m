@@ -13,6 +13,7 @@ class SolverConfig:
         "conflict_avoidance",
         "enumerative",
         "debug",
+        "budget_search",
         "sort_matchings",
         "pruned_child_gen",
         "mem_limit"
@@ -28,9 +29,10 @@ class SolverConfig:
         conflict_avoidance: bool,
         enumerative: bool,
         debug: bool,
+        budget_search: bool = True,
         sort_matchings: bool = True,
         name: str = "unnamed",
-        mem_limit: float = 2.5
+        mem_limit: float = 3.0
     ):
         self.name = name
         self.combs = combs
@@ -39,6 +41,7 @@ class SolverConfig:
         self.id = id
         self.conflict_avoidance = conflict_avoidance
         self.enumerative = enumerative
+        self.budget_search = budget_search
         self.sort_matchings = sort_matchings
         self.pruned_child_gen = pruned_child_gen
         self.debug = debug
