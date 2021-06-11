@@ -153,7 +153,7 @@ class Solver:
             goals.sort(key=lambda x: x[1])
             goal_teams = defaultdict(list)
             for goal in goals:
-                goal_teams[index_map[goal[1]]].append(goal[0])
+                goal_teams[goal[1]].append(goal[0])
             agent_locs = list(map(lambda x: x[0],agents))
             matchings: Generator[Tuple[CompactLocation, ...]] = matching_gen(goal_teams)
             min_sol = None
@@ -317,6 +317,7 @@ class Solver:
             team_agent_indices,
             team_goals,
     ):
+        self.update_other_sum(0)
         agent_groups = list(range(self.k))
         agent_paths: List[List[Tuple[CompactLocation]]] = []
         group_sic: Dict[int, int] = {}

@@ -78,7 +78,7 @@ def compare_configs(configs: List[SolverConfig]):
     map_parser = MapParser(map_root)
     for (i,config) in enumerate(configs):
         os.system("cp full_queue.txt queue.txt")
-        test_queue(ConfiguredSolver(config), map_parser, 120000, BenchmarkQueue("queue.txt"),1,50)
+        test_queue(ConfiguredSolver(config), map_parser, 120000, BenchmarkQueue("queue.txt"),-1,50)
 
 class ConfiguredSolver:
     def __init__(self,config: SolverConfig):
@@ -131,6 +131,19 @@ if __name__ == "__main__":
         #     budget_search=False,
         # ),
         SolverConfig(
+            name="Exh+E+B",
+            combs=3,
+            prune=True,
+            enhanced=True,
+            pruned_child_gen=False,
+            id=False,
+            conflict_avoidance=False,
+            enumerative=True,
+            debug=False,
+            sort_matchings=False,
+            budget_search=True,
+        ),
+        SolverConfig(
             name="Exh+E+B+O",
             combs=3,
             prune=True,
@@ -143,19 +156,6 @@ if __name__ == "__main__":
             sort_matchings=True,
             budget_search=True,
         ),
-        # SolverConfig(
-        #     name="Exh+E+B",
-        #     combs=3,
-        #     prune=True,
-        #     enhanced=True,
-        #     pruned_child_gen=False,
-        #     id=False,
-        #     conflict_avoidance=False,
-        #     enumerative=True,
-        #     debug=False,
-        #     sort_matchings=False,
-        #     budget_search=True,
-        # ),
         # SolverConfig(
         #     name="Exh+E+B+ID",
         #     combs=3,
