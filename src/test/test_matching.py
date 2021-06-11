@@ -21,3 +21,11 @@ class MatchingTest(unittest.TestCase):
             goal_teams[goal[1]].append(goal[0])
         matchings = list(matching_gen(goal_teams))
         self.assertEqual(len(matchings),4)
+    def test_many_matches(self):
+        goals = [(i,0) for i in range(12)]
+        goal_teams = defaultdict(list)
+        for goal in goals:
+            goal_teams[goal[1]].append(goal[0])
+        matchings = matching_gen(goal_teams)
+        while matchings:
+            next(matchings)

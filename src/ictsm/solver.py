@@ -1,7 +1,9 @@
 import heapq
 import itertools
+import resource
 from collections import defaultdict
 from copy import copy
+from functools import reduce
 from itertools import product
 from math import factorial
 from typing import List, Tuple, Optional, Dict, Iterator, Generator, Set
@@ -15,7 +17,7 @@ from .ict_search import ICTSearcher, ICTSolution
 from .id_context import IDContext
 from .mapfm_problem import MAPFMProblem
 from .maze import Maze
-from .solver_config import SolverConfig
+from .solver_config import SolverConfig, MegaByte
 from .util import index_path
 
 
@@ -37,19 +39,30 @@ def permutation(xs, n):
         n %= base
     return xs
 
+def show_mem():
+    usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    print(f"{usage / MegaByte} megabytes used")
 
+from operator import mul
 def matching_gen(goal_teams):
     perm_ranges = []
     teams = []
+    lens = []
+    divisor_modulo = []
+    divisor = 1
     for team in goal_teams:
         t_list = goal_teams[team]
         teams.append(team)
-        perm_ranges.append(range(0, factorial(len(t_list))))
-    for (perm_indices) in product(*perm_ranges):
+        size = factorial(len(t_list))
+        lens.append(size)
+        divisor_modulo.append((divisor,size))
+        divisor *= size
+    for index in range(divisor):
+        perm_indices = [(index//d) % m for (d,m) in divisor_modulo]
         matching = []
         for (t, i) in zip(teams, perm_indices):
             matching.extend(permutation(goal_teams[t], i))
-        yield tuple(matching)
+        yield matching
 
 
 def enumerate_matchings(agents, tasks):
@@ -179,6 +192,7 @@ class Solver:
                         heapq.heappush(ls,rank_func(next_matching))
             else:
                 for matching in matchings:
+                    # show_mem()
                     # print(matching)
                     team_goals = dict(map(lambda x: (x[0], {x[1]}), enumerate(matching)))
                     # print(agents,matching_agents,matching,team_agent_indices,team_goals)
@@ -194,7 +208,7 @@ class Solver:
                 # print(indices)
                 indexed_subsols = list(enumerate(subsols))
                 indexed_subsols.sort(key = lambda x: index_map[x[0]])
-                print(indexed_subsols)
+                # print(indexed_subsols)
                 # print(indexed_subsols)
                 for (i,subsol) in indexed_subsols:
                     paths.append(list(map(lambda loc: expand_location(loc), subsol)))
