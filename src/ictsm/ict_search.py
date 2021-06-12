@@ -299,30 +299,29 @@ class ICTSearcher(object):
                         node_list[i] += 1
                         if not tuple(node_list) in visited:
                             frontier.append(tuple(node_list))
-
-                    conflict_team_combination = None
-                    if False and len(problem.team_agent_indices) > 1:
-                        conflict_team_combination = self.check_within_teams(
-                            problem,
-                            mdds,
-                            accumulator,
-                            context,
-                        )
-                    if not conflict_team_combination:
-                        conflict_combination = None
-                        if self.prune and k > self.combs:
-                            conflict_combination = self.check_combinations(
-                                mdds, k, accumulator, context
+                    if self.lower_sic_bound <= node_sum:
+                        conflict_team_combination = None
+                        if False and len(problem.team_agent_indices) > 1:
+                            conflict_team_combination = self.check_within_teams(
+                                problem,
+                                mdds,
+                                accumulator,
+                                context,
                             )
-
-                        if not conflict_combination:
-                            conflict_team_comb = None
-                            if False and len(problem.team_agent_indices) > self.team_combs:
-                                conflict_team_comb = self.check_team_combinations(
-                                    problem, mdds, accumulator, context
+                        if not conflict_team_combination:
+                            conflict_combination = None
+                            if self.prune and k > self.combs:
+                                conflict_combination = self.check_combinations(
+                                    mdds, k, accumulator, context
                                 )
-                            if not conflict_team_comb:
-                                if self.lower_sic_bound <= node_sum:
+
+                            if not conflict_combination:
+                                conflict_team_comb = None
+                                if False and len(problem.team_agent_indices) > self.team_combs:
+                                    conflict_team_comb = self.check_team_combinations(
+                                        problem, mdds, accumulator, context
+                                    )
+                                if not conflict_team_comb:
                                     solution: JointTimedSolution = seek_solution_in_joint_mdd(
                                         mdds, True, False, [], context
                                     )
