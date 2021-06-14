@@ -19,6 +19,7 @@
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{conjecture}{Conjecture}
 \newtheorem{property}{Property}
+\newtheorem{corollary}{Corollary}[property] % Use theorem counter as `parent`
 \usepackage{algorithm}
 \newcommand{\Desc}[2]{\State \makebox[2em][l]{#1}#2}
 \usepackage[noend]{algpseudocode}
@@ -36,7 +37,7 @@
 	\maketitle
 	
 	\begin{abstract}
-		Both the assignment problem and the multi-agent pathfinding problem are common problems in fields such as robotics and transportation. The joint problem of finding matchings inducing an optimal non-conflicting routing of agents to their goals is something that has not been studied much. Few methods exist today that solve it although the problems do appear together in real-world problems, such as in the Train Unit Shunting and Servicing problem. In this work, two families of algorithms based on the Increasing Cost Tree Search algorithm for multi-agent pathfinding are presented that can optimally solve this joint problem.
+		Both the assignment problem and the multi-agent pathfinding problem are common problems in the fields of robotics and transportation. The joint problem of multi-agent pathfinding extended with matching between agents and goals is something that has not been studied much. Few methods exist today that solve it although the problems do appear together in practice, such as in the Train Unit Shunting and Servicing problem. In this work, two classes of algorithms based on the Increasing Cost Tree Search algorithm for multi-agent pathfinding are presented that can optimally solve this joint problem. Algorithms within the families are compared to each other experimentally. An algorithm from the first family, one based on exhaustive matching enumeration, is compared to alternative algorithms.
 	\end{abstract}
 	
 	\section{Introduction}
@@ -52,8 +53,8 @@
 	
 	Comparatively, little research has been done on MAPFM and solving MAPFM optimally.
 	The Conflict-Based Min-Cost-Flow (CBM) algorithm by Ma and Koenig \cite{ma2016} is one of the few existing approaches to optimally solve this more general problem along with the somewhat similar one described in \cite{henkel2019}.
-	Ma and Koenig's method builds upon the conflict-based search method and in particular on the Meta-Agent variation thereof also discussed in \cite{sharon2015} as a high-level search framework, while exploiting the connection between MAPF problems and max-flow problems (as discussed in \cite{yu2013}) in the low-level search. It should be noted that this method minimizes the makespan and not the sum of individual costs which is the objective used in the TUSS relaxation, meaning that non-trivial modifications to CMB are needed to minimize SIC.
-	The successful application of CBS to solving MAPFM begs the question: can alternative MAPF algorithms such as Increasing Cost Tree Search (ICTS) \cite{sharon2011} or M* \cite{wagner2011} also serve as the basis for a MAPFM solver?
+	Ma and Koenig's method builds upon the conflict-based search method and in particular on the Meta-Agent variation thereof also discussed in \cite{sharon2015} as a high-level search framework, while exploiting the connection between MAPF problems and max-flow problems (as discussed in \cite{yu2013}) in the low-level search. It should be noted that this method minimizes the makespan and not the sum of individual costs (SIC) which is the objective used in the TUSS relaxation, meaning that non-trivial modifications to CBM are needed to minimize SIC.
+	The successful application of CBS to solving MAPFM begs the question: \textit{can alternative MAPF algorithms such as Increasing Cost Tree Search (ICTS) \cite{sharon2011} or M* \cite{wagner2011} also serve as the basis for a MAPFM algorithm?}
 	
 	\begin{wrapfigure}{R}{.25\textwidth}
 		\begin{minipage}{\linewidth}
@@ -67,11 +68,8 @@
 		\end{minipage}
 		\caption{The two types of conflict (from Fig. 1 in \cite{stern2019})}\label{fig:conflicts}
 	\end{wrapfigure}
-	This work is the outcome of a search for an efficient algorithm for optimally solving MAPFM derived from ICTS as an alternative to the approach outlined above\footnote{To the knowledge of the author, to date, no such algorithm is described in the literature}. ICTS, in short, is a two-level approach to MAPF with a top-level breadth-first traversal of an Increasing Cost Tree (ICT) representing combinations of per-agent path costs and a bottom-level evaluation of ICT nodes using multi-valued decision diagrams (MDDS). These MDDS represent per agent all possible paths to the goal of a set length. In the context of a research project in which multiple such 
-	MAPF algorithms were taken as starting points for MAPFM algorithms within a group, the novel ICTS-based algorithm is compared to these algorithms on a set of benchmarks similar to those described in \cite{stern2019}. In addition, it is analysed in terms of complexity and compared to both an enumerative approach that solves all matchings using regular ICTS and the algorithm described in \cite{ma2016}. Regarding the relevance of this work, it should be noted that besides TUSS, there are other applications such as planning warehouse robots \cite{wurman2007} that also could benefit from novel algorithms for MAPFM.
-	[TODO: update to reflect focus on optimizations of exhaustive approach]
+	This work is the outcome of a search for algorithms for optimally solving MAPFM based on ICTS as an alternative to the approach outlined above\footnote{To the knowledge of the author, to date, no such algorithm is described in the literature}. Two classes of algorithms were found, one based on exhaustive enumeration of matchings using a variant of ICTS as subroutine, the other based on modifications to the ICT structure and its search. In the context of a research project in which multiple MAPF algorithms in addition to ICTS were taken as starting points for MAPFM algorithms, one exhaustive ICTS algorithm is compared to these alternatives on a set of benchmarks. In addition, properties of the various algorithm variants are discussed and their performance is compared experimentally.
 	
-	% Lastly, completeness of the algorithm is considered as this is a key property in the context of MAPFM as a TUSS relaxation.
 	\section{Multi-agent pathfinding with matching} % Problem description
 	The MAPFM problem is an extension of MAPF, a well-studied problem. Formally, a MAPF instance can be described as follows. Let $G = (V,E)$ be an undirected connected graph, with each $v\in V$ representing an obstacle-free tile on a 4-connected grid and each $e = (u,v)\in E$ representing a legal uniform-cost move between two such tiles. Let there be $k$ agents $a_1,\ldots,a_k$ with respective starting locations $s_1,\ldots,s_k$ and goals $g_1,\ldots,g_k$. For each agent $a_i$, a path $\pi_i$ from $s_i$ to $g_i$ is to be found such that all agents paths $\pi_i$ taken together are non-conflicting and therefore are a solution. In this work, non-conflicting means, in the conflict-terminology of \cite{stern2019}, that there are no vertex conflicts (and thus no edge conflicts) and no swapping conflicts, as shown in Figure \ref{fig:conflicts}. Letting $\pi_i^t$ denote the $t$'th node of path $\pi_i$, this means that for $i\neq j$, for all $t$, $\pi_i^t\neq \pi_j^t$ and $(\pi_i^t \neq \pi_j^{t + 1})\lor(\pi_i^{t+1} \neq \pi_j^t)$. Given a solution $(\pi_1,\ldots,\pi_k)$, a vector of per-agent costs $(c_1,\ldots,c_k)$ can be found. For $\pi_i$, $c_i$ is defined as the time at which $a_i$ reaches $g_i$ for the last time and remains there, meaning that for $t \geq c_i$, $\pi_i^{t} = g_i$. One property of $c_i$ is that $c_i \geq c^*_i$ where $c^*_i$ is defined as the cost of $\pi^*_i$, the shortest path from $s_i$ to $g_i$ that can be computed using any optimal pathfinding algorithm. There are two common objectives in MAPF:
 	\begin{itemize}
@@ -196,26 +194,31 @@
 	
 	Let there be $K$ teams $t_1,\ldots, t_K$, where $t_i$ consists of $k_i$ agents with start positions $s_1^i,\ldots,s_{k_i}^i$ together with an equal number of team goals $g_1^i,\ldots,g_{k_i}^i$. Within each team $t_i$, agent $a_j^i$ are to be \textit{matched} to a unique goal $g_k^i$, so that exactly one agent is assigned to each goal within team $i$; once all agents are matched to goals, for each agent $a_j^i$ matched to $g_k^i$, a path from $s_j^i$ to $g_k^i$ is to be found such that all agents paths taken together are non-conflicting and therefore make up a solution \cite{ma2016}, similarly defined as for MAPF.
 	
+	If all teams are singleton, the MAPFM instance is equivalent to a MAPF instance; if there is just one team, this corresponds to an anonymous MAPF problem that can be solved in polynomial time.
+	
 	
 	%
 	\section{Solving MAPF with Matching using ICTS} % Your contribution
 	\label{section:icts-matching}
 	Taking ICTS for MAPF as starting point, two methods to use ICTS for MAPFM were identified. The first method relies on the well-known reduction from MAPFM to repeated MAPF: an optimal solution to MAPFM corresponds to a matching of agents to goals, so by exhaustively enumerating all matchings and solving these as MAPF instances, an optimal solution to the MAPFM instance can be found. In the second method, the increasing cost trees search itself is modified to allow an agent $a_j^i$ to be matched to any $g_k^i$. For each method, some properties and method-specific optimizations and variations will be discussed. Afterwards, some more general optimizations and variants will be discussed.
 	\subsection{Exhaustive ICTS}
-	For $K$ teams $t_1,\ldots,t_K$ of size $k_i$, there are in total $M = \prod_{i} k_i!$ matchings from team agents to team goals. Let $C_1$ through $C_M$ denote the optimal SIC costs of each MAPF instance corresponding to the instance, with $C_m = \infty$ for unfeasible $m$. Let $\Delta_m$ be similarly defined and represent the difference between $C_m$ and the root cost of $m$. In order to find the optimal solution, $m$ with lowest $C_m$ has to be found, which requires all $M$ to be solved or marked as unfeasible, meaning that $\mathcal{O}(M)$ MAPF instances have to be solved. 
+	For $K$ teams $t_1,\ldots,t_K$ of size $k_i$, there are in total $M = \prod_{i} k_i!$ matchings from team agents to team goals. Let $C_1$ through $C_M$ denote the optimal SIC costs of each MAPF instance corresponding to the instance, with $C_m = \infty$ for unfeasible $m$. Let $\Delta_m$ be similarly defined and represent the difference between $C_m$ and the root cost of $m$. In order to find the optimal solution, $m$ with lowest $C_m$ has to be found, which requires all $M$ to be solved or found to be unfeasible, meaning that $\mathcal{O}(M)$ MAPF instances have to be solved. 
 	\subsubsection{Bounded search}
 	Once the first solution is found with cost $C$, this can be used in the next search as an (exclusive) upper-bound $B$ for the SIC of nodes that have to be searched. Formally, let $B_0 = \infty$ represent the initial SIC bound of the ICT search. After solving each $m$ with solution cost $C_m$, let $B_{m+1} = \min(B_m,C_m)$. By successively updating this $B$ in this manner, as more matchings are solved, the effort needed to solve the remaining matchings can be expected to be reduced significantly. With $C_m$ denoting the optimal SIC for matching $m$, this effort can be expressed as	
 	\[\Delta_{m,bounded} = \min(B_m,C_m) - C^*_m = B_{m+1} - C^*_m\]
+	This is proportional to the effort due to the complexity of the ICTS search for matching $m$, $\mathcal{O}(k^{\Delta_{m,bounded}})$.
 	\subsubsection{Ordered enumeration}
-	As a further improvement of this method, the matchings $m$ could be enumerated and solved in increasing order of $C^*_m$. In this case, the effort per matching can be shown to be monotonically non-increasing. As will be shown in section \ref{experiments}, this monotonic reduction of effort appears to be a desirable property in practice but pathelogical cases could be constructed where the $\Delta_{m,bounded}$ of $m$ with low SIC is much higher, thus dominating the performance.
+	As a further improvement of this method, the matchings $m$ could be enumerated and solved in increasing order of $C^*_m$. In this case, the effort per matching is monotonically non-increasing by Property \ref{monotonicity}. As will be shown in section \ref{experiments}, this monotonic reduction of effort appears to be a desirable property in practice but pathelogical cases could be constructed where the $\Delta_{m,bounded}$ of $m$ with low $C^*_m$ is much higher, thus dominating the performance.
 	\begin{property}[Monotonicity]
+		\label{monotonicity}
 		In bounded exhaustive search using ICTS, solving the matchings in increasing order of root SIC makes the effort $\Delta_{m,bounded}$ monotonically non-increasing as a function of $m$.
 	\end{property}
 	\begin{proof}
-		Due to the order of matchings for successive matchings $m,m+t$ for some $t\geq 1$, $C^*_{m} \leq C^*_{m+t}$. By definition, $B_{m+1} = \min(B_m,C_m)$ meaning that $B_{m+1} \leq C_m$ and $B_{m+1} \leq B_m$ so transitively $B_{m+t} \leq B_m$. Therefore as $B_{m+t} \leq B_m$ and $C^*_{m+t} \geq C^*_{m}$,
-		\[\min(B_{m+t},C_{m+t}) - C^*_{m+t}\leq \min(B_m,C_m) - C^*_m\implies \Delta_{m+t,bounded} \leq \Delta_{m,bounded}\]
+		Due to the order of matchings for successive matchings $m,m+t$ for some $t\geq 1$, $C^*_{m} \leq C^*_{m+t}$. By definition, $B_{m+2} = \min(B_{m+1},C_{m+1})$ meaning that $B_{m+2} \leq B_{m + 1}$ so transitively $B_{m+t+1} \leq B_{m+1}$. Therefore
+		\[B_{m+t+1} - C^*_{m+t}\leq B_{m+1} - C^*_m\implies \Delta_{m+t,bounded} \leq \Delta_{m,bounded}\]
 	\end{proof}
-	In practice, it is quite difficult enumerate all matchings in increasing order of root SIC. Finding a lowest SIC $m$ reduces to the assignment problem that can be solved using the Hungarian algorithm \cite{kuhn55} in polynomial time; however, to the knowledge of the author, no algorithm exists to more generally compute the $i$'th matching in increasing order of $C^*_m$ (assuming some fixed tie-breaking). This means that matchings have to be exhaustively enumerated and stored in memory to sort them, but this requires $\mathcal{O}(M)$ memory which was found to be more problematic in implementation than the corresponding time complexity of the sorting, $\mathcal{O}(M\log(M))$.
+	\subsubsection{Approximate ordered enumeration}
+	In practice, it is quite difficult enumerate all matchings in increasing order of root SIC. Finding a lowest SIC $m$ reduces to the assignment problem that can be solved using the Hungarian algorithm \cite{kuhn55} in polynomial time; however, to the knowledge of the author, no algorithm exists to more generally compute the $i$'th matching in increasing order of $C^*_m$ (assuming some fixed tie-breaking). This means that matchings have to be exhaustively enumerated and stored in memory to sort them, but this requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$.
 	
 		\begin{algorithm}
 		\begin{algorithmic}[1]
@@ -240,10 +243,7 @@
 		\label{pq-algo}
 	\end{algorithm}
 
-	In implementation, the above behaviour is approximated using a priority queue that maintains a subset of matchings of a fixed size $M_{pq}$ ($M_{pq} = 10000$ was used but this could be much increased at the cost of memory). Algorithm \ref{pq-algo} outlines the procedure. This way of getting around memory limitations originates in [TODO: cite Jaap's paper].
-	
-	 As long as matchings still remain, the priority queue is refilled after each processed matching until running out of matchings, after which. . 
-
+	In implementation, ordered enumeration is approximated using a priority queue that maintains a subset of matchings of a fixed size $M_{pq}$\footnote{$M_{pq} = 10000$ was used in implementation but this could be much increased at the cost of memory}. Algorithm \ref{pq-algo} outlines the procedure. This way of getting around memory limitations originates in [TODO: cite Jaap's paper].
 	
 	\subsection{ICTS-m}
 	ICTS with Matching (ICTS-m) generalizes ICTS to optimally solve MAPFM instances. Few changes to ICTS were necessary to accommodate for matching in this increasing cost tree scheme. Specifically, the ICT root generation and the MDD generation had to be changed. As described in \ref{icts}, in ICTS the root cost for each agent $a_i$ is given by $c^*_i$, the cost of the shortest path from $s_i$ to $g_i$, i.e. without taking conflicts into account. $MDD_i^{c_i}$ is generated using a breadth-first search from $s_i$ to $g_i$ followed by some additional processing.
@@ -258,10 +258,12 @@
 		\caption{Pathelogical case for ICTS-m [Placeholder graphic]}
 		\label{fig:path}
 	\end{wrapfigure}
-	\subsubsection{Properties of ICTS-m}
+	\subsubsection{Pathological case}
+	\label{pathology}
 	As a consequence of the $\min$ operation in the root definition, a pathological case can be derived. Consider a team of 4 agents $a_1^1$ through $a_4^1$. Let them be arranged in a configuration as depicted in Figure \ref{fig:path}. As indicated by the color, all four agents match the colour of the centre goal and hence for each $i$, $c^*_i = 1$, so that the root is $(1,1,1,1)$ with SIC $4$. The optimal solution however is, numbering the agents clockwise, $(1,3,3,3)$ with SIC $10$, meaning that $\Delta = 6$. It can be seen that instances of this form with arbitrarily large $\Delta$ can be constructed. As ICTS-m being a generalization of ICTS is $\mathcal{O}(k^\Delta)$, even just extending the 'limbs' of the instance to yield an ICT root of $(1,9,9,9)$ with $\Delta = 24$ will result in an unfathomably large number of nodes being evaluated assuming no pruning or other modifications to the base algorithm.
 	\subsection{General optimizations}
-	\subsubsection{Lower bound in ID}
+	To improve both types of algorithms, some general optimizations were found that can be used to speed up the search that are here motivated. 
+	\subsubsection{Bounds in ID}
 	\begin{property}[Lower bound]
 		When merging groups $g_i,g_j$ with solution costs $C_i,C_j$ to yield group $g_k$, for any solution for this group with cost $C_k$
 		\[C_k\geq C_i + C_j\]
@@ -269,15 +271,16 @@
 	\begin{proof}
 		Assume there would be a solution with $C_k < C_i + C_j$. Taking $C_k^i$ to denote the SIC of agents that used to make up $g_i$ in the solution to $g_k$, without loss of generality $C_k^i < C_i$, which contradicts the optimality of the solution with cost $C_i$ for $g_i$ independent of $g_j$.
 	\end{proof}
-	In practice, this means that the above lower-bound can be used to skip the $k$-agent low-level search for any candidate ICT node with $C_{k,candidate}<C_i + C_j$.
-	
+	\begin{corollary}[Reduced upper bound]
+		In bounded exhaustive search, the sum of costs of groups not being merged can be subtracted from bound $B$ without losing optimality.
+	\end{corollary}
 	\subsubsection{Child pruning}
-	In the original ICTS formulation all $k$-children are generated in every case because pruning only controls skipping the low-level search, assumed to be the most expensive operation. However, in simple pruning in any case, when there is a conflict between two or more agents at a given ICT node $(c_1,\ldots,c_k)$, in any solution, one or more of the path costs corresponding to these conflicting agents will have to be incremented. This reduces the number of children generated to the number of conflicting agents, often just 2 or 3, which quite drastically can improve the (average) branching factor.
+	In the original ICTS formulation all $k$-children are generated in every case because pruning only controls skipping the low-level search, assumed to be the most expensive operation. However, in simple pruning in any case, when there is a conflict between two or more agents at a given ICT node $(c_1,\ldots,c_k)$, in any solution, one or more of the path costs corresponding to these conflicting agents will have to be incremented. This prunes the children generated that do not correspond to the conflicting agents, of which there are often just 2 or 3, which quite drastically can improve the (average) branching factor.
 	\begin{property}[Incompatibility with enhanced pruning]
-		Child pruning combined with enhanced pruning is suboptimal due to the \textit{cascading effect} that Sharon et al. describe in the original ICTS paper\cite{sharon2011}.
+		Enhanced pruning combined with child pruning (hereafter E+C pruning) is suboptimal due to the \textit{cascading effect} described in \cite{sharon2011}.
 	\end{property}
 	\begin{proof}
-		Assume this combination is optimal. Consider Figure \ref{fig:counter-example:a} with a red agent $r$, green agent $g$ and black agent $b$. It can be seen that $(3,8,5)$ with SIC $16$ is an optimal solution for this instance, which corresponds to $r$ moving aside, allowing $g$ to pass.  Say enhanced pruning with pairs is applied to these three agents at $(c^*_r,c^*_g,c^*_b) = (0,8,5)$. Let the enhanced pruning order be $(r,g)$, $(r,b)$, $(g,b)$ without loss of generality. $(r,g)$ is solvable but will leave for $g$ out of the two paths of length $8$ only the clock-wise path. $(r,b)$ will not change either MDD in this node. When $(g,b)$ is evaluated, it is found that the remaining clockwise path for $g$ and $b$'s path are incompatible (swapping conflict) so $(0,9,5)$ and $(0,8,6)$ are generated. By repeating this order of enhanced pruning with child pruning, the ICT shown in \ref{fig:counter-example:b} is traversed. Notice that none of the nodes with SIC 16 in this ICT are a solution, meaning that \ref{fig:counter-example:a} contradicts the optimality of enhanced pruning combined with child pruning and that therefore this combination must be suboptimal.
+		Consider Figure \ref{fig:counter-example:a} with a red agent $r$, green agent $g$ and black agent $b$. It can be seen that $(3,8,5)$ with SIC $16$ is an optimal solution for this instance, which corresponds to $r$ moving aside, allowing $g$ to pass.  Say enhanced pruning with pairs is applied to these three agents at $(c^*_r,c^*_g,c^*_b) = (0,8,5)$. Let the enhanced pruning order be $(r,g)$, $(r,b)$, $(g,b)$ without loss of generality. $(r,g)$ is solvable but will leave for $g$ out of the two paths of length $8$ only the clock-wise path. $(r,b)$ will not change either MDD in this node. When $(g,b)$ is evaluated, it is found that the remaining clockwise path for $g$ and $b$'s path are incompatible (swapping conflict) so $(0,9,5)$ and $(0,8,6)$ are generated. By repeating this order of enhanced pruning with child pruning, the ICT shown in \ref{fig:counter-example:b} is traversed. Notice that none of the nodes with SIC 16 in this ICT are a solution, meaning that E+C pruning will return a suboptimal solution to the instance in \ref{fig:counter-example:a}, making it suboptimal.
 	\end{proof}
 	
 	\begin{figure*}
@@ -294,7 +297,7 @@
 		\caption{Pruned ICT that is traversed}
 		\label{fig:counter-example:b}
 	\end{subfigure}
-		\caption{Counter-example for enhanced pruning with child pruning}
+		\caption{Counter-example for E+C pruning}
 		\label{fig:counter-example}
 	\end{figure*}
 	\begin{figure*}
@@ -381,31 +384,36 @@
 		\label{fig:probs}
 	\end{figure*}
 	
-	\section{Experiments}
+	\section{Results}
 	\label{experiments}
-	Because MAPFM lies on the fringe of pathfinding research, no standard benchmarks exist\footnote{That is, to the knowledge of the author.}. For MAPF, there are the Moving AI benchmarks \cite{sturtevant2012} and potentially a new MAPFM standard benchmark could be defined by generating suitable partitions of agents into teams for these MAPF instances. It was noticed however that optimally solving even small MAPFM instances with comparatively few agents and short distances to goals was computationally already a challenge. This observation informed the creation of a map generator within the peer group with various parameters. Using this map generator, three types of 20x20 grids were generated:
+	Because MAPFM lies on the fringe of pathfinding research, no standard benchmarks exist\footnote{That is, to the knowledge of the author.}. For MAPF, the Moving AI benchmarks \cite{sturtevant2012} are often used and potentially a new MAPFM standard benchmark could be defined by generating suitable team-partitions of agents for these MAPF instances. It was noticed however that optimally solving even small MAPFM instances with comparatively few agents and short distances to goals was computationally already a challenge. This observation informed the creation of a map generator within the peer group with various parameters. Using this map generator, two types of 20x20 grids were generated:
 	\begin{enumerate}
-		\item Open: An obstacle-free grid
-		\item Obstacle: A grid with some obstacles
-		\item Maze: A grid with many obstructed tiles
+		\item 25: a grid with 25\% of tiles being obstacles.
+		\item 75: a grid with 75\% of tiles being obstacles. 
 	\end{enumerate}
-	For each of these types, two sets of maps were generated with between $1$ and $10$ agents and 50 instances generated for each such agent-setting: one set where all agents belong to one team, another in which the agents were divided into three teams (or $1,2$ teams respectively for the datapoints with $1,2$ agents). The results are shown in Figure \ref{fig:times} and \ref{fig:probs}, which respectively show the average time to solution and the fraction of problems solved out of 50 instances. The algorithms and interpretation of results are discussed below.
+	For each of these types, two sets of maps were generated with between $1$ to $16$ agents and 200 instances generated for each such agent-setting: one set where all agents belong to one team, another in which the agents were divided into three teams (or $1,2$ teams respectively for the datapoints with $1,2$ agents). 
+	
+	Two different experiments were run: one comparing ICTS-based algorithms discussed in this work, and one comparing one of these, the approximate ordered enumeration variant (Exh+E+B+O in the relative comparisons), to other algorithms for MAPFM developed within the peer group\footnote{I want to thank Jonathan Dönszelmann, who worked on M*-based algorithms, for setting up this comparison[TODO: move to thanks note at end]}.
+	
+	In experiments used to compare the different MAPFM algorithms within the peer group, care was taken to make the comparison fair: all algorithms are implemented in Python 3 and run on the same system: a server with a 12-core Intel Xeon E5-2683 with 8Gb of RAM dedicated to running experiments for this project.
+	
+	The results are shown in Figure \ref{fig:times} and \ref{fig:probs}, which respectively show the average time to solution and the fraction of problems solved out of 50 instances. The algorithms and interpretation of results are discussed below.
 	\subsection{Algorithms}
 	Various improvements and variations of algorithms were tried out, as shown in the legend. The meanings of the various modifiers are as follows.
 	\begin{enumerate}
 		\item S: Simple pruning
 		\item E: Enhanced pruning
-		\item C: Child pruning. Notice that enhanced pruning and child pruning were not combined because for this optimality is not guaranteed in the general case.
-		\item ID: Independence detection, so the algorithm was run as ID subroutine
-		\item O: Evaluate matchings in increasing order of root SIC (with some practical limitations)
-		\item D: Limit 
+		\item C: Child pruning
+		\item ID: Independence detection
+		\item B: Bounded search
+		\item O: Approximate ordered enumeration
 	\end{enumerate}
 	\subsection{Results}
 	A first observation is that exhaustive methods, while dominant throughout all settings, fare much better when agents are divided into three teams as opposed to when there is just one team. This can be explained by exhaustive algorithms having to process $M = k!$ matchings, which grows quite large for say $k = 10$. Another is that simple pruning combined with child pruning appears to outperform enhanced in many cases, as in Subfigure \ref{fig:maze1p}. More analysis is necessary however before any conclusions can be drawn.
 	
 	
 	\section{Responsible Research}
-	In experiments used to compare the different MAPFM algorithms within the peer group, care was taken to make the comparison fair: all algorithms are implemented in Python 3 and run on the same system: a server with a 12-core Intel Xeon E5-2683 with 8Gb of RAM dedicated to running experiments for this project. Still, some implementations might be more optimized than others so this might be a factor in performance characteristics and in particular in relative performance differences.
+	Still, some implementations might be more optimized than others so this might be a factor in performance characteristics and in particular in relative performance differences.
 	
 	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository \footnote{\url{https://github.com/tbvanderwoude/icts-m}}. Included is also code used to benchmark different configurations of the ICTS solver.
 	
@@ -414,6 +422,13 @@
 	\section{Conclusions}
 	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this, the research has succeeded, but the performance and in particular the scalability of the algorithms leaves something to be desired. 
 	\section{Future work}
+	TODO: discuss following unexplored ideas (mention that some are more engineering-related)
+	\begin{enumerate}
+		\item Team cost lower-bounds (low-level search pruning) using hungarian algorithm.
+		\item Hybridized approaches between exhaustive and native methods.
+		\item More aggressive pruning (in particular for ICTS-m): different (simple child) pruning stages 2,3,4 agents. Prioritizing pruning within teams.
+	\end{enumerate}
+	As discussed in \ref{pathology}, the root of the ICT searched in ICTS-m is highly optimistic and often 
 	The ICTS-m algorithm described in this work scales quite poorly for several reasons including the highly optimistic root SIC value. It might be possible to conceive of a different ICTS-m algorithm that is better able to take advantage of the agents being divided into teams, for instance by first solving all intra-team conflicts before proceeding to consider inter-team conflicts. Some early experiments with pruning techniques were in this vein but experimentally there was no observable improvement.
 	\printbibliography
 	
