@@ -296,7 +296,6 @@
 	\begin{proof}
 		Consider Figure \ref{fig:counter-example:a} with a red agent $r$, green agent $g$ and black agent $b$. It can be seen that $(3,8,5)$ with SIC $16$ is an optimal solution for this instance, which corresponds to $r$ moving aside, allowing $g$ to pass.  Say enhanced pruning with pairs is applied to these three agents at $(c^*_r,c^*_g,c^*_b) = (0,8,5)$. Let the enhanced pruning order be $(r,g)$, $(r,b)$, $(g,b)$ without loss of generality. $(r,g)$ is solvable but will leave for $g$ out of the two paths of length $8$ only the clock-wise path. $(r,b)$ will not change either MDD in this node. When $(g,b)$ is evaluated, it is found that the remaining clockwise path for $g$ and $b$'s path are incompatible (swapping conflict) so $(0,9,5)$ and $(0,8,6)$ are generated. By repeating this order of enhanced pruning with child pruning, the ICT shown in \ref{fig:counter-example:b} is traversed. Notice that none of the nodes with SIC 16 in this ICT are a solution, meaning that E+C pruning will return a suboptimal solution to the instance in \ref{fig:counter-example:a}, making it suboptimal.
 	\end{proof}
-	
 	\begin{figure*}
 	\centering
 	\begin{subfigure}{0.40\textwidth}
@@ -314,96 +313,103 @@
 		\caption{Counter-example for E+C pruning}
 		\label{fig:counter-example}
 	\end{figure*}
-	\begin{figure*}
+	\newgeometry{left=1cm,right=1cm,top=0.1cm,bottom=0.1cm}
+	\begin{figure*}[t]
 	\centering
-	\begin{subfigure}{0.49\textwidth}
+	\begin{subfigure}{0.44\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{img/results/relative-comparison/25-1-p}
 		\caption{25, 1 team}
 		\label{fig:25-1-p}
 	\end{subfigure}
-	\begin{subfigure}{0.49\textwidth}
+	\begin{subfigure}{0.44\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{img/results/relative-comparison/25-3-p}
 		\caption{25, 3 teams}
 		\label{fig:25-3-p}
 	\end{subfigure}
-	\begin{subfigure}{0.49\textwidth}
+	\begin{subfigure}{0.44\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{img/results/relative-comparison/75-1-p}
 		\caption{75, 1 team}
 		\label{fig:75-1-p}
 	\end{subfigure}
-	\begin{subfigure}{0.49\textwidth}
+	\begin{subfigure}{0.44\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{img/results/relative-comparison/75-3-p}
 		\caption{75, 3 teams}
 		\label{fig:75-3-p}
 	\end{subfigure}
-	\caption{Fraction solved out of 50 maps of algorithm variants on two types of 20x20 grids with a 120s timeout}
+	\caption{Fraction solved out of 50 maps on two types of 20x20 grids with a 120s timeout}
 	\label{fig:probs}
 	\end{figure*}
-	\begin{figure*}
+	\begin{figure*}[b]
+	\centering
+	\begin{subfigure}{0.44\textwidth}
 		\centering
-		\begin{subfigure}{0.49\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-1}
-			\caption{25, 1 team}
-			\label{fig:25-1}
-		\end{subfigure}
-		\begin{subfigure}{0.49\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-3}
-			\caption{25, 3 teams}
-			\label{fig:25-3}
-		\end{subfigure}
-		\begin{subfigure}{0.49\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-1}
-			\caption{75, 1 team}
-			\label{fig:75-1}
-		\end{subfigure}
-		\begin{subfigure}{0.49\textwidth}
-			\centering
-			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-3}
-			\caption{75, 3 teams}
-			\label{fig:75-3}
-		\end{subfigure}
-		\caption{Average solving time of algorithm variants on two types of 20x20 grids with a 120s timeout}
-		\label{fig:times}
-	\end{figure*}
+		\includegraphics[width=\linewidth]{img/results/relative-comparison/25-1}
+		\caption{25, 1 team}
+		\label{fig:25-1}
+	\end{subfigure}
+	\begin{subfigure}{0.44\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/relative-comparison/25-3}
+		\caption{25, 3 teams}
+		\label{fig:25-3}
+	\end{subfigure}
+	\begin{subfigure}{0.44\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/relative-comparison/75-1}
+		\caption{75, 1 team}
+		\label{fig:75-1}
+	\end{subfigure}
+	\begin{subfigure}{0.44\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/relative-comparison/75-3}
+		\caption{75, 3 teams}
+		\label{fig:75-3}
+	\end{subfigure}
+	\caption{Average solving time on two types of 20x20 grids with a 120s timeout}
+	\label{fig:times}
+\end{figure*}
+\restoregeometry
+
 
 	
 	\section{Results}
 	\label{experiments}
-	To compare the algorithms and variants described above and put them into the context of alternative MAPFM algorithms, two types of experiments are here reported. In the first, ICTS-based algorithms discussed in this work are compared; in the second, the approximate ordered enumeration variant (Exh+E+B+O) is compared to other algorithms for MAPFM developed within the peer group\footnote{I want to thank Jonathan Dönszelmann, who worked on M*-based algorithms, for setting up this comparison[TODO: move to thanks note at end]}. The values compared are the fraction of instances solved, and the average runtime per sentence. It should be noticed that the in the latter, runtimes converge to the 120s timeout used as fewer instances are solved; therefore, while the times are reported for completeness, only the fraction of instances solved is considered in analysis.
+	To compare the algorithms and variants described above and put them into the context of alternative MAPFM algorithms, two types of experiments were performed. In the first, ICTS-based algorithms discussed in this work are compared; in the second, the approximate ordered enumeration variant (Exh+E+B+O) is compared to other algorithms for MAPFM developed within the peer group\footnote{I want to thank Jonathan Dönszelmann, who worked on M*-based algorithms, for setting up this comparison[TODO: move to thanks note at end]}. The values compared are the fraction of instances solved, and the average runtime per instance. It should be noticed that in the latter, runtimes converge to the 120s timeout used as fewer instances are solved; therefore, while the times are reported for completeness, only the fraction of instances solved is guiding in the analysis of results.
 	\subsection{Experimental setup}
-	Because MAPFM lies on the fringe of pathfinding research, no standard benchmarks exist\footnote{That is, to the knowledge of the author.}. For MAPF, the Moving AI benchmarks \cite{sturtevant2012} are often used and potentially a new MAPFM standard benchmark could be defined by generating suitable team-partitions of agents for these MAPF instances; however, it was noticed that optimally solving even small MAPFM instances with comparatively few agents and short distances to goals was computationally already a challenge. This observation informed the creation of a map generator within the peer group with various parameters. Using this map generator, two types of 20x20 grids were generated:
+	Because MAPFM lies on the fringe of pathfinding research, no standard benchmark exists\footnote{That is, to the knowledge of the author.}. For MAPF, the Moving AI benchmarks \cite{sturtevant2012} are often used and potentially a new MAPFM standard benchmark could be defined by generating suitable team-partitions of agents for these MAPF instances; however, it was noticed that optimally solving even small MAPFM instances with comparatively few agents and short distances to goals was computationally already a challenge. This observation informed the creation of a map generator within the peer group with various parameters. Using this map generator, two types of 20x20 grids were generated:
 	\begin{enumerate}
 		\item 25: a grid with 25\% of tiles being obstacles.
 		\item 75: a grid with 75\% of tiles being obstacles. 
 	\end{enumerate}
 	For each of these types, two sets of maps were generated with between $1$ to $16$ agents and 200 instances generated for each such agent-setting: one set where all agents belong to one team, another in which the agents were divided into three teams (or $1,2$ teams strictly speaking for the datapoints with respectively $1,2$ agents). 
 	
-	The first experiments were performed on a laptop an Intel i7-8750H hexacore operating at 2.2GHz with 16GiB of memory. Here, for each setting, a fixed subset of 50 out of 200 maps were used.
+	The first experiments were performed on an Intel i7-8750H hexacore operating at 2.2GHz with 16GiB of memory. Here, for each setting, a fixed subset of 50 out of 200 maps were used.
 	
-	The second experiments comparing the different MAPFM algorithms within the peer group were run on a server with a Intel Xeon E5-2683 dodecacore operating at 2.0Ghz with 8GiB of RAM. All 200 maps were used for each setting. Although these algorithms have different authors, all are implemented in Python 3 (with one using an ILP solver implemented in C++ as a subroutine) to avoid performance differences as often seen between interpreted versus compiled languages.
+	The second experiments comparing the different MAPFM algorithms within the peer group were run on a server with a Intel Xeon E5-2683 dodecacore operating at 2.0Ghz with 8GiB of RAM. All 200 maps were used for each setting. Although these algorithms have different authors, all are implemented in Python 3 (with one using an ILP solver implemented in C++ as a subroutine) to avoid performance differences as often seen between interpreted versus compiled languages. Nonetheless, conclusions are here a bit more limited, as performance differences are sometimes subtle and could potentially be explained by slight implementation optimizations rather than algorithmic properties.
 	
 	\subsection{Experiment 1: ICTS-based MAPFM algorithms}
 	Figure \ref{fig:probs} reports the fraction of instances that each algorithm variant solved within the timeout of 120s in different settings. The meaning of the abbreviations used in the legend are as follows:
-	\begin{enumerate}
-		\item S: Simple pruning
-		\item E: Enhanced pruning
-		\item C: Child pruning
-		\item ID: Independence detection
-		\item B: Bounded search
-		\item O: Approximate ordered enumeration
-	\end{enumerate}
+	\begin{itemize}
+		\begin{minipage}{0.45\linewidth}
+			\item S: Simple pruning
+			\item E: Enhanced pruning
+			\item C: Child pruning
+		\end{minipage}
+		\begin{minipage}{0.45\linewidth}
+			\item ID: Independence detection
+			\item B: Bounded search
+			\item O: Approximate ordered enumeration
+		\end{minipage}
+	\end{itemize}
 	\subsubsection{Analysis}
-	Across exhaustive variants, with exception of the ID variant, a type of hierarchy can be distinguished, as best illustrated by \ref{fig:25-3-p}. Almost without exception, Exh+E is outperformed by Exh+E+B which similarly is outperformed by Exh+E+B+O which is again outperformed by Exh+S+C+B+O. Exh+E being outperformed by Exh+E+B was to be expected, given that Exh+E+B does at most as much work as Exh+E while in practice often being able to search ICT's much less deep as more instances are solved. Exh+E+B+O outperforming Exh+E+B is not quite as obvious from a theoretical standpoint, as discussed in \ref{ordered-enum}. Although no bound-value data was recorded, one hypothetical explanation might be that often, early on in the search, single matchings with low $\Delta_m$ are found, causing the rest of the searches to be significantly curtailed.
+	Across exhaustive variants, with exception of the ID variant, a type of hierarchy can be distinguished, as best illustrated by \ref{fig:25-3-p}. Almost without exception, Exh+E is outperformed by Exh+E+B which similarly is outperformed by Exh+E+B+O which is again outperformed by Exh+S+C+B+O. Bounded search outperforming unbounded search was to be expected, given that the former does at most as much work as the latter and often less. Approximate ordering outperforming unordered enumeration is not quite as obvious from a theoretical standpoint, as discussed in \ref{ordered-enum}. Although no bound-value data was recorded, one hypothetical explanation might be that often, early on in the search, single matchings with low $\Delta_m$ are found, causing the rest of the searches to be significantly curtailed.
 	
 	
-	Exh+S+C+B+O outperforming Exh+E+B+O shows the potential of the child pruning method described relative to the enhanced pruning method. In particular as $k$ grows larger and in scenarios with more obstacle (\ref{fig:75-1-p},\ref{fig:75-3-p}), it appears that having to search a smaller ICT is more important in terms of performance than being able to skip the $k$-agent low-level search more often.
+	Simple pruning with child pruning outperforming exhaustive pruning shows the potential of this novel method. In particular as $k$ grows larger and in scenarios with more obstacle (\ref{fig:75-1-p},\ref{fig:75-3-p}), it appears that having to search a smaller ICT is more important in terms of performance than being able to skip the $k$-agent low-level search more often.
 	
 	Simple pruning with child pruning outperforming the enhanced pruning variant.
 	
