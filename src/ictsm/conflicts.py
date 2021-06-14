@@ -71,7 +71,6 @@ def edge_collisions_constructive(curr_locs, next_locs) -> Optional[Conflict]:
                 return i, j
     return None
 
-
 def find_conflict(curr_locs, next_locs) -> Optional[Conflict]:
     all_diff = all_different_constructive(curr_locs)
     if all_diff:

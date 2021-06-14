@@ -15,13 +15,13 @@ def solve_api_enum(problem: Problem) -> Solution:
 
 def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:
     config = SolverConfig(
-        combs=2,
+        combs=3,
         prune=True,
-        enhanced=True,
+        enhanced=False,
         pruned_child_gen=True,
         id=True,
         conflict_avoidance=True,
-        enumerative=True,
+        enumerative=False,
         debug=True,
     )
     return Solver(config, problem)()
@@ -30,8 +30,8 @@ def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], 
     config = SolverConfig(
         combs=3,
         prune=True,
-        enhanced=True,
-        pruned_child_gen=False,
+        enhanced=False,
+        pruned_child_gen=True,
         id=True,
         conflict_avoidance=True,
         enumerative=True,
