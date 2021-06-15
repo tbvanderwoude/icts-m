@@ -1,4 +1,4 @@
-\documentclass[english]{article}
+\documentclass[english,10pt]{article}
 \usepackage{geometry}
 \usepackage{hyperref}
 \usepackage{inputenc}
@@ -32,7 +32,7 @@
 	\title{Multi-Agent Path Finding with Matching using Increasing Cost Tree Search}
 	
 	\author{Thom van der Woude\and Jesse Mulderij\and Mathijs de Weerdt}
-	\date{}
+	\date{\today}
 	
 	\maketitle
 	
@@ -95,9 +95,10 @@
 	
 	\begin{figure}[t]
 		\centering
-		\includegraphics[width=0.7\linewidth]{img/ict}
+		\includegraphics[width=0.5\linewidth]{img/ict}
 		\caption{Increasing Cost Tree for three agents \cite{sharon2011}}
 		\label{fig:ict}
+		\vspace{-30pt}
 	\end{figure}
 	\begin{figure}
 		
@@ -201,6 +202,7 @@
 	\label{section:icts-matching}
 	Taking ICTS for MAPF as starting point, two methods to use ICTS for MAPFM were identified. The first method relies on the well-known reduction from MAPFM to repeated MAPF: an optimal solution to MAPFM corresponds to a matching of agents to goals, so by exhaustively enumerating all matchings and solving these as MAPF instances, an optimal solution to the MAPFM instance can be found. In the second method, the increasing cost trees search itself is modified to allow an agent $a_j^i$ to be matched to any $g_k^i$. In this section, the MAPFM algorithms are introduced properties of the algorithms and some variants are discussed. In Section \ref{experiments}, these will be compared experimentally.
 	\subsection{Exhaustive ICTS}
+	\label{exhaustive}
 	For $K$ teams $t_1,\ldots,t_K$ of size $k_i$, there are in total $M = \prod_{i} k_i!$ matchings from team agents to team goals. Let $C_1$ through $C_M$ denote the optimal SIC costs of each MAPF instance corresponding to the instance, with $C_m = \infty$ for unfeasible $m$. In order to find the optimal solution, $m$ with lowest $C_m$ has to be found, which requires all $M$ to be solved or found to be unfeasible, meaning that $\mathcal{O}(M)$ MAPF instances have to be solved. 
 	\subsubsection{Bounded search}
 	Once the first solution is found with cost $C$, this can be used in the next search as an (exclusive) upper-bound $B$ for the SIC of nodes that have to be searched. Formally, let $B_0 = \infty$ represent the initial SIC bound of the ICT search. After solving each $m$ with solution cost $C_m$, let $B_{m+1} = \min(B_m,C_m)$. By successively updating this $B$ in this manner, as more matchings are solved, the effort needed to solve the remaining matchings can be expected to be reduced significantly. With $C_m$ denoting the optimal SIC for matching $m$, this effort can be expressed as	
@@ -262,18 +264,18 @@
 	\begin{wrapfigure}{R}{.35\textwidth}
 		\centering
 		\includegraphics[width=\linewidth]{img/path}
-		\caption{Pathelogical case for ICTS-m}
+		\caption{Pathological case for ICTS-m}
 		\label{fig:path}
 	\end{wrapfigure}
 	\subsubsection{Pathological case}
 	\label{pathology}
-	As a consequence of the $\min$ operation in the root definition, a pathological case can be derived. Consider a team of 4 agents $a_1^1$ through $a_4^1$. Let them be arranged in a configuration as depicted in Figure \ref{fig:path}. As indicated by the color, all four agents match the colour of the centre goal and hence for each $i$, $c^*_i = 1$, so that the root is $(1,1,1,1)$ with SIC $4$. The optimal solution however is, numbering the agents clockwise, $(1,3,3,3)$ with SIC $10$, meaning that $\Delta = 6$. It can be seen that instances of this form with arbitrarily large $\Delta$ can be constructed. As ICTS-m being a generalization of ICTS is $\mathcal{O}(k^\Delta)$, even just extending the 'limbs' of the instance to yield an ICT root of $(1,9,9,9)$ with $\Delta = 24$ will result in an unfathomably large number of nodes being evaluated assuming no pruning or other modifications to the base algorithm. [TODO: reduce case to just 2 agents?]
-	\subsubsection{Inverted MDD search}
-	When searching MDDs for a solution in regular MAPF, it is guaranteed that there exists a goal node in the joint MDD without vertex conflicts. This follows from the fact that goals are assumed to be unique per agent. In MAPFM, for a large number of nodes that are searched, this is not the case. As a result, analogously to how pathfinding algorithms will more-or-less floodfill a graph if there exists no path to the goal, the entire joint MDD space will have to be searched which becomes very expensive as the number of agents increases.
+	As a consequence of the $\min$ operation in the root definition, a pathological case can be derived. Consider a team of 4 agents $a_1^1$ through $a_4^1$. Let them be arranged in a configuration as depicted in Figure \ref{fig:path}. All four agents match the colour of the centre goal and hence for each $i$, $c^*_i = 1$, so that the root is $(1,1,1,1)$ with SIC $4$. The optimal solution however is, numbering the agents clockwise, $(1,3,3,3)$ with SIC $10$, meaning that $\Delta = 6$. It can be seen that instances of this form with arbitrarily large $\Delta$ can be constructed. As ICTS-m being a generalization of ICTS is $\mathcal{O}(k^\Delta)$, even just extending the 'limbs' of the instance to yield an ICT root of $(1,9,9,9)$ with $\Delta = 24$ will result in an unfathomably large number of nodes being evaluated assuming no pruning or other modifications to the base algorithm. [TODO: reduce case to just 2 agents?]
+	%\subsubsection{Inverted MDD search}
+	%The uniqueness of goals guarantees the existence of a goal node without vertex conflicts in searching MDDs in MAPF. In MAPFM, this is not the case and causes joint MDDs to be searched fully without finding a result. In addition, even if there exists a goal node, many of the paths represented by the joint MDD lead to conflicting maximal-depth nodes.
 	
-	Two strategies could be used to avoid this: firstly, the MDD search could be changed to start at the maximal depth and search for a way towards the start (which is still guaranteed to be a nonconflicting node); secondly, a bipartite matching algorithm could be employed to see if any matching exists between agents and goals they can reach. An advantage of the former strategy is that it will, in particular with larger team sizes, reduce the number of maximal depth nodes drastically, so that the subsequent search is from few nodes to one goal. By only running a matching algorithm to skip regular MDD search, there is no such reduction so from one starting position paths will be searched to potentially many goal nodes, of which many will end up being illegal. 
-	
-	[TODO: either describe inverted MDD search or the use of some bipartite matching algorithm that shortcuts the regular MDD search]
+	%To avoid this, the MDD search could be changed to start at the maximal depth and search for a way towards the start node, which by start uniqueness remains without vertex conflicts.
+	%Two strategies could be used to avoid this: firstly, the MDD search could be changed to start at the maximal depth and search for a way towards the start (which by start uniqueness is always non-conflicting); secondly, a bipartite matching algorithm could be employed to see if any matching exists between agents and goals they can reach. An advantage of the former strategy is that it will, in particular with larger team sizes, reduce the number of maximal depth nodes drastically, so that the subsequent search is from few nodes to one goal. By only running a matching algorithm to skip regular MDD search, there is no such reduction so from one starting position paths will be searched to potentially an exponential number of goal nodes, of which many will end up being illegal. 
+	%[TODO: just focus on explaining why inverted MDD search was/could be used to solve this? Or just toss this out for lack of time/space. Why didn't I come up with this idea earlier...]
 	\subsection{General optimizations}
 	
 	To improve both types of algorithms, some general optimizations were found that can be used to speed up the search that are here motivated. 
@@ -289,14 +291,11 @@
 		In bounded exhaustive search, the sum of costs of groups not being merged can be subtracted from bound $B$ without losing optimality.
 	\end{property}
 	\subsubsection{Child pruning}
-	In the original ICTS formulation all $k$-children are generated in every case because pruning only controls skipping the low-level search, assumed to be the most expensive operation. However, in simple pruning in any case, when there is a conflict between two or more agents at a given ICT node $(c_1,\ldots,c_k)$, in any solution, one or more of the path costs corresponding to these conflicting agents will have to be incremented. This prunes the children generated that do not correspond to the conflicting agents, of which there are often just 2 or 3, which quite drastically can improve the (average) branching factor.
+	In the original ICTS formulation all $k$-children are generated in every case because pruning only controls skipping the low-level search, assumed to be the most expensive operation. However, in simple pruning in any case, when there is a conflict between two or more agents at a given ICT node $(c_1,\ldots,c_k)$, in any solution, one or more of the path costs corresponding to these conflicting agents will have to be incremented. This can be explioted by pruning the node's children that do not correspond to the conflicting agents, of which there are often just 2 or 3, which can drastically improve the (average) branching factor as $k$ increases.
 	\begin{property}[Incompatibility with enhanced pruning]
 		Enhanced pruning combined with child pruning (hereafter E+C pruning) is suboptimal due to the \textit{cascading effect} described in \cite{sharon2011}.
 	\end{property}
-	\begin{proof}
-		Consider Figure \ref{fig:counter-example:a} with a red agent $r$, green agent $g$ and black agent $b$. It can be seen that $(3,8,5)$ with SIC $16$ is an optimal solution for this instance, which corresponds to $r$ moving aside, allowing $g$ to pass.  Say enhanced pruning with pairs is applied to these three agents at $(c^*_r,c^*_g,c^*_b) = (0,8,5)$. Let the enhanced pruning order be $(r,g)$, $(r,b)$, $(g,b)$ without loss of generality. $(r,g)$ is solvable but will leave for $g$ out of the two paths of length $8$ only the clock-wise path. $(r,b)$ will not change either MDD in this node. When $(g,b)$ is evaluated, it is found that the remaining clockwise path for $g$ and $b$'s path are incompatible (swapping conflict) so $(0,9,5)$ and $(0,8,6)$ are generated. By repeating this order of enhanced pruning with child pruning, the ICT shown in \ref{fig:counter-example:b} is traversed. Notice that none of the nodes with SIC 16 in this ICT are a solution, meaning that E+C pruning will return a suboptimal solution to the instance in \ref{fig:counter-example:a}, making it suboptimal.
-	\end{proof}
-	\begin{figure*}
+	\begin{figure}[H]
 	\centering
 	\begin{subfigure}{0.40\textwidth}
 		\centering
@@ -310,9 +309,12 @@
 		\caption{Pruned ICT that is traversed}
 		\label{fig:counter-example:b}
 	\end{subfigure}
-		\caption{Counter-example for E+C pruning}
-		\label{fig:counter-example}
-	\end{figure*}
+	\caption{Counter-example for E+C pruning}
+	\label{fig:counter-example}
+\end{figure}
+	\begin{proof}
+		Consider Figure \ref{fig:counter-example:a} with a red agent $r$, green agent $g$ and black agent $b$. It can be seen that $(3,8,5)$ with SIC $16$ is an optimal solution for this instance, which corresponds to $r$ moving aside, allowing $g$ to pass.  Say enhanced pruning with pairs is applied to these three agents at $(c^*_r,c^*_g,c^*_b) = (0,8,5)$. Let the enhanced pruning order be $(r,g)$, $(r,b)$, $(g,b)$ without loss of generality. $(r,g)$ is solvable but will leave for $g$ out of the two paths of length $8$ only the clock-wise path. $(r,b)$ will not change either MDD in this node. When $(g,b)$ is evaluated, it is found that the remaining clockwise path for $g$ and $b$'s path are incompatible (swapping conflict) so $(0,9,5)$ and $(0,8,6)$ are generated. By repeating this order of enhanced pruning with child pruning, the ICT shown in \ref{fig:counter-example:b} is traversed. Notice that none of the nodes with SIC 16 in this ICT are a solution, meaning that E+C pruning will return a suboptimal solution to the instance in \ref{fig:counter-example:a}, making it suboptimal.
+	\end{proof}
 	\newgeometry{left=1cm,right=1cm,top=0.1cm,bottom=0.1cm}
 	\begin{figure*}[t]
 	\centering
@@ -378,9 +380,9 @@
 	
 	\section{Results}
 	\label{experiments}
-	To compare the algorithms and variants described above and put them into the context of alternative MAPFM algorithms, two types of experiments were performed. In the first, ICTS-based algorithms discussed in this work are compared; in the second, the approximate ordered enumeration variant (Exh+E+B+O) is compared to other algorithms for MAPFM developed within the peer group\footnote{I want to thank Jonathan Dönszelmann, who worked on M*-based algorithms, for setting up this comparison[TODO: move to thanks note at end]}. The values compared are the fraction of instances solved, and the average runtime per instance. It should be noticed that in the latter, runtimes converge to the 120s timeout used as fewer instances are solved; therefore, while the times are reported for completeness, only the fraction of instances solved is guiding in the analysis of results.
+	To compare the algorithms and variants described above and put them into the context of alternative MAPFM algorithms, two types of experiments were performed. In the first, ICTS-based algorithms discussed in this work are compared; in the second, the approximate ordered enumeration variant (Exh+E+B+O) is compared to other algorithms for MAPFM developed within the peer group\footnote{I want to thank Jonathan Dönszelmann, who worked on M*-based algorithms, for setting up this comparison[TODO: move to thanks note at end]}. The values compared are the fraction of instances solved, and the average runtime per instance. It should be noticed that in the latter, runtimes converge to the 120s timeout used as fewer instances are solved; therefore, while the times are included for completeness at the end of this work, the fraction of instances solved is guiding in the analysis of results.
 	\subsection{Experimental setup}
-	Because MAPFM lies on the fringe of pathfinding research, no standard benchmark exists\footnote{That is, to the knowledge of the author.}. For MAPF, the Moving AI benchmarks \cite{sturtevant2012} are often used and potentially a new MAPFM standard benchmark could be defined by generating suitable team-partitions of agents for these MAPF instances; however, it was noticed that optimally solving even small MAPFM instances with comparatively few agents and short distances to goals was computationally already a challenge. This observation informed the creation of a map generator within the peer group with various parameters. Using this map generator, two types of 20x20 grids were generated:
+	Because MAPFM lies on the fringe of pathfinding research, no standard benchmark exists. For MAPF, the Moving AI benchmarks \cite{sturtevant2012} are often used and potentially a new MAPFM standard benchmark could be defined by generating suitable team-partitions of agents for these MAPF instances; however, it was noticed that optimally solving even small MAPFM instances with comparatively few agents and short distances to goals was computationally already a challenge. This observation informed the creation of a map generator within the peer group with various parameters. Using this map generator, two types of 20x20 grids were generated:
 	\begin{enumerate}
 		\item 25: a grid with 25\% of tiles being obstacles.
 		\item 75: a grid with 75\% of tiles being obstacles. 
@@ -406,34 +408,34 @@
 		\end{minipage}
 	\end{itemize}
 	\subsubsection{Analysis}
-	Across exhaustive variants, with exception of the ID variant, a type of hierarchy can be distinguished, as best illustrated by \ref{fig:25-3-p}. Almost without exception, Exh+E is outperformed by Exh+E+B which similarly is outperformed by Exh+E+B+O which is again outperformed by Exh+S+C+B+O. Bounded search outperforming unbounded search was to be expected, given that the former does at most as much work as the latter and often less. Approximate ordering outperforming unordered enumeration is not quite as obvious from a theoretical standpoint, as discussed in \ref{ordered-enum}. Although no bound-value data was recorded, one hypothetical explanation might be that often, early on in the search, single matchings with low $\Delta_m$ are found, causing the rest of the searches to be significantly curtailed.
+	Across exhaustive variants, with exception of the ID variant, a type of hierarchy can be distinguished, best illustrated by \ref{fig:25-3-p}. Almost without exception, Exh+S+C+B+O outperforms Exh+E+B+O which outperforms Exh+E+B which in turn outperforms Exh+E. Bounded search outperforms unbounded search as expected, given that the former does at most as much work as the latter and often less. Approximate ordering outperforming unordered enumeration is not quite as obvious from a theoretical standpoint, as discussed in \ref{ordered-enum}. Although no bound-value data was recorded, one explanation might be that often, early on in the search, single matchings with low $\Delta_m$ are found, causing the rest of the searches to be significantly curtailed.
 	
+	Simple pruning with child pruning outperforming exhaustive pruning shows the potential of this novel method. In particular as $k$ grows larger and in scenarios with more obstacles (\ref{fig:75-1-p},\ref{fig:75-3-p}), it appears that having to search a smaller ICT is more important in terms of performance than being able to skip the $k$-agent low-level search more often. 
 	
-	Simple pruning with child pruning outperforming exhaustive pruning shows the potential of this novel method. In particular as $k$ grows larger and in scenarios with more obstacle (\ref{fig:75-1-p},\ref{fig:75-3-p}), it appears that having to search a smaller ICT is more important in terms of performance than being able to skip the $k$-agent low-level search more often.
-	
-	Simple pruning with child pruning outperforming the enhanced pruning variant.
-	
-	
+	Ordered enumeration with ID performs much better in \ref{fig:75-3-p}, a setting with more obstacles and more teams, but ordered enumeration without ID on the other hand is superior in an open setting with a single team (\ref{fig:25-1-p}). The overhead associated with the various planning and merging steps (see Algorithm \ref{id-algo}) could be the cause the slowdown observed once $M$ grows large (\ref{fig:25-1-p},\ref{fig:75-1-p}); once the upper bound is tightened, ICTs only have to be searched shallowly so there is no point in going through the steps of ID. This explains why no speedup is seen, as ICTS-m between and ICTS-m+ID, which is is more typical.
 	 
-	With some exceptions, the ICTS-m 
+	
+	With some exceptions, ICTS-m variants are outperformed by the exhaustive variants.
 	In almost every instance the ICTS-m variants are outperformed by exhaustive variants. 
 	\subsection{Experiment 2: Algorithms for MAPFM}
-	\subsection{Results}
-	A first observation is that exhaustive methods, while dominant throughout all settings, fare much better when agents are divided into three teams as opposed to when there is just one team. This can be explained by exhaustive algorithms having to process $M = k!$ matchings, which grows quite large for say $k = 10$. Another is that simple pruning combined with child pruning appears to outperform enhanced in many cases, as in Subfigure \ref{fig:maze1p}. More analysis is necessary however before any conclusions can be drawn.
+	[TODO: add relative comparison]
+
 	\section{Discussion}
 	
-	Still, some implementations might be more optimized than others so this might be a factor in performance characteristics and in particular in relative performance differences.
+%	Still, some implementations might be more optimized than others so this might be a factor in performance characteristics and in particular in relative performance differences.
 	
 	Compared to the results achieved by \cite{ma2016}, the results recorded are somewhat disappointing.
 	\section{Conclusions}
-	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this, the research has succeeded, but the performance and in particular the scalability of the algorithms leaves something to be desired. 
+	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this, the research has succeeded, but the scalability of the algorithms leaves something to be desired. Exhaustive methods, like those discussed in detail in \ref{exhaustive}, will never scale well as teams grow larger, no matter what optimizations are put in place. Nonetheless, as was shown in Section \ref{experiments}, the more advanced exhaustive algorithms consistenly outperform the ICTS-m based algorithms. In this
 	\section{Future work}
-	TODO: discuss following unexplored ideas (mention that some are more engineering-related)
+	In this project there were many roads not taken, from algorithmic improvements to closer analysis and more elaborate experimentation. In particular for the ICTS-m variant, there are still many things that could be experimented with in order to improve performance, such as more extensive or multi-staged pruning procedures and exploiting the fact that agents are partitioned into teams. Although it might be somewhat early
 	\begin{enumerate}
 		\item Team cost lower-bounds (low-level search pruning) using hungarian algorithm.
 		\item Hybridized approaches between exhaustive and native methods.
 		\item More aggressive pruning (in particular for ICTS-m): different (simple child) pruning stages 2,3,4 agents. Prioritizing pruning within teams.
 	\end{enumerate}
+	
+	TODO: discuss following unexplored ideas (mention that some are more engineering-related)
 	As discussed in \ref{pathology}, the root of the ICT searched in ICTS-m is highly optimistic and often 
 	The ICTS-m algorithm described in this work scales quite poorly for several reasons including the highly optimistic root SIC value. It might be possible to conceive of a different ICTS-m algorithm that is better able to take advantage of the agents being divided into teams, for instance by first solving all intra-team conflicts before proceeding to consider inter-team conflicts. Some early experiments with pruning techniques were in this vein but experimentally there was no observable improvement.
 	\section{Responsible Research}
