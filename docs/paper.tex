@@ -321,6 +321,35 @@
 	\centering
 	\begin{subfigure}{0.44\textwidth}
 		\centering
+		\includegraphics[width=\linewidth]{img/results/icts-comparison/25-1-p}
+		\caption{25, 1 team}
+		\label{fig:25-1-p}
+	\end{subfigure}
+	\begin{subfigure}{0.44\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/icts-comparison/25-3-p}
+		\caption{25, 3 teams}
+		\label{fig:25-3-p}
+	\end{subfigure}
+	\begin{subfigure}{0.44\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/icts-comparison/75-1-p}
+		\caption{75, 1 team}
+		\label{fig:75-1-p}
+	\end{subfigure}
+	\begin{subfigure}{0.44\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{img/results/icts-comparison/75-3-p}
+		\caption{75, 3 teams}
+		\label{fig:75-3-p}
+	\end{subfigure}
+	\caption{Fraction solved out of 50 maps on two types of 20x20 grids with a 120s timeout}
+	\label{fig:probs}
+	\end{figure*}
+	\begin{figure*}[t]
+	\centering
+	\begin{subfigure}{0.44\textwidth}
+		\centering
 		\includegraphics[width=\linewidth]{img/results/relative-comparison/25-1-p}
 		\caption{25, 1 team}
 		\label{fig:25-1-p}
@@ -346,39 +375,9 @@
 	\caption{Fraction solved out of 50 maps on two types of 20x20 grids with a 120s timeout}
 	\label{fig:probs}
 	\end{figure*}
-	\begin{figure*}[b]
-	\centering
-	\begin{subfigure}{0.44\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/relative-comparison/25-1}
-		\caption{25, 1 team}
-		\label{fig:25-1}
-	\end{subfigure}
-	\begin{subfigure}{0.44\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/relative-comparison/25-3}
-		\caption{25, 3 teams}
-		\label{fig:25-3}
-	\end{subfigure}
-	\begin{subfigure}{0.44\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/relative-comparison/75-1}
-		\caption{75, 1 team}
-		\label{fig:75-1}
-	\end{subfigure}
-	\begin{subfigure}{0.44\textwidth}
-		\centering
-		\includegraphics[width=\linewidth]{img/results/relative-comparison/75-3}
-		\caption{75, 3 teams}
-		\label{fig:75-3}
-	\end{subfigure}
-	\caption{Average solving time on two types of 20x20 grids with a 120s timeout}
-	\label{fig:times}
-\end{figure*}
+
 \restoregeometry
 
-
-	
 	\section{Results}
 	\label{experiments}
 	To compare the algorithms and variants described above and put them into the context of alternative MAPFM algorithms, two types of experiments were performed. In the first, ICTS-based algorithms discussed in this work are compared; in the second, the approximate ordered enumeration variant (Exh+E+B+O) is compared to other algorithms for MAPFM developed within the peer group\footnote{I want to thank Jonathan Dönszelmann, who worked on M*-based algorithms, for setting up this comparison[TODO: move to thanks note at end]}. The values compared are the fraction of instances solved, and the average runtime per instance. It should be noticed that in the latter, runtimes converge to the 120s timeout used as fewer instances are solved; therefore, while the times are included for completeness at the end of this work, the fraction of instances solved is guiding in the analysis of results.
@@ -427,21 +426,76 @@
 	
 	Compared to the results achieved by \cite{ma2016}, the results recorded are somewhat disappointing.
 	\section{Conclusions}
-	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this, the research has succeeded, but the scalability of the algorithms leaves something to be desired. Exhaustive methods, like those discussed in detail in \ref{exhaustive}, will never scale well as teams grow larger, no matter what optimizations are put in place. Nonetheless, as was shown in Section \ref{experiments}, the more advanced exhaustive algorithms consistenly outperform the ICTS-m based algorithms. In this
+	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this, the research has succeeded, but the scalability of the algorithms leaves something to be desired. Exhaustive methods, like those discussed in detail in \ref{exhaustive}, cannot be expected to scale well as teams grow larger due to their complexity, no matter what optimizations are put in place. Nonetheless, as was shown in Section \ref{experiments}, the more advanced exhaustive ICTS algorithms consistently outperform the ICTS-m based algorithms. It was also seen that in turn a SIC-adaptation of the CBM method \cite{ma2016} greatly outperforms exhaustive alternatives in the settings that were tried out. Therefore, it can be concluded that the method that arguably has the most potential to scale well, ICTS-m, has a very long way to go before being usable in practical scenarios with significant problem sizes.
 	\section{Future work}
-	In this project there were many roads not taken, from algorithmic improvements to closer analysis and more elaborate experimentation. In particular for the ICTS-m variant, there are still many things that could be experimented with in order to improve performance, such as more extensive or multi-staged pruning procedures and exploiting the fact that agents are partitioned into teams. Although it might be somewhat early
-	\begin{enumerate}
-		\item Team cost lower-bounds (low-level search pruning) using hungarian algorithm.
-		\item Hybridized approaches between exhaustive and native methods.
-		\item More aggressive pruning (in particular for ICTS-m): different (simple child) pruning stages 2,3,4 agents. Prioritizing pruning within teams.
-	\end{enumerate}
+	In this project, there were many roads not taken. In particular for the ICTS-m variant, there are still many things that could be experimented with in order to improve performance, such as more extensive or multi-staged pruning procedures or ways to exploit the fact that agents are partitioned into teams. For instance, the hungarian algorithm could be used to find lower-bounds for per-team SICs, which allows skipping the low-level search in many cases and can trivially be combined with pruned child generation branching within teams. 
 	
-	TODO: discuss following unexplored ideas (mention that some are more engineering-related)
-	As discussed in \ref{pathology}, the root of the ICT searched in ICTS-m is highly optimistic and often 
-	The ICTS-m algorithm described in this work scales poorly for several reasons including the highly optimistic root SIC value. It might be possible to conceive of a different ICTS-m algorithm that is better able to take advantage of the agents being divided into teams, for instance by first solving all intra-team conflicts before proceeding to consider inter-team conflicts. Some early experiments with pruning techniques were in this vein but experimentally there was no observable improvement.
+	Hybridized approaches, where approximate ordered search is combined with the search of partially restricted MAPFM problems, could be promising to explore in the future; this is not restricted to ICTS: any MAPF algorithm generalized to solve MAPFM could be used in this scheme.
+
+	Another subject for future research might be a closer theoretical and experimental analysis of simple child pruning as alternative to enhanced pruning in the context of ICTS for MAPF, assuming this method has not been described before. Although experimentally it was shown to outperform enhanced pruning in exhaustive matching, ideally the two pruning strategies should be tested using the Moving AI benchmark \cite{sturtevant2012} to reach definite conclusions about how they compare. Using simple pruning to prune children and enhanced pruning for pruning low-level search could also be interesting to explore, as it could potentially combine the benefits of searching a smaller ICT and performing fewer $k$-agent low-level searches at the cost of spending more time pruning.
 	\section{Responsible Research}
 	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository \footnote{\url{https://github.com/tbvanderwoude/icts-m}}. Included is also code for benchmarking different configurations of the ICTS solver and the maps that were used in the benchmarks reported above.
 	
 	\printbibliography
+	\newgeometry{left=1cm,right=1cm,top=0.1cm,bottom=0.1cm}
+	\begin{figure*}[b]
+		\centering
+		\begin{subfigure}{0.44\textwidth}
+			\centering
+			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-1}
+			\caption{25, 1 team}
+			\label{fig:25-1}
+		\end{subfigure}
+		\begin{subfigure}{0.44\textwidth}
+			\centering
+			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-3}
+			\caption{25, 3 teams}
+			\label{fig:25-3}
+		\end{subfigure}
+		\begin{subfigure}{0.44\textwidth}
+			\centering
+			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-1}
+			\caption{75, 1 team}
+			\label{fig:75-1}
+		\end{subfigure}
+		\begin{subfigure}{0.44\textwidth}
+			\centering
+			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-3}
+			\caption{75, 3 teams}
+			\label{fig:75-3}
+		\end{subfigure}
+		\caption{Average solving time on two types of 20x20 grids with a 120s timeout}
+		\label{fig:times}
+	\end{figure*}
+	\begin{figure*}[t]
+		\centering
+		\begin{subfigure}{0.44\textwidth}
+			\centering
+			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-1}
+			\caption{25, 1 team}
+			\label{fig:25-1-p}
+		\end{subfigure}
+		\begin{subfigure}{0.44\textwidth}
+			\centering
+			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-3}
+			\caption{25, 3 teams}
+			\label{fig:25-3-p}
+		\end{subfigure}
+		\begin{subfigure}{0.44\textwidth}
+			\centering
+			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-1}
+			\caption{75, 1 team}
+			\label{fig:75-1-p}
+		\end{subfigure}
+		\begin{subfigure}{0.44\textwidth}
+			\centering
+			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-3}
+			\caption{75, 3 teams}
+			\label{fig:75-3-p}
+		\end{subfigure}
+		\caption{Average solving time on two types of 20x20 grids with a 120s timeout}
+		\label{fig:probs}
+	\end{figure*}
 	
+	\restoregeometry
 \end{document}
