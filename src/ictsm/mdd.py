@@ -33,7 +33,6 @@ class MDD(object):
         self.depth: int = depth
         self.bfs_tree: dict = {}
         self.mdd: MDDGraph = None
-        self.level: DefaultDict[int, Set[CompactLocation]] = defaultdict(set)
         if last_mdd and last_mdd.depth < depth and last_mdd.agent == agent:
             self.generate_mdd(maze, last_mdd)
         else:
@@ -45,23 +44,7 @@ class MDD(object):
         else:
             bfs_tree = construct_bfs_tree(maze, self.start, self.depth)
         self.bfs_tree = bfs_tree
-        mdd = mdd_from_tree(self.bfs_tree["tree"], self.goals, self.depth)
-        self.mdd = mdd
-        if mdd:
-            self.populate_levels(self.mdd)
-
-    def populate_levels(self, graph: TimeExpandedGraph):
-        # all nodes except the start are children of other nodes at a level given by the depth
-        self.level[0] = {self.start}
-        for children_sets in graph.values():
-            for child in children_sets:
-                self.level[child[1]].add(child[0])
-
-    def get_level(self, i):
-        # Models the behaviour of staying at the goal once reached
-        if i > self.depth:
-            return self.goals
-        return self.level[i]
+        self.mdd = mdd_from_tree(self.bfs_tree["tree"], self.goals, self.depth)
 
     def get_children_at_node(
         self, node: CompactLocation, curr_depth: int
@@ -121,7 +104,7 @@ def mdd_from_tree(
             visited.add((parent, goal))
     while trace_list:
         current, child = trace_list.popleft()
-        mdd[current].add(child)
+        mdd[child].add(current)
         for parent in tree[current]:
             if (parent, current) not in visited:
                 trace_list.append((parent, current))
