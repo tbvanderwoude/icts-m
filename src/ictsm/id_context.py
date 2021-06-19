@@ -23,4 +23,6 @@ class IDContext:
                 )
             )
             self.len += 1
+        if depth < 0:
+            depth = 0
         return self.path[depth]

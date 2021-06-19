@@ -49,7 +49,7 @@ class MDD(object):
     def get_children_at_node(
         self, node: CompactLocation, curr_depth: int
     ) -> Iterable[CompactLocation]:
-        if node in self.goals and curr_depth >= self.depth:
+        if node in self.goals and curr_depth > self.depth:
             return [node]
         else:
             return map(lambda p: p[0], self.mdd[(node, curr_depth)])

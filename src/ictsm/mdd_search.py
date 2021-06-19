@@ -20,7 +20,7 @@ def is_goal_state(
     mdds: List[MDD], curr_nodes: List[CompactLocation], curr_depth: int
 ) -> bool:
     for mdd, node in zip(mdds, curr_nodes):
-        if curr_depth < mdd.depth or node not in mdd.goals:
+        if curr_depth > 0 or node != mdd.start:
             return False
     return True
 
@@ -67,9 +67,9 @@ def get_valid_children(
                         break
                 if not occurs:
                     if curr_depth < mdds[i].depth:
-                        mdds[i].mdd[(node, curr_depth)].remove((child, curr_depth + 1))
+                        mdds[i].mdd[(node, curr_depth)].remove((child, curr_depth - 1))
                         accumulator.append(
-                            (i, (node, curr_depth), (child, curr_depth + 1))
+                            (i, (node, curr_depth), (child, curr_depth - 1))
                         )
 
     return pruned
@@ -91,25 +91,33 @@ def seek_solution_in_joint_mdd(
     roots: Tuple[Any] = tuple(map(lambda mdd: mdd.start, mdds))
     depths: Iterable[int] = map(lambda mdd: mdd.depth, mdds)
     visited: Set[Tuple[List[CompactLocation], int]] = set()
+    max_depth = max(depths)
+    endpoints = generate_endpoints(mdds,max_depth)
     if constructive:
-        solution, _ = joint_mdd_dfs_constructive(
-            mdds, None, (roots, 0), max(depths), visited, context
-        )
-        return solution
+        for endpoint in endpoints:
+            solution, _ = joint_mdd_dfs_constructive(
+                mdds, None, endpoint, max_depth, visited, context
+            )
+            if solution:
+                return list(reversed(solution))
+        return []
     elif unfold:
-        return joint_mdd_bfs(mdds,(roots,0),max(depths),unfold,accumulator,context)
+        return joint_mdd_bfs(mdds,endpoints,max_depth,unfold,accumulator,context)
     else:
-        found_path, _ = joint_mdd_dfs(
-        mdds, (roots, 0), max(depths), visited, unfold, accumulator, context
-        )
-        return found_path
+        for endpoint in endpoints:
+            found_path, _ = joint_mdd_dfs(
+                mdds, endpoint,max_depth, visited, unfold, accumulator, context
+            )
+            if found_path:
+                return found_path
+        return False
 
 
 def get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, context):
     children = get_valid_children(mdds, curr_nodes, curr_depth, unfold, accumulator)
     if context:
         curr_context = context.sample_context_node(curr_depth)
-        next_context = context.sample_context_node(curr_depth + 1)
+        next_context = context.sample_context_node(curr_depth - 1)
         children.sort(
             key=lambda child: count_conflicts(
                 curr_context + list(curr_nodes), next_context + list(child)
@@ -118,9 +126,16 @@ def get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, conte
 
     return children
 
+def generate_endpoints(mdds, max_depth):
+    per_mdd_children = []
+    for i in range(len(mdds)):
+        per_mdd_children.append(list(mdds[i].goals))
+    # print(per_mdd_children)
+    return ((n,max_depth) for n in filter(all_different,itertools.product(*per_mdd_children)))
+
 def joint_mdd_bfs(
     mdds: List[MDD],
-    root: Tuple[Any, int],
+    root: List[Tuple[Any, int]],
     max_depth: int,
     unfold: bool = False,
     accumulator: List = [],
@@ -128,17 +143,17 @@ def joint_mdd_bfs(
 ) -> bool:
     visited = set()
     frontier = deque()
-    frontier.append(root)
+    frontier.extend(root)
     while frontier:
         curr = frontier.popleft()
         curr_nodes: List[CompactLocation] = curr[0]
         curr_depth: int = curr[1]
-        if curr_depth <= max_depth and not curr in visited:
+        if curr_depth >= 0 and not curr in visited:
             visited.add(curr)
             if is_goal_state(mdds, curr_nodes, curr_depth):
                 return True
             children = get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, context)
-            frontier.extend(list(map(lambda x: (x,curr_depth + 1),children)))
+            frontier.extend(list(map(lambda x: (x,curr_depth - 1),children)))
     return False
 
 def joint_mdd_dfs(
@@ -152,14 +167,14 @@ def joint_mdd_dfs(
 ) -> Tuple[bool, Set[Tuple[List[CompactLocation], int]]]:
     curr_nodes: List[CompactLocation] = curr[0]
     curr_depth: int = curr[1]
-    if curr in visited or curr_depth > max_depth:
+    if curr in visited or curr_depth < 0:
         return False, visited
     visited.add(curr)
     if is_goal_state(mdds, curr_nodes, curr_depth):
         return True, visited
     children = get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, context)
     for node in children:
-        child = (node, curr_depth + 1)
+        child = (node, curr_depth - 1)
         found_path, visited = joint_mdd_dfs(
             mdds, child, max_depth, visited, unfold, accumulator, context
         )
@@ -180,7 +195,7 @@ def joint_mdd_dfs_constructive(
     curr_depth: int = curr[1]
     if prev and is_invalid_move(prev, curr_nodes):
         return [], visited
-    if curr in visited or curr_depth > max_depth:
+    if curr in visited or curr_depth < 0:
         return [], visited
 
     visited.add(curr)
@@ -189,7 +204,7 @@ def joint_mdd_dfs_constructive(
     children = get_valid_children(mdds, curr_nodes, curr_depth)
     if context:
         curr_context = context.sample_context_node(curr_depth)
-        next_context = context.sample_context_node(curr_depth + 1)
+        next_context = context.sample_context_node(curr_depth - 1)
         children.sort(
             key=lambda child: count_conflicts(
                 curr_context + list(curr_nodes), next_context + list(child)
@@ -197,7 +212,7 @@ def joint_mdd_dfs_constructive(
         )
     partial_sol = [curr]
     for node in children:
-        child = (node, curr_depth + 1)
+        child = (node, curr_depth - 1)
         if child not in visited:
             sol, visited = joint_mdd_dfs_constructive(
                 mdds, curr_nodes, child, max_depth, visited, context
