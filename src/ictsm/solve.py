@@ -36,7 +36,7 @@ def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], 
         conflict_avoidance=True,
         enumerative=True,
         sort_matchings=True,
-        debug=False,
+        debug=True,
         budget_search=True,
     )
     return Solver(config, problem)()
