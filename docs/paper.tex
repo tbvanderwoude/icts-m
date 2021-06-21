@@ -1,7 +1,8 @@
 \documentclass[english,10pt]{article}
 \usepackage{geometry}
-\usepackage{hyperref}
 \usepackage{inputenc}
+\usepackage{csquotes}
+\usepackage{hyperref}
 \geometry{verbose,tmargin=3.5cm,bmargin=4cm,lmargin=3.8cm,rmargin=3.8cm}
 \usepackage[backend=biber,style=ieee]{biblatex}
 \addbibresource{sources.bib}
@@ -27,17 +28,25 @@
 \def\BState{\State\hskip-\ALG@thistlm}
 \makeatother
 
+
 \begin{document}
 	
-	\title{Multi-Agent Path Finding with Matching using Increasing Cost Tree Search}
-	
-	\author{Thom van der Woude\and Jesse Mulderij\and Mathijs de Weerdt}
-	\date{\today}
+	\title{Multi-Agent Pathfinding with Matching using Increasing Cost Tree Search}
+	\author{
+		Thom van der Woude$^1$\and
+		Jesse Mulderij$^1$\and
+		Mathijs de Weerdt$^1$\\
+	}
+	\date{%
+		$^1$TU Delft\\
+		t.b.vanderwoude@student.tudelft.nl\\\{j.mulderij, m.m.deweerdt\}@tudelft.nl\\[2ex]
+		\today
+	}
 	
 	\maketitle
 	
 	\begin{abstract}
-		Both the assignment problem and the multi-agent pathfinding problem are common problems in the fields of robotics and transportation. The joint problem of multi-agent pathfinding extended with the assignment of goals to agents, matching, is something that has not been studied much; few methods exist today that solve it. In this work, two types of algorithms based on the Increasing Cost Tree Search algorithm for multi-agent pathfinding are presented that can optimally solve this joint problem: exhaustive algorithms that reduce the problem to solving many MAPF problems using regular Increasing Cost Tree Search, and algorithms that search a generalized increasing cost tree. These are compared to each other experimentally on a set of grid maps, and it is shown that exhaustive methods typically outperform the generalized ICT search. Lastly, an exhaustive algorithm is compared to alternative algorithms based on other multi-agent pathfinding approaches to put its performance into the broader context of algorithms for multi-agent pathfinding with matching.
+		\noindent Both the assignment problem and the multi-agent pathfinding problem are common problems in the fields of robotics and transportation. The joint problem of multi-agent pathfinding extended with the assignment of goals to agents, matching, is something that has not been studied much; few methods exist today that solve it. In this work, two types of algorithms based on the Increasing Cost Tree Search (ICTS) algorithm for multi-agent pathfinding are presented that can optimally solve this joint problem: exhaustive algorithms that reduce the problem to solving many multi-agent pathfinding problems using regular ICTS, and algorithms that search a generalized increasing cost tree. These are compared to each other experimentally on a set of grid maps, and it is shown that exhaustive methods typically outperform the generalized ICTS. Lastly, an exhaustive ICTS algorithm is compared to alternative algorithms based on other multi-agent pathfinding approaches to put its performance into the broader context of algorithms for multi-agent pathfinding with matching.
 	\end{abstract}
 	
 	\section{Introduction}
@@ -47,10 +56,10 @@
 	
 	As was shown by Geiger et al.\cite{geiger2018}, in practical scenarios, only heuristic methods can solve TUSS instances. 
 	Such methods are suboptimal and heuristic solutions to instances defined for a set shunting yard can be said to characterise a lower bound on the capacity of the shunting yard, as each solution cost gives a (loose) upper bound for the optimal solution cost. 
-	The railway company, however, is interested in learning tight upper bounds for the capacity of existing shunting yards to inform decisions about matters like infrastructure expansion. \cite{mulderij2020} proposes the multi-agent pathfinding (MAPF) problem \cite{stern2019} extended with a matching subproblem (hereafter MAPFM) as a suitable relaxation of (discretised) TUSS for finding such upper-bounds using an approach analogous to that outlined above.
+	The railway company, however, is interested in learning tight upper bounds for the capacity of existing shunting yards to inform decisions about matters like infrastructure expansion. \cite{mulderij2020} proposes the multi-agent pathfinding (MAPF) problem, as described in \cite{stern2019}, extended with a matching subproblem (hereafter MAPFM) as a suitable relaxation of (discretised) TUSS for finding such upper-bounds using an approach analogous to that outlined above.
 	For this to succeed, a way to optimally solve MAPFM instances is needed, where optimal is defined as minimizing the Sum of Individual Costs (SIC) objective.
 	
-	Little to no research has been done on MAPFM and solving it optimally. For MAPFM with a makespan objective instead of SIC, known as the combined  target-assignment  and  path-finding (TAPF) problem, there is the Conflict-Based Min-Cost-Flow (CBM) algorithm by Ma and Koenig \cite{ma2016} and a similar approach described in \cite{henkel2019}. Ma and Koenig's method builds upon the conflict-based search method and in particular on the Meta-Agent variation thereof also discussed in \cite{sharon2015} as a high-level search framework; in the low-level search, the connection between anonymous MAPF problems and max-flow problems (as discussed in \cite{yu2013}) is exploited to plan single teams in polynomial time. 
+	To date, no research has been done on MAPFM. For MAPFM with a makespan objective instead of SIC, known as the combined target-assignment and pathfinding (TAPF) problem, there is the Conflict-Based Min-Cost-Flow (CBM) algorithm by Ma and Koenig \cite{ma2016} and a similar approach described in \cite{henkel2019}. Ma and Koenig's method builds upon the conflict-based search method and in particular on the Meta-Agent variation thereof also discussed in \cite{sharon2015} as a high-level search framework; in the low-level search, the connection between anonymous MAPF problems and max-flow problems (as discussed in \cite{yu2013}) is exploited to plan single teams in polynomial time. 
 	
 	The experiments reported in \cite{ma2016} indicate that this method scales very well as the number of agents and the sizes of teams increase; however, because only 10\% of tiles is blocked in some of the grid maps they use and despite the fact that CBM performance on Kiva\cite{wurman2007} instances is also discussed, it remains to be seen how CBM performs in scenarios with more obstacles and more maze-like scenarios as included in the Moving AI benchmarks \cite{sturtevant2012} for MAPF.
 	Nonetheless, the successful application of CBS to solving TAPF begs the question: \textit{can MAPF algorithms such as Increasing Cost Tree Search (ICTS) \cite{sharon2011} or M* \cite{wagner2011} serve as the basis for a MAPFM algorithm?}
@@ -432,7 +441,7 @@
 			\item CBM adapted to use SIC, using the successive shortest path algorithm (SSP) \cite{goldberg1987} as subroutine for solving teams\cite{baauw2021}.
 		\end{minipage}
 	\end{itemize}
-	With exception of CBM, all methods described use a variant of sorted exhaustive matching. This is because from each family of algorithms one of the best performing algorithms was chosen, which always was such an exhaustive method as opposed to a generalization of the base algorithm to MAPFM (ICTS-m in this work). A*+ID+OD and EPEA* also make use of matching ID, which is ID applied to the MAPFM instance using the respective exhaustive algorithm as MAPFM solver. Hypothetically, this could explain why both outperform the methods using just sorted exhaustive matching in maps with 75\% wall and 3 teams (\ref{fig:r-75-3-p}); this difference is not quite as clear in the remaining scenarios shown in Figure \ref{fig:r-probs} however. 
+	With exception of CBM, all methods described use a variant of sorted exhaustive matching. This is because from each family of algorithms one of the best performing algorithms was chosen, which always was such an exhaustive method as opposed to a generalization of the base algorithm to MAPFM (ICTS-m in this work). A*+ID+OD and EPEA * also make use of matching ID, which is ID applied to the MAPFM instance using the respective exhaustive algorithm as MAPFM solver. Hypothetically, this could explain why both outperform the methods using just sorted exhaustive matching in maps with 75\% wall and 3 teams (\ref{fig:r-75-3-p}); this difference is not quite as clear in the remaining scenarios shown in Figure \ref{fig:r-probs} however. 
 	
 	CBM solving all problems with one team (Figure \ref{fig:r-25-1-p} and \ref{fig:r-75-1-p}), problems equivalent to anonymous MAPF instances, is at first surprising but follows directly from the definition of the CBM method. CBM solves single teams as anonymous MAPF instances in polynomial time, meaning that solving a single team reduces to a polynomial-time procedure, namely SSP. Following the results reported in \cite{ma2016}, it is expected that as the number of teams approaches $k$, CBM performance will deteriorate and thus become more similar to the results for exhaustive methods here reported. As CBM is based on CBS, scenarios such as mazes with even more obstacles and potentially conflicts would also be interesting to consider in comparison of CBM to the exhaustive methods.
 	%	Still, some implementations might be more optimized than others so this might be a factor in performance characteristics and in particular in relative performance differences.
