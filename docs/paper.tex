@@ -4,6 +4,7 @@
 \usepackage{csquotes}
 \usepackage{hyperref}
 \geometry{verbose,tmargin=3.5cm,bmargin=4cm,lmargin=3.8cm,rmargin=3.8cm}
+\newcommand\graphwidth{0.42\textwidth}
 \usepackage[backend=biber,style=ieee]{biblatex}
 \addbibresource{sources.bib}
 \makeatletter
@@ -58,7 +59,7 @@
 	The railway company, however, is interested in learning tight upper bounds for the capacity of existing shunting yards to inform decisions about matters like infrastructure expansion. \cite{mulderij2020} proposes the multi-agent pathfinding (MAPF) problem, as described in \cite{stern2019}, extended with a matching subproblem (hereafter MAPFM) as a suitable relaxation of (discretised) TUSS for finding such upper-bounds using an approach analogous to that outlined above.
 	For this to succeed, a way to optimally solve MAPFM instances is needed, where optimal is defined as minimizing the Sum of Individual Costs (SIC) objective.
 	
-	To date, no research has been done on MAPFM. For MAPFM with a makespan objective instead of SIC, known as the combined target-assignment and pathfinding (TAPF) problem, there is the Conflict-Based Min-Cost-Flow (CBM) algorithm by Ma and Koenig \cite{ma2016} and a similar approach described in \cite{henkel2019}. Ma and Koenig's method builds upon the conflict-based search method and in particular on the Meta-Agent variation thereof also discussed in \cite{sharon2015} as a high-level search framework; in the low-level search, the connection between anonymous MAPF problems and max-flow problems (as discussed in \cite{yu2013}) is exploited to plan single teams in polynomial time. 
+	Little to no research has been done on MAPFM and solving it optimally. For MAPFM with a makespan objective instead of SIC, known as the combined target-assignment and pathfinding (TAPF) problem, there is the Conflict-Based Min-Cost-Flow (CBM) algorithm by Ma and Koenig \cite{ma2016} and a similar approach described in \cite{henkel2019}. Ma and Koenig's method builds upon the conflict-based search method and in particular on the Meta-Agent variation thereof also discussed in \cite{sharon2015} as a high-level search framework; in the low-level search, the connection between anonymous MAPF problems and max-flow problems (as discussed in \cite{yu2013}) is exploited to plan single teams in polynomial time. 
 	
 	The experiments reported in \cite{ma2016} indicate that this method scales very well as the number of agents and the sizes of teams increase; however, because only 10\% of tiles is blocked in some of the grid maps they use and despite the fact that CBM performance on Kiva\cite{wurman2007} instances is also discussed, it remains to be seen how CBM performs in scenarios with more obstacles and more maze-like scenarios as included in the Moving AI benchmarks \cite{sturtevant2012} for MAPF.
 	Nonetheless, the successful application of CBS to solving TAPF begs the question: \textit{can MAPF algorithms such as Increasing Cost Tree Search (ICTS) \cite{sharon2011} serve as the basis for a MAPFM algorithm?}
@@ -330,28 +331,28 @@
 	\section{Experimental Results}
 	\label{experiments}
 	To compare the algorithms and variants described above with each other and with alternative MAPFM algorithms, two types of experiments were performed. In the first, ICTS-based algorithms discussed in this work are compared; in the second, the approximate ordered enumeration variant is compared to other algorithms for MAPFM \cite{donszelmann2021,baauw2021,jong2021,bruin2021}. This comparison data originates in \cite{donszelmann2021}. The values compared are the fraction of instances solved, and the average runtime per instance. It should be noticed that in the latter, the recorded runtimes converge to the 120s timeout used as fewer instances are solved; therefore, while the times are included for completeness at the end of this work (Figure \ref{fig:i-times} and \ref{fig:r-times} for experiments 1 and 2), the fraction of instances solved is guiding in the analysis of results.
-	\newgeometry{left=1cm,right=1cm,top=0.1cm,bottom=0.1cm}
+	%\newgeometry{left=1cm,right=1cm,top=0.1cm,bottom=0.1cm}
 	\begin{figure*}[t]
 		\centering
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-1-p}
 			\caption{25\% wall, 1 team}
 			\label{fig:i-25-1-p}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-3-p}
 			\caption{25\% wall, 3 teams}
 			\label{fig:i-25-3-p}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-1-p}
 			\caption{75\% wall, 1 team}
 			\label{fig:i-75-1-p}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-3-p}
 			\caption{75\% wall, 3 teams}
@@ -362,25 +363,25 @@
 	\end{figure*}
 	\begin{figure*}[b]
 		\centering
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-1-p}
 			\caption{25\% wall, 1 team}
 			\label{fig:r-25-1-p}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-3-p}
 			\caption{25\% wall, 3 teams}
 			\label{fig:r-25-3-p}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-1-p}
 			\caption{75\% wall, 1 team}
 			\label{fig:r-75-1-p}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-3-p}
 			\caption{75\% wall, 3 teams}
@@ -456,28 +457,27 @@
 	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository\footnote{\url{https://github.com/tbvanderwoude/icts-m}}. Included is also code for benchmarking different configurations of the ICTS solver and the maps that were used in the benchmarks reported above. The benchmarks and maps used in the relative comparison of MAPFM algorithms are also available in the code and data repository of \cite{donszelmann2021}\footnote{\url{https://github.com/jonay2000/research-project}}.
 	
 	\printbibliography
-	\newgeometry{left=1cm,right=1cm,top=0.1cm,bottom=0.1cm}
 	\begin{figure*}[t]
 		\centering
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-1}
 			\caption{25\% wall, 1 team}
 			\label{fig:i-25-1}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-3}
 			\caption{25\% wall, 3 teams}
 			\label{fig:i-25-3}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-1}
 			\caption{75\% wall, 1 team}
 			\label{fig:i-75-1}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-3}
 			\caption{75\% wall, 3 teams}
@@ -488,25 +488,25 @@
 	\end{figure*}
 	\begin{figure*}[b]
 		\centering
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-1}
 			\caption{25\% wall, 1 team}
 			\label{fig:r-25-1}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-3}
 			\caption{25\% wall, 3 teams}
 			\label{fig:r-25-3}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-1}
 			\caption{75\% wall, 1 team}
 			\label{fig:r-75-1}
 		\end{subfigure}
-		\begin{subfigure}{0.44\textwidth}
+		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-3}
 			\caption{75\% wall, 3 teams}
