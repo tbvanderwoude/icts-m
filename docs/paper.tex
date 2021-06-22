@@ -1,10 +1,10 @@
-\documentclass[english,10pt]{article}
+\documentclass[english]{article}
 \usepackage{geometry}
 \usepackage{inputenc}
 \usepackage{csquotes}
 \usepackage{hyperref}
 \geometry{verbose,tmargin=3.5cm,bmargin=4cm,lmargin=3.8cm,rmargin=3.8cm}
-\newcommand\graphwidth{0.42\textwidth}
+\newcommand\graphwidth{0.49\textwidth}
 \usepackage[backend=biber,style=ieee]{biblatex}
 \addbibresource{sources.bib}
 \makeatletter
@@ -449,7 +449,7 @@
 	\label{future}
 	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this, the research has succeeded, but the scalability of the algorithms leaves something to be desired. Exhaustive methods, like those discussed in detail in \ref{exhaustive}, cannot be expected to scale well as teams grow larger due to their complexity, no matter what optimizations are put in place. Nonetheless, as was shown in Section \ref{experiments}, the more advanced exhaustive ICTS algorithms consistently outperform the ICTS-m based algorithms. Compared to the SIC-adaptation of the CBM method \cite{baauw2021}, it was seen that exhaustive methods generally perform relatively poorly if there are fewer teams and fewer obstacles, while being competitive once teams grow smaller and maps become more constrained. Delineating under which conditions exhaustive methods outperform CBM and vice versa is something for further research.
 	
-	Future research could also look into improving the ICTS-m method described using for instance more extensive pruning or properties of the problem such as lower-bounds on per-team solution SIC that can be computed using the Hungarian Algorithm. Another approach to explore would be hybridized approaches that enumerate partially constrained MAPFM instances which can be solved using any MAPFM solver. In this way, the benefit of the successive bounding of the search could be exploited and by carefully picking which agents to constrain, these constrained MAPFM instances could potentially be made relatively easy.
+	Future research could also look into improving the ICTS-m method described using for instance more extensive pruning or properties of the problem such as lower-bounds on per-team solution SIC that can be computed using the Hungarian Algorithm. Another approach to explore would be hybridized approaches that enumerate partially constrained MAPFM instances which can be solved using any MAPFM solver. In this way, the benefit of the successive bounding of the search could be exploited and by carefully selecting agents to constrain, these constrained MAPFM instances could potentially be made relatively easy.
 	
 	Lastly, more experimentation is needed to reach definite conclusions about how simple child pruning compares to existing pruning techniques for ICTS, which could be done by reproducing the ICTS pruning technique experiments reported in \cite{sharon2011} extended with simple child pruning variants. %Given that simple pruning is somewhat cheap computationally, it might also be possible to prune the child generation using simple child pruning but still use enhanced pruning to decide whether to execute $k$-agent low-level search, combining the benefits of searching a smaller ICT and performing fewer $k$-agent searches.
 	
@@ -457,6 +457,7 @@
 	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository\footnote{\url{https://github.com/tbvanderwoude/icts-m}}. Included is also code for benchmarking different configurations of the ICTS solver and the maps that were used in the benchmarks reported above. The benchmarks and maps used in the relative comparison of MAPFM algorithms are also available in the code and data repository of \cite{donszelmann2021}\footnote{\url{https://github.com/jonay2000/research-project}}.
 	
 	\printbibliography
+	\newpage
 	\begin{figure*}[t]
 		\centering
 		\begin{subfigure}{\graphwidth}
