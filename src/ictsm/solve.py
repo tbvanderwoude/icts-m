@@ -30,7 +30,7 @@ def solve_enum_sorted(problem: Problem) -> Tuple[Optional[Solution], List[int], 
     config = SolverConfig(
         combs=3,
         prune=True,
-        enhanced=False,
+        enhanced=True,
         pruned_child_gen=True,
         id=True,
         conflict_avoidance=True,

@@ -24,7 +24,36 @@
 	\maketitle
 
 	\section{Introduction}
+			
 		
+		
+		each give (loose) upper bounds on the optimal solution cost for each instance.
+		
+		so if a solution is found its cost is an upper bound for the optimal solution cost; however, if no solution can be found, 
+		
+		; the optimal solution cost cannot generally be known, 
+		While solutions to instances found using heuristics are assumed to be suboptimal, it is not possible to estimate by how much 
+		
+		As a result, found solutions are assumed to be suboptimal, they currently cannot 
+		
+		Still, such methods will not find a solution to every instance in reasonable time,
+		Heuristic solutions to instances defined for a set shunting yard can be said to characterise a lower bound on the capacity of the shunting yard.  
+		
+		This is because heuristic methods are suboptimal and not guaranteed to be complete, meaning that no solution may be found for a feasible instance and if one is found its solution cost might far exceed the optimal cost.  
+		
+		
+		---
+			this leaves railway companies in the dark about 
+		
+		when shunting infrastructure has to be exp whether shunting infrastructure has to be expanded to accomodate for increasing     
+		
+		As a result, because current upper-bounds for capacity are highly optimistic, 
+		
+		
+		meaning that it is hard for railway companies to 
+		
+		As optimal solution costs cannot be known \cite{geiger2018}, 
+		The railway company, however, is interested in learning tight upper bounds for the capacity of existing shunting yards to inform decisions about matters like infrastructure expansion. 
 	\paragraph{Old}
 	MAPFM is the problem of finding agent-goal matchings that induce a non-conflicting routing of agents to their goals. Each matching corresponds to a MAPF instance, so each feasible matching has an optimal solution, i.e. a solution with a minimal Sum of Individual Costs (SIC). In approaching MAPFM as a TUSS relaxation to find upper-bounds for instances, optimal MAPFM solutions are the most interesting as they can characterise such upper-bounds. Furthermore, defining optimality as minimal SIC corresponds more closely to TUSS objective functions such as personnel cost than the other common MAPF objective, minimal makespan. Optimally solving MAPFM is equivalent to finding a feasible matching such that there is no other matching for which the corresponding MAPF instance has a lower optimal SIC. This motivates the joint nature of MAPFM: some matchings might be infeasible and others may have sub-optimal SIC costs, so especially in larger instances where there may be thousands of matchings, it is preferable to integrate the generation of matchings with the search for non-conflicting path-combinations to avoid having to exhaustively process all matchings. In this work, both integrated approaches and exhaustive methods using ICTS are considered.
 		
