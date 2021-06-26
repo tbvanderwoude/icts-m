@@ -1,4 +1,4 @@
-@article{sturtevant2010, title={A Comparison of High-Level Approaches for Speeding Up Pathfinding}, volume={6}, abstractNote={ &lt;p&gt; Most games being shipped today use some form of high-level abstraction such as a navmesh or waypoint graph for path planning. These structures can generally be represented in a form which is compact enough to meet the tight memory constraints in a game. But, when such a graph grows too large, finding paths can still be a complex task. This challenge was faced in Dragon Age: Origins and solved by adding an additional level of abstraction.In the last few years a variety of novel approaches have been developed for finding optimal paths through graphs with specific design applications for road networks. Currently these techniques cannot be feasibly applied to the lowest detail of movement possible in a game map, but can be applied to the high-level abstractions which are commonly found in games.In this paper we describe the pathfinding challenge faced before shipping the title Dragon Age: Origins and perform a postmortem analysis on the extended abstraction that was used in comparison to building more advanced heuristics or the use of contraction hierarchies. We show that contraction hierarchies and abstractions have similar overhead and performance and are both useful approaches for high-level planning in games. &lt;/p&gt; }, number={1}, journal={Proceedings of the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment}, author={Sturtevant, Nathan and Geisberger, Robert}, year={2010}, month={Oct.}, pages={76-82} 
+@article{sturtevant2010, title={A Comparison of High-Level Approaches for Speeding Up Pathfinding}, volume={6}, abstractNote={Most games being shipped today use some form of high-level abstraction such as a navmesh or waypoint graph for path planning. These structures can generally be represented in a form which is compact enough to meet the tight memory constraints in a game. But, when such a graph grows too large, finding paths can still be a complex task. This challenge was faced in Dragon Age: Origins and solved by adding an additional level of abstraction.In the last few years a variety of novel approaches have been developed for finding optimal paths through graphs with specific design applications for road networks. Currently these techniques cannot be feasibly applied to the lowest detail of movement possible in a game map, but can be applied to the high-level abstractions which are commonly found in games.In this paper we describe the pathfinding challenge faced before shipping the title Dragon Age: Origins and perform a postmortem analysis on the extended abstraction that was used in comparison to building more advanced heuristics or the use of contraction hierarchies. We show that contraction hierarchies and abstractions have similar overhead and performance and are both useful approaches for high-level planning in games}, number={1}, journal={Proceedings of the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment}, author={Sturtevant, Nathan and Geisberger, Robert}, year={2010}, month={Oct.}, pages={76-82} 
 }
 @inproceedings{broch1998,
 	author = {Broch, Josh and Maltz, David A. and Johnson, David B. and Hu, Yih-Chun and Jetcheva, Jorjeta},
@@ -49,6 +49,7 @@
 @article{sharon2015,
 	title = {Conflict-based search for optimal multi-agent pathfinding},
 	journal = {Artificial Intelligence},
+	publisher={Elsevier},
 	volume = {219},
 	pages = {40-66},
 	year = {2015},
@@ -102,13 +103,19 @@
 	abstract = {Abstract Assuming that numerical scores are available for the performance of each of n persons on each of n jobs, the “assignment problem” is the quest for an assignment of persons to jobs so that the sum of the n scores so obtained is as large as possible. It is shown that ideas latent in the work of two Hungarian mathematicians may be exploited to yield a new method of solving this problem.},
 	year = {1955}
 }
-@misc{ma2016,
-	title={Optimal Target Assignment and Path Finding for Teams of Agents}, 
-	author={Hang Ma and Sven Koenig},
-	year={2016},
-	eprint={1612.05693},
-	archivePrefix={arXiv},
-	primaryClass={cs.AI}
+@inproceedings{ma2016,
+	author = {Ma, Hang and Koenig, Sven},
+	title = {Optimal Target Assignment and Path Finding for Teams of Agents},
+	year = {2016},
+	isbn = {9781450342391},
+	publisher = {International Foundation for Autonomous Agents and Multiagent Systems},
+	address = {Richland, SC},
+	abstract = {We study the TAPF (combined target-assignment and path-finding) problem for teams of agents in known terrain, which generalizes both the anonymous and non-anonymous multi-agent path-finding problems. Each of the teams is given the same number of targets as there are agents in the team. Each agent has to move to exactly one target given to its team such that all targets are visited. The TAPF problem is to first assign agents to targets and then plan collision-free paths for the agents to their targets in a way such that the makespan is minimized. We present the CBM (Conflict-Based Min-Cost-Flow) algorithm, a hierarchical algorithm that solves TAPF instances optimally by combining ideas from anonymous and non-anonymous multi-agent path-finding algorithms. On the low level, CBM uses a min-cost max-flow algorithm on a time-expanded network to assign all agents in a single team to targets and plan their paths. On the high level, CBM uses conflict-based search to resolve collisions among agents in different teams. Theoretically, we prove that CBM is correct, complete and optimal. Experimentally, we show the scalability of CBM to TAPF instances with dozens of teams and hundreds of agents and adapt it to a simulated warehouse system.},
+	booktitle = {Proceedings of the 2016 International Conference on Autonomous Agents {\&} Multiagent Systems},
+	pages = {1144–1152},
+	numpages = {9},
+	location = {Singapore, Singapore},
+	series = {AAMAS '16}
 }
 @InProceedings{yu2013,
 	author="Yu, Jingjin
@@ -149,11 +156,14 @@
 }
 
 @inproceedings{standley2010,
-	title={Finding Optimal Solutions to Cooperative Pathfinding Problems},
-	author={Trevor Scott Standley},
-	booktitle={AAAI},
+	title={Finding optimal solutions to cooperative pathfinding problems},
+	author={Standley, Trevor},
+	booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+	volume={24},
+	number={1},
 	year={2010}
 }
+
 
 @article{goldenberg2014,
 	title={Enhanced Partial Expansion {A*}},
@@ -275,14 +285,6 @@
 	volume = {16},
 	year = {1968}
 }
-
-
-
-
-
-
-
-
 @phdthesis{junghanns1999,
 	author  = {Andreas Junghanns},
 	title   = {Pushing the Limits: New developments in Single-Agent Search},
