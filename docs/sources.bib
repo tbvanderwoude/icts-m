@@ -1,66 +1,4 @@
-@article{stern2019,
-	author    = {Roni Stern and
-		Nathan Sturtevant and
-		Ariel Felner and
-		Sven Koenig and
-		Hang Ma and
-		Thayne T. Walker and
-		Jiaoyang Li and
-		Dor Atzmon and
-		Liron Cohen and
-		T. K. Satish Kumar and
-		Eli Boyarski and
-		Roman Bart{\'{a}}k},
-	title     = {Multi-Agent Pathfinding: Definitions, Variants, and Benchmarks},
-	journal   = {CoRR},
-	volume    = {abs/1906.08291},
-	year      = {2019},
-	archivePrefix = {arXiv},
-	eprint    = {1906.08291},
-	timestamp = {Fri, 10 Jan 2020 07:59:55 +0100},
-}
-
-@ARTICLE{miller1997,
-	author={Miller, M.L. and Stone, H.S. and Cox, I.J.},
-	journal={IEEE Transactions on Aerospace and Electronic Systems}, 
-	title={Optimizing {Murty's} ranked assignment method}, 
-	year={1997},
-	volume={33},
-	number={3},
-	pages={851-862},
-	doi={10.1109/7.599256}}
-
-
-@article{jonker1987,
-	title={A shortest augmenting path algorithm for dense and sparse linear assignment problems},
-	author={Jonker, Roy and Volgenant, Anton},
-	journal={Computing},
-	volume={38},
-	number={4},
-	pages={325--340},
-	year={1987},
-	publisher={Springer}
-}
-
-@article{murty1968,
-	ISSN = {0030364X, 15265463},
-	abstract = {The Hungarian method gives an efficient algorithm for finding the minimal cost assignment. However, in some cases it may be useful to determine the second minimal assignment (i.e., the best assignment after excluding the minimal cost assignment) and in general the kth minimal assignment for k=1, 2,.... These things can easily be determined if all the assignments can be arranged as a sequence in increasing order of cost. This paper describes an efficient algorithm for such a ranking of all the assignments. The maximum computational effort required to generate an additional assignment in the sequence is that of solving at most (n-1) different assignment problems, one each of sizes 2, 3,..., n.},
-	author = {Katta G. Murty},
-	journal = {Operations Research},
-	number = {3},
-	pages = {682--687},
-	publisher = {INFORMS},
-	title = {An Algorithm for Ranking all the Assignments in Order of Increasing Cost},
-	volume = {16},
-	year = {1968}
-}
-
-
-@phdthesis{junghanns1999,
-	author  = {Andreas Junghanns},
-	title   = {Pushing the Limits: New developments in Single-Agent Search},
-	school  = {University of Alberta, Department of Computing Science},
-	year    = {1999}
+@article{sturtevant2010, title={A Comparison of High-Level Approaches for Speeding Up Pathfinding}, volume={6}, abstractNote={ &lt;p&gt; Most games being shipped today use some form of high-level abstraction such as a navmesh or waypoint graph for path planning. These structures can generally be represented in a form which is compact enough to meet the tight memory constraints in a game. But, when such a graph grows too large, finding paths can still be a complex task. This challenge was faced in Dragon Age: Origins and solved by adding an additional level of abstraction.In the last few years a variety of novel approaches have been developed for finding optimal paths through graphs with specific design applications for road networks. Currently these techniques cannot be feasibly applied to the lowest detail of movement possible in a game map, but can be applied to the high-level abstractions which are commonly found in games.In this paper we describe the pathfinding challenge faced before shipping the title Dragon Age: Origins and perform a postmortem analysis on the extended abstraction that was used in comparison to building more advanced heuristics or the use of contraction hierarchies. We show that contraction hierarchies and abstractions have similar overhead and performance and are both useful approaches for high-level planning in games. &lt;/p&gt; }, number={1}, journal={Proceedings of the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment}, author={Sturtevant, Nathan and Geisberger, Robert}, year={2010}, month={Oct.}, pages={76-82} 
 }
 @inproceedings{broch1998,
 	author = {Broch, Josh and Maltz, David A. and Johnson, David B. and Hu, Yih-Chun and Jetcheva, Jorjeta},
@@ -76,40 +14,13 @@
 	location = {Dallas, Texas, USA},
 	series = {MobiCom '98}
 }
-@inproceedings{li2020,
-	author = {Li, Jiaoyang and Tinka, Andrew and Kiesel, Scott and Durham, Joseph W. and Kumar, T. K. Satish and Koenig, Sven},
-	title = {Lifelong Multi-Agent Path Finding in Large-Scale Warehouses},
-	year = {2020},
-	isbn = {9781450375184},
-	publisher = {International Foundation for Autonomous Agents and Multiagent Systems},
-	address = {Richland, SC},
-	abstract = {Multi-Agent Path Finding (MAPF) is the problem of moving a team of agents from their start locations to their goal locations without collisions. We study the lifelong variant of MAPF where agents are constantly engaged with new goal locations, such as in warehouses. We propose a new framework for solving lifelong MAPF by decomposing the problem into a sequence of Windowed MAPF instances, where a Windowed MAPF solver resolves collisions among the paths of agents only within a finite time horizon and ignores collisions beyond it. Our framework is particularly well suited to generating pliable plans that adapt to continually arriving new goal locations. We evaluate our framework with a variety of MAPF solvers and show that it can produce high-quality solutions for up to 1,000 agents, significantly outperforming existing methods.},
-	booktitle = {Proceedings of the 19th International Conference on Autonomous Agents and MultiAgent Systems},
-	pages = {1898–1900},
-	numpages = {3},
-	keywords = {multi-agent path finding, agent coordination, multi-agent planning},
-	location = {Auckland, New Zealand},
-	series = {AAMAS '20}
+@conference {morris2016,
+	title = {Planning, Scheduling and Monitoring for Airport Surface Operations},
+	booktitle = {30th AAAI Conference on Artificial Intelligence},
+	year = {2016},
+	pages = {608-614},
+	author = {Robert Morris and Corina Pasareanu and Kasper Luckow and Waqar Malik and Hang Ma and T. K. Satish Kumar and Sven Koenig}
 }
-@article{sturtevant2010, title={A Comparison of High-Level Approaches for Speeding Up Pathfinding}, volume={6}, abstractNote={ &lt;p&gt; Most games being shipped today use some form of high-level abstraction such as a navmesh or waypoint graph for path planning. These structures can generally be represented in a form which is compact enough to meet the tight memory constraints in a game. But, when such a graph grows too large, finding paths can still be a complex task. This challenge was faced in Dragon Age: Origins and solved by adding an additional level of abstraction.In the last few years a variety of novel approaches have been developed for finding optimal paths through graphs with specific design applications for road networks. Currently these techniques cannot be feasibly applied to the lowest detail of movement possible in a game map, but can be applied to the high-level abstractions which are commonly found in games.In this paper we describe the pathfinding challenge faced before shipping the title Dragon Age: Origins and perform a postmortem analysis on the extended abstraction that was used in comparison to building more advanced heuristics or the use of contraction hierarchies. We show that contraction hierarchies and abstractions have similar overhead and performance and are both useful approaches for high-level planning in games. &lt;/p&gt; }, number={1}, journal={Proceedings of the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment}, author={Sturtevant, Nathan and Geisberger, Robert}, year={2010}, month={Oct.}, pages={76-82} 
-}
-@inproceedings{ven2019,
-	title = "Determining capacity of shunting yards by combining graph classification with local search",
-	abstract = "Dutch Railways (NS) uses a shunt plan simulator to determine capacities of shunting yards. Central to this simulator is a local search heuristic. Solving this capacity determination problem is very time consuming, as it requires to solve an NP-hard shunting planning problem, and furthermore, the capacity has to determined for a large number of possible scenarios at over 30 shunting yards in The Netherlands. In this paper, we propose to combine machine learning with local search in order to speed up finding shunting plans in the capacity determination problem. The local search heuristic models the activities that take place on the shunting yard as nodes in an activity graph with precedence relations. Consequently, we apply the Deep Graph Convolutional Neural Network, which is a graph classification method, to predict whether local search will find a feasible shunt plan given an initial solution. Our experimental results show our approach can significantly reduce the simulation time in determining the capacity of a given shunting yard. This study demonstrates how machine learning can be used to boost optimization algorithms in an industrial application.",
-	keywords = "Classification, Convolutional Neural Networks, Local Search, Machine Learning, Planning and Scheduling",
-	author = "{van de Ven}, {Arno J.G.} and Y. Zhang and Wan-Jui Lee and H. Eshuis and A.M. Wilbik",
-	year = "2019",
-	doi = "10.5220/0007398502850293",
-	language = "English",
-	volume = "2",
-	pages = "285--293",
-	editor = "Luc Steels and {van den Herik}, Jaap and Ana Rocha",
-	booktitle = "11th International Conference on Agents and Artificial Intelligence (ICAART 2019)",
-	publisher = "SCITEPRESS-Science and Technology Publications, Lda.",
-	note = "11th International Conference on Agents and Artificial Intelligence, ICAART 2019, ICAART2019 ; Conference date: 19-02-2019 Through 21-02-2019",
-}
-
-@INPROCEEDINGS{henkel2019,  author={Henkel, Christian and Abbenseth, Jannik and Toussaint, Marc},  booktitle={2019 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},   title={An Optimal Algorithm to Solve the Combined Task Allocation and Path Finding Problem},   year={2019},  volume={},  number={},  pages={4140-4146},  doi={10.1109/IROS40897.2019.8968096}}
 @misc{mulderij2020,
 	title={Train Unit Shunting and Servicing: a Real-Life Application of Multi-Agent Path Finding}, 
 	author={Jesse Mulderij and Bob Huisman and Denise Tönissen and Koos van der Linden and Mathijs M. de Weerdt},
@@ -118,47 +29,22 @@
 	archivePrefix={arXiv},
 	primaryClass={cs.MA}
 }
-@inproceedings{harabor2010,
-	author = {Harabor, D. and Botea, A.},
-	title = {Breaking path symmetries on 4-connected grid maps},
-	year = {2010},
-	publisher = {AAAI Press},
-	booktitle = {Proceedings of the 6th AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment},
-	pages={33–38},
-	numpages = {5},
-	location = {Stanford, California},
-	series = {AIIDE 2010}
+@article{stern2019,
+	title={Multi-Agent Pathfinding: Definitions, Variants, and Benchmarks},
+	author={Roni Stern and Nathan R. Sturtevant and Ariel Felner and Sven Koenig and Hang Ma and Thayne T. Walker and Jiaoyang Li and Dor Atzmon and Liron Cohen and T. K. Satish Kumar and Eli Boyarski and Roman Bart{\'{a}}k},
+	journal={Symposium on Combinatorial Search (SoCS)},
+	year={2019},
+	pages={151--158}
 }
-@inproceedings{harabor2011,
-	author = {Harabor, Daniel and Grastien, Alban},
-	title = {Online Graph Pruning for Pathfinding on Grid Maps},
-	year = {2011},
-	publisher = {AAAI Press},
-	abstract = {Pathfinding in uniform-cost grid environments is a problem commonly found in application areas such as robotics and video games. The state-of-the-art is dominated by hierarchical pathfinding algorithms which are fast and have small memory overheads but usually return suboptimal paths. In this paper we present a novel search strategy, specific to grids, which is fast, optimal and requires no memory overhead. Our algorithm can be described as a macro operator which identifies and selectively expands only certain nodes in a grid map which we call jump points. Intermediate nodes on a path connecting two jump points are never expanded. We prove that this approach always computes optimal solutions and then undertake a thorough empirical analysis, comparing our method with related works from the literature. We find that searching with jump points can speed up A* by an order of magnitude and more and report significant improvement over the current state of the art.},
-	booktitle = {Proceedings of the Twenty-Fifth AAAI Conference on Artificial Intelligence},
-	pages = {1114–1119},
-	numpages = {6},
-	location = {San Francisco, California},
-	series = {AAAI'11}
-}
-@article{sturtevant2012,
-	title={Benchmarks for Grid-Based Pathfinding},
-	author={Sturtevant, N.},
-	journal={Transactions on Computational Intelligence and AI in Games},
-	volume={4},
-	number={2},
-	pages={144 -- 148},
-	year={2012},
-}
-@article{geiger2018,
-	author = {Geiger, Martin and Huber, Sandra and Langton, Sebastian and Leschik, Marius and Lindorf, Christian and Tüshaus, Ulrich},
-	year = {2018},
-	month = {12},
-	pages = {},
-	title = {Multi-attribute assignment of trains to departures in rolling stock management: A contribution to the EURO/ROADEF 2014 Challenge},
-	volume = {271},
-	journal = {Annals of Operations Research},
-	doi = {10.1007/s10479-017-2501-8}
+
+@article{sharon2013,
+	title={The increasing cost tree search for optimal multi-agent pathfinding},
+	author={Sharon, Guni and Stern, Roni and Goldenberg, Meir and Felner, Ariel},
+	journal={Artificial Intelligence},
+	volume={195},
+	pages={470--495},
+	year={2013},
+	publisher={Elsevier}
 }
 @article{sharon2015,
 	title = {Conflict-based search for optimal multi-agent pathfinding},
@@ -172,38 +58,6 @@
 	keywords = {Heuristic search, Multi-agent, Pathfinding},
 	abstract = {In the multi-agent pathfinding problem (MAPF) we are given a set of agents each with respective start and goal positions. The task is to find paths for all agents while avoiding collisions. Most previous work on solving this problem optimally has treated the individual agents as a single ‘joint agent’ and then applied single-agent search variants of the A* algorithm. In this paper we present the Conflict Based Search (CBS) a new optimal multi-agent pathfinding algorithm. CBS is a two-level algorithm that does not convert the problem into the single ‘joint agent’ model. At the high level, a search is performed on a Conflict Tree (CT) which is a tree based on conflicts between individual agents. Each node in the CT represents a set of constraints on the motion of the agents. At the low level, fast single-agent searches are performed to satisfy the constraints imposed by the high level CT node. In many cases this two-level formulation enables CBS to examine fewer states than A* while still maintaining optimality. We analyze CBS and show its benefits and drawbacks. Additionally we present the Meta-Agent CBS (MA-CBS) algorithm. MA-CBS is a generalization of CBS. Unlike basic CBS, MA-CBS is not restricted to single-agent searches at the low level. Instead, MA-CBS allows agents to be merged into small groups of joint agents. This mitigates some of the drawbacks of basic CBS and further improves performance. In fact, MA-CBS is a framework that can be built on top of any optimal and complete MAPF solver in order to enhance its performance. Experimental results on various problems show a speedup of up to an order of magnitude over previous approaches.}
 }
-@Inbook{yu2015,
-	author="Yu, Jingjin
-	and Rus, Daniela",
-	editor="Akin, H. Levent
-	and Amato, Nancy M.
-	and Isler, Volkan
-	and van der Stappen, A. Frank",
-	title="Pebble Motion on Graphs with Rotations: Efficient Feasibility Tests and Planning Algorithms",
-	bookTitle="Algorithmic Foundations of Robotics XI: Selected Contributions of the Eleventh International Workshop on the Algorithmic Foundations of Robotics",
-	year="2015",
-	publisher="Springer International Publishing",
-	address="Cham",
-	pages="729--746",
-	abstract="We study the problemRus, Danielaof planningYu, Jingjinpaths for {\$}{\$}p{\$}{\$}pdistinguishable pebbles (robots) residing on the vertices of an {\$}{\$}n{\$}{\$}n-vertex connected graph with {\$}{\$}p {\backslash}le n{\$}{\$}p≤n. A pebble may move from a vertex to an adjacent one in a time step provided that it does not collide with other pebbles. When {\$}{\$}p = n{\$}{\$}p=n, the only collision free moves are synchronous rotations of pebbles on disjoint cycles of the graph. We show that the feasibility of such problems is intrinsically determined by the diameter of a (unique) permutation group induced by the underlying graph. Roughly speaking, the diameter of a group {\$}{\$}{\backslash}mathbf G{\$}{\$}Gis the minimum length of the generator product required to reach an arbitrary element of {\$}{\$}{\backslash}mathbf G{\$}{\$}Gfrom the identity element. Through bounding the diameter of this associated permutation group, which assumes a maximum value of {\$}{\$}O(n^2){\$}{\$}O(n2), we establish a linear time algorithm for deciding the feasibility of such problems and an {\$}{\$}O(n^3){\$}{\$}O(n3)algorithm for planning complete paths.",
-	isbn="978-3-319-16595-0",
-	doi="10.1007/978-3-319-16595-0_42",
-}
-@inproceedings{goldberg1987,
-	author = {Goldberg, A. and Tarjan, R.},
-	title = {Solving Minimum-Cost Flow Problems by Successive Approximation},
-	year = {1987},
-	isbn = {0897912217},
-	publisher = {Association for Computing Machinery},
-	address = {New York, NY, USA},
-	doi = {10.1145/28395.28397},
-	abstract = {We introduce a framework for solving minimum-cost flow problems. Our approach measures the quality of a solution by the amount that the complementary slackness conditions are violated. We show how to extend techniques developed for the maximum flow problem to improve the quality of a solution. This framework allows us to achieve Ο(min(n3, n5/3 m2/3, nm log n) log (nC)) running time.},
-	booktitle = {Proceedings of the Nineteenth Annual ACM Symposium on Theory of Computing},
-	pages = {7–18},
-	numpages = {12},
-	location = {New York, New York, USA},
-	series = {STOC '87}
-}
 
 @inproceedings{lam2019,
 	title     = {Branch-and-Cut-and-Price for Multi-Agent Pathfinding},
@@ -216,157 +70,12 @@
 	month     = {7},
 	doi       = {10.24963/ijcai.2019/179},
 }
-@article{goldenberg2014,
-	title={Enhanced Partial Expansion {A*}},
-	author={Meir Goldenberg and Ariel Felner and Roni Stern and G. Sharon and Nathan R Sturtevant and R. Holte and J. Schaeffer},
-	journal={J. Artif. Intell. Res.},
-	year={2014},
-	volume={50},
-	pages={141-187}
-}
-@thesis{baauw2021,
-	title={Adapting {CBM} to optimize the Sum of Costs},
-	author={Robbin Baauw},
-	school={Delft University of Technology},
-	year={2021}
-}
-@thesis{bruin2021,
-	title={Solving Multi-Agent Pathfinding with Matching using {A*+ID+OD}},
-	author={Ivar de Bruin},
-	school={Delft University of Technology},
-	year={2021}
-}
-@thesis{donszelmann2021,
-	title={Matching in Multi-Agent Pathfinding using {M*}},
-	author={Jonathan Dönszelmann},
-	school={Delft University of Technology},
-	year={2021}
-}
-@thesis{jong2021,
-	title={Multi-Agent Pathfinding with Matching using Enhanced Partial Expansion {A*}},
-	author={Jaap de Jong},
-	school={Delft University of Technology},
-	year={2021}
-}
 
-@inproceedings{standley2010,
-	title={Finding Optimal Solutions to Cooperative Pathfinding Problems},
-	author={Trevor Scott Standley},
-	booktitle={AAAI},
-	year={2010}
-}
-@inproceedings{silver2005,
-	author = {Silver, David},
-	title = {Cooperative Pathfinding},
-	year = {2005},
-	publisher = {AAAI Press},
-	abstract = {Cooperative Pathfinding is a multi-agent path planning problem where agents must find non-colliding routes to separate destinations, given full information about the routes of other agents. This paper presents three new algorithms for efficiently solving this problem, suitable for use in Real-Time Strategy games and other real-time environments. The algorithms are decoupled approaches that break down the problem into a series of single-agent searches. Cooperative A* (CA*) searches space-time for a non-colliding route. Hierarchical Cooperative A* (HCA*) uses an abstract heuristic to boost performance. Finally, Windowed Hierarchical Cooperative A* (WHCA*) limits the space-time search depth to a dynamic window, spreading computation over the duration of the route. The algorithms are applied to a series of challenging, maze-like environments, and compared to A* with Local Repair (the current video-games industry standard). The results show that the new algorithms, especially WHCA*, are robust and efficient solutions to the Cooperative Pathfinding problem, finding more successful routes and following better paths than Local Repair A*.},
-	booktitle = {Proceedings of the First AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment},
-	pages = {117–122},
-	numpages = {6},
-	keywords = {search techniques, path planning, group behaviour},
-	location = {Marina del Rey, California},
-	series = {AIIDE'05}
-}
-@INPROCEEDINGS{wagner2011,  author={G. {Wagner} and H. {Choset}},  booktitle={2011 IEEE/RSJ International Conference on Intelligent Robots and Systems},   title={M*: A complete multirobot path planning algorithm with performance bounds},   year={2011},  volume={},  number={},  pages={3260-3267},  doi={10.1109/IROS.2011.6095022}}
-@inproceedings{sharon2011,
-	title={The Increasing Cost Tree Search for Optimal Multi-Agent Pathfinding},
-	author={G. Sharon and Roni Stern and Meir Goldenberg and Ariel Felner},
-	booktitle={IJCAI},
-	year={2011}
-}
-@conference {morris2016,
-	title = {Planning, Scheduling and Monitoring for Airport Surface Operations},
-	booktitle = {AAAI-16 Workshop on Planning for Hybrid Systems (PlanHS)},
-	year = {2016},
-	author = {Robert Morris and Corina Pasareanu and Kasper Luckow and Waqar Malik and Hang Ma and T. K. Satish Kumar and Sven Koenig}
-}
-@inproceedings{felner2017,
-	title={Search-Based Optimal Solvers for the Multi-Agent Pathfinding Problem: Summary and Challenges},
-	author={Ariel Felner and Roni Stern and S. E. Shimony and Eli Boyarski and Meir Goldenberg and G. Sharon and Nathan R Sturtevant and Glenn Wagner and Pavel Surynek},
-	booktitle={SOCS},
-	year={2017}
-}
-@misc{ma2016,
-	title={Optimal Target Assignment and Path Finding for Teams of Agents}, 
-	author={Hang Ma and Sven Koenig},
-	year={2016},
-	eprint={1612.05693},
-	archivePrefix={arXiv},
-	primaryClass={cs.AI}
-}
 @inproceedings{ma2016b,
 	author = {Hang Ma and Sven Koenig and Nora Ayanian and Liron Cohen and Wolfgang H\"{o}nig and T. K. Satish Kumar and Tansel Uras and Hong Xu and C. Tovey and G. Sharon},
 	booktitle = {{IJCAI}-16 Workshop on Multi-Agent Path Finding},
 	title = {Overview: Generalizations of Multi-Agent Path Finding to Real-World Scenarios},
 	year = {2016}
-}
-@Article{Artigues2014,
-	author={Artigues, Christian
-	and Bourreau, Eric
-	and Jost, Vincent
-	and Kedad-Sidhoum, Safia
-	and Ramond, Fran{\c{c}}ois},
-	title={Trains do not vanish: the ROADEF/EURO challenge 2014},
-	journal={Annals of Operations Research},
-	year={2018},
-	month={Dec},
-	day={01},
-	volume={271},
-	number={2},
-	pages={1091-1105},
-	abstract={The ROADEF/EURO challenge is a contest jointly organized by the French Operational Research and Decision Aid society (ROADEF) and the European Operational Research society (EURO). The contest has appeared on a regular basis since 1999 and always concerns an applied optimization problem proposed by an industrial partner. The 2014 edition of the ROADEF/EURO challenge was led by the Innovation {\&} Research department of SNCF, a global leader in passenger and freight transport services, and infrastructure manager of the French railway network. The objective of the challenge was to find the best way to store and move trains on large railway sites, between their arrivals and departures. Since trains never vanish and traffic continues to increase, in recent years some stations have been having real congestion issues. Train management in large railway sites is of high interest for SNCF, which is why it was submitted to the operations research community as the industrial problem for the 2014 edition of the ROADEF/EURO challenge. This paper introduces the special section of the Annals of Operations Research volume devoted to the ROADEF/EURO challenge 2014, as well as the methods of the finalist teams and their results.},
-	issn={1572-9338},
-	doi={10.1007/s10479-018-3066-x},
-}
-
-@article{Freling2002,
-	author = {Freling, Richard and Lentink, Ramon and Kroon, Leo and Huisman, Dennis},
-	year = {2002},
-	month = {10},
-	pages = {},
-	title = {Shunting of Passenger Train Units in a Railway Station},
-	volume = {39},
-	journal = {Transportation Science},
-	doi = {10.1287/trsc.1030.0076}
-}
-@article{dechter1985,
-	author = {Dechter, Rina and Pearl, Judea},
-	year = {1985},
-	month = {07},
-	pages = {505-536},
-	title = {Pearl, J.: Generalized best-first search strategies and the optimality of {A*}. Journal of the ACM (JACM) 32, 505-536},
-	volume = {32},
-	journal = {J. ACM},
-	doi = {10.1145/3828.3830}
-}
-@InProceedings{yu2013,
-	author="Yu, Jingjin
-	and LaValle, Steven M.",
-	editor="Frazzoli, Emilio
-	and Lozano-Perez, Tomas
-	and Roy, Nicholas
-	and Rus, Daniela",
-	title="Multi-agent Path Planning and Network Flow",
-	booktitle="Algorithmic Foundations of Robotics X",
-	year="2013",
-	publisher="Springer Berlin Heidelberg",
-	address="Berlin, Heidelberg",
-	pages="157--173",
-	abstract="This paper connects multi-agent path planning on graphs (roadmaps) to network flow problems, showing that the former can be reduced to the latter, therefore enabling the application of combinatorial network flow algorithms, as well as general linear program techniques, tomulti-agent path planning problems on graphs. Exploiting this connection, we show that when the goals are permutation invariant, the problem always has a feasible solution path set with a longest finish time of no more than n + V - 1 steps, in which n is the number of agents and V is the number of vertices of the underlying graph.We then give a complete algorithm that finds such a solution in O(nVE) time, with E being the number of edges of the graph. Taking a further step, we study time and distance optimality of the feasible solutions, show that they have a pairwise Pareto optimal structure, and again provide efficient algorithms for optimizing two of these practical objectives.",
-	isbn="978-3-642-36279-8"
-}
-@article{land1960,
-	ISSN = {00129682, 14680262},
-	abstract = {In the classical linear programming problem the behaviour of continuous, nonnegative variables subject to a system of linear inequalities is investigated. One possible generalization of this problem is to relax the continuity condition the variables. This paper presents a simple numerical algorithm for the solution of programming problems in which some or all of the variables can take only discrete values. The algorithm requires no special techniques beyond these used in ordinary linear programming, and lends itself to automatic computing. Its use is illustrated on two numerical examples.},
-	author = {A. H. Land and A. G. Doig},
-	journal = {Econometrica},
-	number = {3},
-	pages = {497--520},
-	publisher = {[Wiley, Econometric Society]},
-	title = {An Automatic Method of Solving Discrete Programming Problems},
-	volume = {28},
-	year = {1960}
 }
 
 @inproceedings{wurman2007,
@@ -392,4 +101,307 @@
 	doi = {10.1002/nav.3800020109},
 	abstract = {Abstract Assuming that numerical scores are available for the performance of each of n persons on each of n jobs, the “assignment problem” is the quest for an assignment of persons to jobs so that the sum of the n scores so obtained is as large as possible. It is shown that ideas latent in the work of two Hungarian mathematicians may be exploited to yield a new method of solving this problem.},
 	year = {1955}
+}
+@misc{ma2016,
+	title={Optimal Target Assignment and Path Finding for Teams of Agents}, 
+	author={Hang Ma and Sven Koenig},
+	year={2016},
+	eprint={1612.05693},
+	archivePrefix={arXiv},
+	primaryClass={cs.AI}
+}
+@InProceedings{yu2013,
+	author="Yu, Jingjin
+	and LaValle, Steven M.",
+	editor="Frazzoli, Emilio
+	and Lozano-Perez, Tomas
+	and Roy, Nicholas
+	and Rus, Daniela",
+	title="Multi-agent Path Planning and Network Flow",
+	booktitle="Algorithmic Foundations of Robotics X",
+	year="2013",
+	publisher="Springer Berlin Heidelberg",
+	address="Berlin, Heidelberg",
+	pages="157--173",
+	abstract="This paper connects multi-agent path planning on graphs (roadmaps) to network flow problems, showing that the former can be reduced to the latter, therefore enabling the application of combinatorial network flow algorithms, as well as general linear program techniques, tomulti-agent path planning problems on graphs. Exploiting this connection, we show that when the goals are permutation invariant, the problem always has a feasible solution path set with a longest finish time of no more than n + V - 1 steps, in which n is the number of agents and V is the number of vertices of the underlying graph.We then give a complete algorithm that finds such a solution in O(nVE) time, with E being the number of edges of the graph. Taking a further step, we study time and distance optimality of the feasible solutions, show that they have a pairwise Pareto optimal structure, and again provide efficient algorithms for optimizing two of these practical objectives.",
+	isbn="978-3-642-36279-8"
+}
+@article{sturtevant2012,
+	title={Benchmarks for Grid-Based Pathfinding},
+	author={Sturtevant, N.},
+	journal={Transactions on Computational Intelligence and AI in Games},
+	volume={4},
+	number={2},
+	pages={144 -- 148},
+	year={2012},
+}
+
+@INPROCEEDINGS{
+	wagner2011,  
+	author={G. {Wagner} and H. {Choset}},  
+	booktitle={2011 IEEE/RSJ International Conference on Intelligent Robots and Systems},   
+	title={M*: A complete multirobot path planning algorithm with performance bounds},   
+	year={2011}, 
+	volume={},  
+	number={},  
+	pages={3260-3267},  
+	doi={10.1109/IROS.2011.6095022}
+}
+
+@inproceedings{standley2010,
+	title={Finding Optimal Solutions to Cooperative Pathfinding Problems},
+	author={Trevor Scott Standley},
+	booktitle={AAAI},
+	year={2010}
+}
+
+@article{goldenberg2014,
+	title={Enhanced Partial Expansion {A*}},
+	author={Meir Goldenberg and Ariel Felner and Roni Stern and G. Sharon and Nathan R Sturtevant and R. Holte and J. Schaeffer},
+	journal={J. Artif. Intell. Res.},
+	year={2014},
+	volume={50},
+	pages={141-187}
+}
+@inproceedings{harabor2010,
+	author = {Harabor, D. and Botea, A.},
+	title = {Breaking path symmetries on 4-connected grid maps},
+	year = {2010},
+	publisher = {AAAI Press},
+	booktitle = {Proceedings of the 6th AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment},
+	pages={33–38},
+	numpages = {5},
+	location = {Stanford, California},
+	series = {AIIDE 2010}
+}
+@inproceedings{harabor2011,
+	author = {Harabor, Daniel and Grastien, Alban},
+	title = {Online Graph Pruning for Pathfinding on Grid Maps},
+	year = {2011},
+	publisher = {AAAI Press},
+	abstract = {Pathfinding in uniform-cost grid environments is a problem commonly found in application areas such as robotics and video games. The state-of-the-art is dominated by hierarchical pathfinding algorithms which are fast and have small memory overheads but usually return suboptimal paths. In this paper we present a novel search strategy, specific to grids, which is fast, optimal and requires no memory overhead. Our algorithm can be described as a macro operator which identifies and selectively expands only certain nodes in a grid map which we call jump points. Intermediate nodes on a path connecting two jump points are never expanded. We prove that this approach always computes optimal solutions and then undertake a thorough empirical analysis, comparing our method with related works from the literature. We find that searching with jump points can speed up A* by an order of magnitude and more and report significant improvement over the current state of the art.},
+	booktitle = {Proceedings of the Twenty-Fifth AAAI Conference on Artificial Intelligence},
+	pages = {1114–1119},
+	numpages = {6},
+	location = {San Francisco, California},
+	series = {AAAI'11}
+}
+
+
+@thesis{baauw2021,
+	title={Adapting {CBM} to optimize the Sum of Costs},
+	author={Robbin Baauw},
+	school={Delft University of Technology},
+	year={2021}
+}
+@thesis{bruin2021,
+	title={Solving Multi-Agent Pathfinding with Matching using {A*+ID+OD}},
+	author={Ivar de Bruin},
+	school={Delft University of Technology},
+	year={2021}
+}
+@thesis{donszelmann2021,
+	title={Matching in Multi-Agent Pathfinding using {M*}},
+	author={Jonathan Dönszelmann},
+	school={Delft University of Technology},
+	year={2021}
+}
+@thesis{jong2021,
+	title={Multi-Agent Pathfinding with Matching using Enhanced Partial Expansion {A*}},
+	author={Jaap de Jong},
+	school={Delft University of Technology},
+	year={2021}
+}
+
+@inproceedings{goldberg1987,
+	author = {Goldberg, A. and Tarjan, R.},
+	title = {Solving Minimum-Cost Flow Problems by Successive Approximation},
+	year = {1987},
+	isbn = {0897912217},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	doi = {10.1145/28395.28397},
+	abstract = {We introduce a framework for solving minimum-cost flow problems. Our approach measures the quality of a solution by the amount that the complementary slackness conditions are violated. We show how to extend techniques developed for the maximum flow problem to improve the quality of a solution. This framework allows us to achieve Ο(min(n3, n5/3 m2/3, nm log n) log (nC)) running time.},
+	booktitle = {Proceedings of the Nineteenth Annual ACM Symposium on Theory of Computing},
+	pages = {7–18},
+	numpages = {12},
+	location = {New York, New York, USA},
+	series = {STOC '87}
+}
+
+@article{jonker1987,
+	title={A shortest augmenting path algorithm for dense and sparse linear assignment problems},
+	author={Jonker, Roy and Volgenant, Anton},
+	journal={Computing},
+	volume={38},
+	number={4},
+	pages={325--340},
+	year={1987},
+	publisher={Springer}
+}
+
+@article{land1960,
+	ISSN = {00129682, 14680262},
+	abstract = {In the classical linear programming problem the behaviour of continuous, nonnegative variables subject to a system of linear inequalities is investigated. One possible generalization of this problem is to relax the continuity condition the variables. This paper presents a simple numerical algorithm for the solution of programming problems in which some or all of the variables can take only discrete values. The algorithm requires no special techniques beyond these used in ordinary linear programming, and lends itself to automatic computing. Its use is illustrated on two numerical examples.},
+	author = {A. H. Land and A. G. Doig},
+	journal = {Econometrica},
+	number = {3},
+	pages = {497--520},
+	publisher = {[Wiley, Econometric Society]},
+	title = {An Automatic Method of Solving Discrete Programming Problems},
+	volume = {28},
+	year = {1960}
+}
+
+@ARTICLE{miller1997,
+	author={Miller, M.L. and Stone, H.S. and Cox, I.J.},
+	journal={IEEE Transactions on Aerospace and Electronic Systems}, 
+	title={Optimizing {Murty's} ranked assignment method}, 
+	year={1997},
+	volume={33},
+	number={3},
+	pages={851-862},
+	doi={10.1109/7.599256}}
+
+@article{murty1968,
+	ISSN = {0030364X, 15265463},
+	abstract = {The Hungarian method gives an efficient algorithm for finding the minimal cost assignment. However, in some cases it may be useful to determine the second minimal assignment (i.e., the best assignment after excluding the minimal cost assignment) and in general the kth minimal assignment for k=1, 2,.... These things can easily be determined if all the assignments can be arranged as a sequence in increasing order of cost. This paper describes an efficient algorithm for such a ranking of all the assignments. The maximum computational effort required to generate an additional assignment in the sequence is that of solving at most (n-1) different assignment problems, one each of sizes 2, 3,..., n.},
+	author = {Katta G. Murty},
+	journal = {Operations Research},
+	number = {3},
+	pages = {682--687},
+	publisher = {INFORMS},
+	title = {An Algorithm for Ranking all the Assignments in Order of Increasing Cost},
+	volume = {16},
+	year = {1968}
+}
+
+
+
+
+
+
+
+
+@phdthesis{junghanns1999,
+	author  = {Andreas Junghanns},
+	title   = {Pushing the Limits: New developments in Single-Agent Search},
+	school  = {University of Alberta, Department of Computing Science},
+	year    = {1999}
+}
+@inproceedings{li2020,
+	author = {Li, Jiaoyang and Tinka, Andrew and Kiesel, Scott and Durham, Joseph W. and Kumar, T. K. Satish and Koenig, Sven},
+	title = {Lifelong Multi-Agent Path Finding in Large-Scale Warehouses},
+	year = {2020},
+	isbn = {9781450375184},
+	publisher = {International Foundation for Autonomous Agents and Multiagent Systems},
+	address = {Richland, SC},
+	abstract = {Multi-Agent Path Finding (MAPF) is the problem of moving a team of agents from their start locations to their goal locations without collisions. We study the lifelong variant of MAPF where agents are constantly engaged with new goal locations, such as in warehouses. We propose a new framework for solving lifelong MAPF by decomposing the problem into a sequence of Windowed MAPF instances, where a Windowed MAPF solver resolves collisions among the paths of agents only within a finite time horizon and ignores collisions beyond it. Our framework is particularly well suited to generating pliable plans that adapt to continually arriving new goal locations. We evaluate our framework with a variety of MAPF solvers and show that it can produce high-quality solutions for up to 1,000 agents, significantly outperforming existing methods.},
+	booktitle = {Proceedings of the 19th International Conference on Autonomous Agents and MultiAgent Systems},
+	pages = {1898–1900},
+	numpages = {3},
+	keywords = {multi-agent path finding, agent coordination, multi-agent planning},
+	location = {Auckland, New Zealand},
+	series = {AAMAS '20}
+}
+@inproceedings{ven2019,
+	title = "Determining capacity of shunting yards by combining graph classification with local search",
+	abstract = "Dutch Railways (NS) uses a shunt plan simulator to determine capacities of shunting yards. Central to this simulator is a local search heuristic. Solving this capacity determination problem is very time consuming, as it requires to solve an NP-hard shunting planning problem, and furthermore, the capacity has to determined for a large number of possible scenarios at over 30 shunting yards in The Netherlands. In this paper, we propose to combine machine learning with local search in order to speed up finding shunting plans in the capacity determination problem. The local search heuristic models the activities that take place on the shunting yard as nodes in an activity graph with precedence relations. Consequently, we apply the Deep Graph Convolutional Neural Network, which is a graph classification method, to predict whether local search will find a feasible shunt plan given an initial solution. Our experimental results show our approach can significantly reduce the simulation time in determining the capacity of a given shunting yard. This study demonstrates how machine learning can be used to boost optimization algorithms in an industrial application.",
+	keywords = "Classification, Convolutional Neural Networks, Local Search, Machine Learning, Planning and Scheduling",
+	author = "{van de Ven}, {Arno J.G.} and Y. Zhang and Wan-Jui Lee and H. Eshuis and A.M. Wilbik",
+	year = "2019",
+	doi = "10.5220/0007398502850293",
+	language = "English",
+	volume = "2",
+	pages = "285--293",
+	editor = "Luc Steels and {van den Herik}, Jaap and Ana Rocha",
+	booktitle = "11th International Conference on Agents and Artificial Intelligence (ICAART 2019)",
+	publisher = "SCITEPRESS-Science and Technology Publications, Lda.",
+	note = "11th International Conference on Agents and Artificial Intelligence, ICAART 2019, ICAART2019 ; Conference date: 19-02-2019 Through 21-02-2019",
+}
+@INPROCEEDINGS{henkel2019,  author={Henkel, Christian and Abbenseth, Jannik and Toussaint, Marc},  booktitle={2019 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},   title={An Optimal Algorithm to Solve the Combined Task Allocation and Path Finding Problem},   year={2019},  volume={},  number={},  pages={4140-4146},  doi={10.1109/IROS40897.2019.8968096}}
+@article{geiger2018,
+	author = {Geiger, Martin and Huber, Sandra and Langton, Sebastian and Leschik, Marius and Lindorf, Christian and Tüshaus, Ulrich},
+	year = {2018},
+	month = {12},
+	pages = {},
+	title = {Multi-attribute assignment of trains to departures in rolling stock management: A contribution to the EURO/ROADEF 2014 Challenge},
+	volume = {271},
+	journal = {Annals of Operations Research},
+	doi = {10.1007/s10479-017-2501-8}
+}
+@Inbook{yu2015,
+	author="Yu, Jingjin
+	and Rus, Daniela",
+	editor="Akin, H. Levent
+	and Amato, Nancy M.
+	and Isler, Volkan
+	and van der Stappen, A. Frank",
+	title="Pebble Motion on Graphs with Rotations: Efficient Feasibility Tests and Planning Algorithms",
+	bookTitle="Algorithmic Foundations of Robotics XI: Selected Contributions of the Eleventh International Workshop on the Algorithmic Foundations of Robotics",
+	year="2015",
+	publisher="Springer International Publishing",
+	address="Cham",
+	pages="729--746",
+	abstract="We study the problemRus, Danielaof planningYu, Jingjinpaths for {\$}{\$}p{\$}{\$}pdistinguishable pebbles (robots) residing on the vertices of an {\$}{\$}n{\$}{\$}n-vertex connected graph with {\$}{\$}p {\backslash}le n{\$}{\$}p≤n. A pebble may move from a vertex to an adjacent one in a time step provided that it does not collide with other pebbles. When {\$}{\$}p = n{\$}{\$}p=n, the only collision free moves are synchronous rotations of pebbles on disjoint cycles of the graph. We show that the feasibility of such problems is intrinsically determined by the diameter of a (unique) permutation group induced by the underlying graph. Roughly speaking, the diameter of a group {\$}{\$}{\backslash}mathbf G{\$}{\$}Gis the minimum length of the generator product required to reach an arbitrary element of {\$}{\$}{\backslash}mathbf G{\$}{\$}Gfrom the identity element. Through bounding the diameter of this associated permutation group, which assumes a maximum value of {\$}{\$}O(n^2){\$}{\$}O(n2), we establish a linear time algorithm for deciding the feasibility of such problems and an {\$}{\$}O(n^3){\$}{\$}O(n3)algorithm for planning complete paths.",
+	isbn="978-3-319-16595-0",
+	doi="10.1007/978-3-319-16595-0_42",
+}
+@inproceedings{silver2005,
+	author = {Silver, David},
+	title = {Cooperative Pathfinding},
+	year = {2005},
+	publisher = {AAAI Press},
+	abstract = {Cooperative Pathfinding is a multi-agent path planning problem where agents must find non-colliding routes to separate destinations, given full information about the routes of other agents. This paper presents three new algorithms for efficiently solving this problem, suitable for use in Real-Time Strategy games and other real-time environments. The algorithms are decoupled approaches that break down the problem into a series of single-agent searches. Cooperative A* (CA*) searches space-time for a non-colliding route. Hierarchical Cooperative A* (HCA*) uses an abstract heuristic to boost performance. Finally, Windowed Hierarchical Cooperative A* (WHCA*) limits the space-time search depth to a dynamic window, spreading computation over the duration of the route. The algorithms are applied to a series of challenging, maze-like environments, and compared to A* with Local Repair (the current video-games industry standard). The results show that the new algorithms, especially WHCA*, are robust and efficient solutions to the Cooperative Pathfinding problem, finding more successful routes and following better paths than Local Repair A*.},
+	booktitle = {Proceedings of the First AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment},
+	pages = {117–122},
+	numpages = {6},
+	keywords = {search techniques, path planning, group behaviour},
+	location = {Marina del Rey, California},
+	series = {AIIDE'05}
+}
+
+@inproceedings{felner2017,
+	title={Search-Based Optimal Solvers for the Multi-Agent Pathfinding Problem: Summary and Challenges},
+	author={Ariel Felner and Roni Stern and S. E. Shimony and Eli Boyarski and Meir Goldenberg and G. Sharon and Nathan R Sturtevant and Glenn Wagner and Pavel Surynek},
+	booktitle={SOCS},
+	year={2017}
+}
+@Article{Artigues2014,
+	author={Artigues, Christian
+	and Bourreau, Eric
+	and Jost, Vincent
+	and Kedad-Sidhoum, Safia
+	and Ramond, Fran{\c{c}}ois},
+	title={Trains do not vanish: the ROADEF/EURO challenge 2014},
+	journal={Annals of Operations Research},
+	year={2018},
+	month={Dec},
+	day={01},
+	volume={271},
+	number={2},
+	pages={1091-1105},
+	abstract={The ROADEF/EURO challenge is a contest jointly organized by the French Operational Research and Decision Aid society (ROADEF) and the European Operational Research society (EURO). The contest has appeared on a regular basis since 1999 and always concerns an applied optimization problem proposed by an industrial partner. The 2014 edition of the ROADEF/EURO challenge was led by the Innovation {\&} Research department of SNCF, a global leader in passenger and freight transport services, and infrastructure manager of the French railway network. The objective of the challenge was to find the best way to store and move trains on large railway sites, between their arrivals and departures. Since trains never vanish and traffic continues to increase, in recent years some stations have been having real congestion issues. Train management in large railway sites is of high interest for SNCF, which is why it was submitted to the operations research community as the industrial problem for the 2014 edition of the ROADEF/EURO challenge. This paper introduces the special section of the Annals of Operations Research volume devoted to the ROADEF/EURO challenge 2014, as well as the methods of the finalist teams and their results.},
+	issn={1572-9338},
+	doi={10.1007/s10479-018-3066-x},
+}
+@article{Freling2002,
+	author = {Freling, Richard and Lentink, Ramon and Kroon, Leo and Huisman, Dennis},
+	year = {2002},
+	month = {10},
+	pages = {},
+	title = {Shunting of Passenger Train Units in a Railway Station},
+	volume = {39},
+	journal = {Transportation Science},
+	doi = {10.1287/trsc.1030.0076}
+}
+@article{dechter1985,
+	author = {Dechter, Rina and Pearl, Judea},
+	year = {1985},
+	month = {07},
+	pages = {505-536},
+	title = {Pearl, J.: Generalized best-first search strategies and the optimality of {A*}. Journal of the ACM (JACM) 32, 505-536},
+	volume = {32},
+	journal = {J. ACM},
+	doi = {10.1145/3828.3830}
 }

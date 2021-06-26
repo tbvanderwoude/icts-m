@@ -50,7 +50,7 @@
 	\end{abstract}
 	
 	\section{Introduction}
-	Finding a shortest path between two vertices on a graph is a fundamental problem that appears in many contexts like GPS navigation \cite{sturtevant2010} and network routing \cite{broch1998}. In some applications like autonomous aircraft towing \cite{morris2016} and train unit routing in shunting yards \cite{mulderij2020}, planning agents separately can result in conflicts between agents as they follow their paths. To prevent such conflicts, agents have to be planned together to find a combination of non-conflicting paths. The problem of finding such a combination is the Multi-Agent Pathfinding (MAPF) problem \cite{stern2019}. In finding optimal solutions, one of two objectives is typically optimized: the makespan which is the cost of the longest path, or the Sum of Individual path Costs (SIC). Algorithms for optimally solving MAPF include Increasing Cost Tree Search \cite{sharon2011}, Conflict-based search \cite{sharon2015} and Branch-and-Cut-and-Price \cite{lam2019}.
+	Finding a shortest path between two vertices on a graph is a fundamental problem that appears in many contexts like GPS navigation \cite{sturtevant2010} and network routing \cite{broch1998}. In some applications like autonomous aircraft towing \cite{morris2016} and train unit routing in shunting yards \cite{mulderij2020}, planning agents separately can result in conflicts between agents as they follow their paths. To prevent such conflicts, agents have to be planned together to find a combination of non-conflicting paths. The problem of finding such a combination is the Multi-Agent Pathfinding (MAPF) problem \cite{stern2019}. In finding optimal solutions, one of two objectives is typically optimized: the makespan which is the cost of the longest path, or the Sum of Individual path Costs (SIC). Algorithms for optimally solving MAPF include Increasing Cost Tree Search \cite{sharon2013}, Conflict-based search \cite{sharon2015} and Branch-and-Cut-and-Price \cite{lam2019}.
 	
 	As observed by \cite{ma2016b}, in real-world applications of MAPF such as warehouse robotics \cite{wurman2007} goals are often assigned to teams of agents instead of single agents as in standard MAPF. Using MAPF in such applications requires pre-assignment of goals to agents using the Hungarian Algorithm \cite{kuhn55} or similar methods, but such approaches are suboptimal as the true cost of a given matching can only be found by solving the corresponding MAPF instance. Ma and Koenig \cite{ma2016} formulate the joint problem of finding the optimal makespan solution across all possible matchings as the combined target-assignment and pathfinding (TAPF) problem. They also present the Conflict-Based Min-Cost-Flow (CBM) algorithm for solving TAPF. 
 	
@@ -58,7 +58,7 @@
 	
 	Nonetheless, CBS successfully being used to solve TAPF raises two questions: Can MAPF algorithms other than CBS be used to solve TAPF? Can CBS or other MAPF algorithms be used to solve TAPF minimizing the SIC instead of the makespan? For this latter problem that will be referred to as Multi-agent Pathfinding with Matching (MAPFM), no methods are described in the literature. 
 	
-	This work presents two types of algorithms based on ICTS \cite{sharon2011} that optimally solve MAPFM, and is part of a study in which other algorithms in addition to ICTS were taken as starting points for MAPFM algorithms. Those of the first type exhaustively enumerate matchings and use a variant of ICTS as a subroutine; those of the second type are based on an extension of ICTS itself to support matching, ICTS-m. The properties of both classes of algorithms as well as ICTS more generally are discussed, followed by experiments in which a selection of algorithm variants is compared. Additionally, one exhaustive ICTS algorithm is compared to MAPFM algorithms based on CBM \cite{ma2016}, M* \cite{wagner2011}, A*+OD+ID \cite{standley2010} and EPEA* \cite{goldenberg2014}. 
+	This work presents two types of algorithms based on ICTS \cite{sharon2013} that optimally solve MAPFM, and is part of a study in which other algorithms in addition to ICTS were taken as starting points for MAPFM algorithms. Those of the first type exhaustively enumerate matchings and use a variant of ICTS as a subroutine; those of the second type are based on an extension of ICTS itself to support matching, ICTS-m. The properties of both classes of algorithms as well as ICTS more generally are discussed, followed by experiments in which a selection of algorithm variants is compared. Additionally, one exhaustive ICTS algorithm is compared to MAPFM algorithms based on CBM \cite{ma2016}, M* \cite{wagner2011}, A*+OD+ID \cite{standley2010} and EPEA* \cite{goldenberg2014}. 
 	
 	
 	
@@ -68,7 +68,7 @@
 	
 	%Can other MAPF algorithms be used to solve TAPF?
 	
-	%The successful application of CBS to solving TAPF begs the question: \textit{can other MAPF algorithms such as Increasing Cost Tree Search (ICTS) \cite{sharon2011} serve as the basis for a TAPF algorithm?}
+	%The successful application of CBS to solving TAPF begs the question: \textit{can other MAPF algorithms such as Increasing Cost Tree Search (ICTS) \cite{sharon2013} serve as the basis for a TAPF algorithm?}
 	
 	% remains the question of how multi-agent pathfinding with matching (MAPFM) minimizing the SIC
 	
@@ -145,7 +145,7 @@
 	In this section, taking ICTS for MAPF as a starting point, two methods to use ICTS for MAPFM are described. The first method relies on a reduction from MAPFM to repeated MAPF: an optimal solution to MAPFM corresponds to a matching of agents to goals, so by exhaustively enumerating all matchings and solving these as MAPF instances, an optimal solution to the MAPFM instance can be found. In the second method, the ICT search itself is modified to allow an agent $a_j^i$ to be matched to any $g_k^i$.
 	\subsection{Increasing Cost Tree Search}
 	\label{icts}
-	In Increasing Cost Tree Search \cite{sharon2011}, the two-step mapping from path combination to SIC described in Section \ref{mapfm} is reversed to search for a solution with minimal SIC. This is done by searching for cost vectors corresponding to increasing SIC at the top level and searching for non-conflicting path combinations (solutions) for each cost vector at the bottom level. 
+	In Increasing Cost Tree Search \cite{sharon2013}, the two-step mapping from path combination to SIC described in Section \ref{mapfm} is reversed to search for a solution with minimal SIC. This is done by searching for cost vectors corresponding to increasing SIC at the top level and searching for non-conflicting path combinations (solutions) for each cost vector at the bottom level. 
 	
 	\subsubsection{Top-level search}
 	In the top-level search, all possible cost vectors for a given SIC are evaluated by searching an Increasing Cost Tree as depicted in Figure \ref{fig:ict}, starting from $C^* = \sum_i c^*_i$ corresponding to a single root cost vector $(c^*_1,c^*_2,\ldots,c^*_k)$. This root has $k$ children $(c^*_1 + 1,c^*_2,\ldots,c^*_k),(c^*_1,c^*_2 + 1,\ldots,c^*_k),\ldots,(c^*_1,c^*_2,\ldots,c^*_k + 1)$ all of cost $C = C^* + 1$. Searching this ICT breadth-first corresponds to evaluating all possible cost vectors corresponding to increasing cost $C$ starting with $C^*$, guaranteeing optimality of a found solution. When searching up to  cost $C^* + \Delta$, $\mathcal{O}(k^\Delta)$ cost vectors are evaluated. Node evaluation corresponds to performing a low-level search for a solution $(\pi_1,\ldots,\pi_k)$ corresponding to the node cost vector $(c_1,\ldots,c_k)$.
@@ -153,7 +153,7 @@
 	\begin{figure}[t]
 		\centering
 		\includegraphics[width=0.5\linewidth]{img/ict}
-		\caption{Increasing Cost Tree for three agents \cite{sharon2011}}
+		\caption{Increasing Cost Tree for three agents \cite{sharon2013}}
 		\label{fig:ict}
 		\vspace{-30pt}
 	\end{figure}
@@ -185,11 +185,11 @@
 			\label{fig:mdds}
 		\end{subfigure}
 		
-		\caption{Example of using ICTS to solve MAPF from \cite{sharon2011}}
+		\caption{Example of using ICTS to solve MAPF from \cite{sharon2013}}
 		\label{fig:bottom}
 	\end{figure}
 	\subsubsection{Bottom-level search}
-	Explicitly generating all paths to the goal for agent $a_i$ of cost $c_i$ is expensive: the number of paths is exponential in $c_i$. This is why in the low-level search of ICTS, multi-valued decision diagrams (MDDs) are used to compactly represent all paths per agent. For agent $a_i$ with a target cost $c_i$ (from the cost vector), $MDD_i^{c_i}$ can be generated by a breadth-first search on the $c_i$-steps time-expanded graph starting at $s_i$, followed by a process similar to the standard path reconstruction method used in A* but allowing multiple node parents. Storing the resulting paths in an MDD, which has at most $|V|$ nodes at each timestep or depth, avoids the cost of storing all paths explicitly and facilitates the efficient search of the $k$-agent space of path combinations \cite{sharon2011}.
+	Explicitly generating all paths to the goal for agent $a_i$ of cost $c_i$ is expensive: the number of paths is exponential in $c_i$. This is why in the low-level search of ICTS, multi-valued decision diagrams (MDDs) are used to compactly represent all paths per agent. For agent $a_i$ with a target cost $c_i$ (from the cost vector), $MDD_i^{c_i}$ can be generated by a breadth-first search on the $c_i$-steps time-expanded graph starting at $s_i$, followed by a process similar to the standard path reconstruction method used in A* but allowing multiple node parents. Storing the resulting paths in an MDD, which has at most $|V|$ nodes at each timestep or depth, avoids the cost of storing all paths explicitly and facilitates the efficient search of the $k$-agent space of path combinations \cite{sharon2013}.
 	
 	In Figure \ref{fig:bottom}, a problem with its corresponding ICT is shown, as well as the low-level search of the (solution) node $(3,2)$ using MDDs. The second agent staying at node D after completing the path is also modeled in its MDD to ensure that the place remains blocked.
 	
@@ -215,13 +215,13 @@
 	\end{algorithm}
 	\subsubsection{Pruning in ICTS}
 	\label{pruning}
-	In \cite{sharon2011}, in addition to the basic two-level solver, three pruning methods to speed up search are discussed, two of which were used in this work. These methods rely on the fact that if no solution exists for any combination of $j$ out of $k$ agents with $j < k$, no solution exists for all $k$ agents. If any such combination is found for a node, there is no need to search the $k$-agent MDD so the next ICT node can be considered. The three pruning methods are as follows.
+	In \cite{sharon2013}, in addition to the basic two-level solver, three pruning methods to speed up search are discussed, two of which were used in this work. These methods rely on the fact that if no solution exists for any combination of $j$ out of $k$ agents with $j < k$, no solution exists for all $k$ agents. If any such combination is found for a node, there is no need to search the $k$-agent MDD so the next ICT node can be considered. The three pruning methods are as follows.
 	\begin{enumerate}
 		\item Simple pruning: for all combinations of $j$ out of $k$ agents, the $j$-agent MDD is searched using DFS for a solution.
 		\item Enhanced pruning: for all combinations of $j$ out of $k$ agents, the $j$-agent MDD is searched using BFS and when children are generated, for each agent, all children that do not appear in any unified node are removed from the MDD. In \ref{fig:mdds}, the $C$ node of $MDD_1$ would be removed as it cannot be unified with any node of $MDD_2$ at that level.
 		\item Repeated enhanced pruning: the enhanced pruning procedure is repeated until a fixed point is reached, which is when no child node is removed from any of the agent MDDs in an iteration. This was not used in this work. 
 	\end{enumerate}
-	The full ICTS algorithm including a pruning step as described above is given by Algorithm \ref{icts-algo}. It is reproduced from \cite{sharon2011} for completeness. In this work, triple-pruning ($j=3$) was used and enhanced triple-pruning was taken as a baseline, as the conclusion in \cite{sharon2011} is that this often outperforms other variants.
+	The full ICTS algorithm including a pruning step as described above is given by Algorithm \ref{icts-algo}. It is reproduced from \cite{sharon2013} for completeness. In this work, triple-pruning ($j=3$) was used and enhanced triple-pruning was taken as a baseline, as the conclusion in \cite{sharon2013} is that this often outperforms other variants.
 	\begin{algorithm}
 		\begin{algorithmic}[1]
 			\Procedure{ICT-search}{MAPF instance}
@@ -352,7 +352,7 @@
 	\subsubsection{Child pruning}
 	In the original ICTS formulation all $k$-children are generated in every case because pruning only controls skipping the low-level search, assumed to be the most expensive operation. However, in simple pruning in any case, when there is a conflict between two or more agents at a given ICT node $(c_1,\ldots,c_k)$, in any solution, one or more of the path costs corresponding to these conflicting agents will have to be incremented. This can be exploited by pruning the node's children that do not correspond to the conflicting agents, of which there are often just 2 or 3, drastically improving the (average) branching factor as $k$ increases. By Property \ref{property:ec-incompat}, child pruning is not compatible with enhanced pruning.
 	\begin{property}[Incompatibility with enhanced pruning]
-		Enhanced pruning combined with child pruning is suboptimal due to the \textit{cascading effect} described in \cite{sharon2011}.
+		Enhanced pruning combined with child pruning is suboptimal due to the \textit{cascading effect} described in \cite{sharon2013}.
 		\label{property:ec-incompat}
 	\end{property}
 	
@@ -518,7 +518,7 @@
 	
 	A related observation is that the algorithms introduced in this work do not rely on the property of agents and goals having one color. Both exhaustive ICTS and ICTS-m could easily be adapted to support one or more colors (teams) for each agent and goal while still guaranteeing optimality, in contrast to CBM \cite{ma2016} and its SIC adaptation \cite{baauw2021} which specifically use this property to plan single teams in polynomial time. Future research could study the multi-color MAPFM generalization and the application of methods described in this work to that problem. 
 	
-	Lastly, more experimentation is needed to reach definite conclusions about how simple child pruning compares to existing pruning techniques for ICTS, which could be done by reproducing the ICTS pruning experiments reported in \cite{sharon2011} extended with simple child pruning variants. 
+	Lastly, more experimentation is needed to reach definite conclusions about how simple child pruning compares to existing pruning techniques for ICTS, which could be done by reproducing the ICTS pruning experiments reported in \cite{sharon2013} extended with simple child pruning variants. 
 	
 	%Given that simple pruning is somewhat cheap computationally, it might also be possible to prune the child generation using simple child pruning but still use enhanced pruning to decide whether to execute $k$-agent low-level search, combining the benefits of searching a smaller ICT and performing fewer $k$-agent searches.
 	
