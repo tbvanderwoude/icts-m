@@ -254,7 +254,7 @@
 	Once a solution is found for a matching $m$ with cost $C_m$, this can be used in the next search as an (exclusive) upper-bound $B$ for the SIC of nodes that have to be searched. Formally, let $B_0 = \infty$ represent the initial SIC bound of the ICT search. After solving each $m$ with solution cost $C_m$, let $B_{m+1} = \min(B_m,C_m)$. By successively updating this $B$ in this manner, as more matchings are solved, the effort needed to solve the remaining matchings can be expected to be reduced significantly. With $C_m$ denoting the optimal SIC for matching $m$, this effort can be expressed as	
 	\[\Delta_{m,\text{bounded}} = \min(B_m,C_m) - C^*_m = B_{m+1} - C^*_m\]
 	This is proportional to the effort due to the complexity of the ICTS search for matching $m$, $\mathcal{O}(k^{\Delta_{m,\text{bounded}}})$.
-	If $B_m < C^*_m$, only the root node will be generated to determine this so $\Delta_{m,\text{bounded}} = 0$.
+	If $B_m \leq C^*_m$, only the root node will be generated to determine this so $\Delta_{m,\text{bounded}} = 0$.
 	Using this, the number of ICT nodes searched in total becomes $\mathcal{O}(\sum_m k^{\Delta_{m,\text{bounded}}})$.
 	\subsubsection{Ordered enumeration}
 	\label{ordered-enum}
@@ -273,14 +273,14 @@
 		Assuming that $\Delta_m$, the unbounded effort, is monotonically non-decreasing as a function of $m$ (with $m$ in increasing order of $C^*_m$), ordered enumeration minimizes the total number of nodes searched across matchings.
 	\end{property}
 	\subsubsection{Approximate ordered enumeration}
-	In implementation matchings were enumerated using a product of goal permutation indices as described above so they are not enumerated in increasing order of root SIC. As a result, to achieve this ordering, matchings have to be exhaustively enumerated and stored in memory in order to be sorted. This requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$.
+	In the implementation of exhaustive ICTS, matchings are enumerated by taking the product of goal permutation indices as described above so they are not enumerated in increasing order of root SIC. To achieve this ordering, matchings would have to be exhaustively enumerated and stored in memory before being sorted. Storing all matchings requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$. This is why in implementation, ordered enumeration is approximated using a priority queue that maintains a subset of matchings of a fixed size $M_{pq}$\footnote{$M_{pq} = 10000$ was used in implementation but this could be much increased at the cost of memory}. Algorithm \ref{pq-algo} outlines the procedure.
 	
 	
 	%Using the 
 	%To generate matchings 
 	%In the implementation of exhaustive matching, the algorithm used to generate matchings
 	%The algorithm for generating 
-	%In the implementation of ordered enumeration as described above, matchings are not generated in increasing order of root SIC. As a result, to achieve this ordering, matchings have to be exhaustively enumerated and stored in memory in order to be sorted. This requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$.
+	%In the implementation of ordered enumeration as described above, matchings are not generated in increasing order of root SIC. As a result, to achieve this ordering, matchings have to be exhaustively enumerated and stored in memory to be sorted. This requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$.
 	
 	%In practice, it is difficult to enumerate all matchings in increasing order of root SIC. Finding a lowest SIC $m$ reduces to the assignment problem that can be solved using the Hungarian algorithm \cite{kuhn55} in polynomial time; 
 	%[TODO]
@@ -310,8 +310,6 @@
 		\caption{Approximate ordered exhaustive ICTS} 
 		\label{pq-algo}
 	\end{algorithm}
-	
-	This is why in implementation, ordered enumeration is approximated using a priority queue that maintains a subset of matchings of a fixed size $M_{pq}$\footnote{$M_{pq} = 10000$ was used in implementation but this could be much increased at the cost of memory}. Algorithm \ref{pq-algo} outlines the procedure.
 	
 	\subsection{ICTS-m}
 	ICTS with Matching (ICTS-m) generalizes ICTS to optimally solve MAPFM instances. Few changes to ICTS were necessary to accommodate for matching in this increasing cost tree scheme. Specifically, the ICT root generation and the MDD generation as described in Subsection \ref{icts} had to be changed.
