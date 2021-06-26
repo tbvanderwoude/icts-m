@@ -273,7 +273,7 @@
 		Assuming that $\Delta_m$, the unbounded effort, is monotonically non-decreasing as a function of $m$ (with $m$ in increasing order of $C^*_m$), ordered enumeration minimizes the total number of nodes searched across matchings.
 	\end{property}
 	\subsubsection{Approximate ordered enumeration}
-	In the implementation of exhaustive ICTS, matchings are enumerated by taking the product of goal permutation indices as described above so they are not enumerated in increasing order of root SIC. To achieve this ordering, matchings would have to be exhaustively enumerated and stored in memory before being sorted. Storing all matchings requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$. This is why in implementation, ordered enumeration is approximated using a priority queue that maintains a subset of matchings of a fixed size $M_{pq}$\footnote{$M_{pq} = 10000$ was used in implementation but this could be much increased at the cost of memory}. Algorithm \ref{pq-algo} outlines the procedure.
+	In the implementation of exhaustive ICTS, matchings are enumerated by taking the product of goal permutation indices as described above so they are not enumerated in increasing order of root SIC. To achieve this ordering, matchings would have to be exhaustively enumerated and stored in memory before being sorted. Storing all matchings requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$. This is why in implementation, ordered enumeration is approximated using a priority queue that maintains a subset of matchings of a fixed size $M_{pq}$.\footnote{$M_{pq} = 10000$ was used in implementation but this could be much increased at the cost of memory} Algorithm \ref{pq-algo} outlines the procedure.
 	
 	
 	%Using the 
@@ -523,7 +523,7 @@
 	%Given that simple pruning is somewhat cheap computationally, it might also be possible to prune the child generation using simple child pruning but still use enhanced pruning to decide whether to execute $k$-agent low-level search, combining the benefits of searching a smaller ICT and performing fewer $k$-agent searches.
 	
 	\section{Reproducibility}
-	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository\footnote{\url{https://github.com/tbvanderwoude/icts-m}}. Included is also code for benchmarking different configurations of the ICTS solver and the maps that were used in the benchmarks reported above. The benchmarks and maps used in the relative comparison of MAPFM algorithms are also available in the code and data repository of \cite{donszelmann2021}\footnote{\url{https://github.com/jonay2000/research-project}}.
+	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository.\footnote{\url{https://github.com/tbvanderwoude/icts-m}} Included is also code for benchmarking different configurations of the ICTS solver and the maps that were used in the benchmarks reported above. The benchmarks and maps used in the relative comparison of MAPFM algorithms are also available in the code and data repository of \cite{donszelmann2021}.\footnote{\url{https://github.com/jonay2000/research-project}}
 	
 	\printbibliography
 	\newpage
