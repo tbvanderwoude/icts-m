@@ -249,7 +249,7 @@
 	\end{algorithm}
 	\subsection{Exhaustive ICTS}
 	\label{exhaustive}
-	For $K$ teams $t_1,\ldots,t_K$ of size $k_i$, there are in total $M = \prod_{i} k_i!$ matchings from team agents to team goals. Let $C_1$ through $C_M$ denote the optimal SIC costs of each MAPF instance corresponding to the MAPFM instance, with $C_m = \infty$ for infeasible $m$. In order to find the optimal solution, $m$ with lowest $C_m$ has to be found, which requires all $M$ to be solved or found to be infeasible, meaning that $\mathcal{O}(M)$ MAPF instances have to be solved. 
+	For $K$ teams $t_1,\ldots,t_K$ of size $k_i$, there are in total $M = \prod_{i} k_i!$ matchings from team agents to team goals. These matchings can be enumerated by indexing the $k_i!$ permutations of goals for each team $t_i$ as $1,\ldots,k_i!$. Using such indexing, each $e \in \{1,\ldots,k_1!\} \times \cdots \times \{1,\ldots,k_K!\}$ corresponds to a unique combination of permutations and can be mapped to a matching $m$ assuming some fixed ordering of agents within each team. Let $C_1$ through $C_M$ denote the optimal SIC costs of each MAPF instance corresponding to the MAPFM instance, with $C_m = \infty$ for infeasible matching $m$. In order to find the optimal solution, $m$ with lowest $C_m$ has to be found, which requires all $M$ matchings to be solved or found to be infeasible, meaning that $\mathcal{O}(M)$ MAPF instances have to be solved. 
 	\subsubsection{Bounded search}
 	Once a solution is found for a matching $m$ with cost $C_m$, this can be used in the next search as an (exclusive) upper-bound $B$ for the SIC of nodes that have to be searched. Formally, let $B_0 = \infty$ represent the initial SIC bound of the ICT search. After solving each $m$ with solution cost $C_m$, let $B_{m+1} = \min(B_m,C_m)$. By successively updating this $B$ in this manner, as more matchings are solved, the effort needed to solve the remaining matchings can be expected to be reduced significantly. With $C_m$ denoting the optimal SIC for matching $m$, this effort can be expressed as	
 	\[\Delta_{m,\text{bounded}} = \min(B_m,C_m) - C^*_m = B_{m+1} - C^*_m\]
@@ -258,7 +258,7 @@
 	Using this, the number of ICT nodes searched in total becomes $\mathcal{O}(\sum_m k^{\Delta_{m,\text{bounded}}})$.
 	\subsubsection{Ordered enumeration}
 	\label{ordered-enum}
-	To reduce the total effort, the matchings $m$ can be enumerated and solved in increasing order of $C^*_m$. In this case, the effort per matching is monotonically non-increasing by Property \ref{monotonicity}. This induces a case in which this enumeration minimizes the number of nodes searched in total (Property \ref{cond-monoton-optim}). However, cases in which $\Delta_m$ of the first $m$'s searched is much higher could also be constructed, in which case this approach might cause more nodes to be processed in total than alternative methods. Therefore, this ordered enumeration remains a heuristic improvement that works well in practice, as shown in Section \ref{experiments}.
+	To reduce the total effort, the matchings $m$ can instead be enumerated and solved in increasing order of $C^*_m$. In this case, the effort per matching is monotonically non-increasing by Property \ref{monotonicity}. This induces a case in which this enumeration minimizes the number of nodes searched in total (Property \ref{cond-monoton-optim}). However, cases in which $\Delta_m$ of the first $m$'s searched is much higher could also be constructed, in which case this approach might cause more nodes to be processed in total than alternative methods. Therefore, this ordered enumeration remains a heuristic improvement that works well in practice, as shown in Section \ref{experiments}.
 	
 	\begin{property}[Monotonicity]
 		\label{monotonicity}
@@ -273,11 +273,20 @@
 		Assuming that $\Delta_m$, the unbounded effort, is monotonically non-decreasing as a function of $m$ (with $m$ in increasing order of $C^*_m$), ordered enumeration minimizes the total number of nodes searched across matchings.
 	\end{property}
 	\subsubsection{Approximate ordered enumeration}
-	In practice, it is difficult to enumerate all matchings in increasing order of root SIC. 
+	In implementation matchings were enumerated using a product of goal permutation indices as described above so they are not enumerated in increasing order of root SIC. As a result, to achieve this ordering, matchings have to be exhaustively enumerated and stored in memory in order to be sorted. This requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$.
 	
-	Finding a lowest SIC $m$ reduces to the assignment problem that can be solved using the Hungarian algorithm \cite{kuhn55} in polynomial time; 
 	
-	however, to the knowledge of the author, no algorithm exists to more generally compute the $i$'th matching in increasing order of $C^*_m$ (assuming some fixed tie-breaking). This means that matchings have to be exhaustively enumerated and stored in memory to sort them, but this requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$.
+	%Using the 
+	%To generate matchings 
+	%In the implementation of exhaustive matching, the algorithm used to generate matchings
+	%The algorithm for generating 
+	%In the implementation of ordered enumeration as described above, matchings are not generated in increasing order of root SIC. As a result, to achieve this ordering, matchings have to be exhaustively enumerated and stored in memory in order to be sorted. This requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$.
+	
+	%In practice, it is difficult to enumerate all matchings in increasing order of root SIC. Finding a lowest SIC $m$ reduces to the assignment problem that can be solved using the Hungarian algorithm \cite{kuhn55} in polynomial time; 
+	%[TODO]
+	
+	
+	%however, to the knowledge of the author, no algorithm exists to more generally compute the $i$'th matching in increasing order of $C^*_m$ (assuming some fixed tie-breaking). This means that matchings have to be exhaustively enumerated and stored in memory to sort them, but this requires $\mathcal{O}(M)$ memory which was found to be more problematic in practice than the time complexity of the sorting, $\mathcal{O}(M\log(M))$.
 	
 	\begin{algorithm}
 		\begin{algorithmic}[1]
@@ -302,7 +311,7 @@
 		\label{pq-algo}
 	\end{algorithm}
 	
-	In the implementation, ordered enumeration is approximated using a priority queue that maintains a subset of matchings of a fixed size $M_{pq}$\footnote{$M_{pq} = 10000$ was used in implementation but this could be much increased at the cost of memory}. Algorithm \ref{pq-algo} outlines the procedure.
+	This is why in implementation, ordered enumeration is approximated using a priority queue that maintains a subset of matchings of a fixed size $M_{pq}$\footnote{$M_{pq} = 10000$ was used in implementation but this could be much increased at the cost of memory}. Algorithm \ref{pq-algo} outlines the procedure.
 	
 	\subsection{ICTS-m}
 	ICTS with Matching (ICTS-m) generalizes ICTS to optimally solve MAPFM instances. Few changes to ICTS were necessary to accommodate for matching in this increasing cost tree scheme. Specifically, the ICT root generation and the MDD generation as described in Subsection \ref{icts} had to be changed.
@@ -489,12 +498,12 @@
 	\section{Conclusions and Future work}
 	\label{conclusions}
 	\label{future}
-	The goal of this research was to seek alternative approaches to solving MAPFM based on ICTS. In this, the research has succeeded, but the scalability of the algorithms leaves something to be desired. Exhaustive methods, like those discussed in detail in Subsection \ref{exhaustive}, cannot be expected to scale well as teams grow larger due to their complexity, no matter what optimizations are put in place. Nonetheless, as was shown in Section \ref{experiments}, the more advanced exhaustive ICTS algorithms consistently outperform the ICTS-m based algorithms. Compared to the SIC-adaptation of the CBM method \cite{baauw2021}, it was seen that exhaustive methods generally perform relatively poorly if there are fewer teams and fewer obstacles, while being competitive once teams grow smaller and maps become more constrained. Delineating under which conditions exhaustive methods outperform CBM and vice versa is something for further research.
+	The goal of this research was to seek methods for solving MAPFM based on ICTS. In this, the research has succeeded, but the scalability of the algorithms leaves something to be desired. Exhaustive methods, like those discussed in detail in Subsection \ref{exhaustive}, cannot be expected to scale well as teams grow larger due to their complexity, no matter what optimizations are put in place. Nonetheless, as was shown in Section \ref{experiments}, the more advanced exhaustive ICTS algorithms consistently outperform the ICTS-m based algorithms. Compared to the SIC-adaptation of the CBM method \cite{baauw2021}, it was seen that exhaustive methods generally perform relatively poorly if there are fewer teams and fewer obstacles, while being competitive once teams grow smaller and maps become more constrained. Delineating under which conditions exhaustive methods outperform CBM and vice versa is something for further research.
 	
 	%\section{Future work}
-	A key idea for future research to look into is how to exploit the lower-bound on solution SIC that can be found using the Hungarian Algorithm \cite{kuhn55}. This lower-bound could be used in a branch-and-bound \cite{land1960} search of matchings. The most straightforward way would be to use an algorithm for MAPF at leaf nodes but algorithms for MAPFM could be used to solve (small) branches. Another possibility would be to use this bound to improve ICTS-m by only executing the $k$-agent low-level search for nodes that satisfy this bound. Lower-bounding in ICTS-m could be further improved by finding the optimal SIC for the anonymous MAPF instance corresponding to each team using a similar approach as \cite{baauw2021}. As long as there is a team that does not meet its bound, branching only on agents within this team is possible without losing optimality.
+	A key idea for future research to look into is how to exploit the lower-bound on solution SIC that can be found using the Hungarian Algorithm \cite{kuhn55}. This lower-bound could be used in a branch-and-bound \cite{land1960} search of matchings. The most straightforward way would be to use an algorithm for MAPF at leaf nodes but algorithms for MAPFM could be used to solve (small) branches. Another possibility would be to use this bound to improve ICTS-m by only executing the $k$-agent low-level search for nodes that satisfy this bound. Lower-bounding in ICTS-m could then be further improved by finding the optimal SIC for the anonymous MAPF instance corresponding to each team using a similar approach as \cite{baauw2021}. As long as there is a team that does not meet its bound, branching only on agents within this team is possible without losing optimality.
 	
-	A related observation is that the algorithms introduced in this work do not rely on the property of agents and goals having one color. Both exhaustive ICTS and ICTS-m could easily be adapted to support one or more colors (teams) for each agent and goal while still guaranteeing optimality, in contrast to CBM \cite{ma2016} and its SIC adaptation \cite{baauw2021} which specifically use this property to plan single teams in polynomial time. Future research could study the multi-color MAPFM variant and the application of methods described in this work to this problem. 
+	A related observation is that the algorithms introduced in this work do not rely on the property of agents and goals having one color. Both exhaustive ICTS and ICTS-m could easily be adapted to support one or more colors (teams) for each agent and goal while still guaranteeing optimality, in contrast to CBM \cite{ma2016} and its SIC adaptation \cite{baauw2021} which specifically use this property to plan single teams in polynomial time. Future research could study the multi-color MAPFM generalization and the application of methods described in this work to that problem. 
 	
 	Lastly, more experimentation is needed to reach definite conclusions about how simple child pruning compares to existing pruning techniques for ICTS, which could be done by reproducing the ICTS pruning technique experiments reported in \cite{sharon2011} extended with simple child pruning variants. %Given that simple pruning is somewhat cheap computationally, it might also be possible to prune the child generation using simple child pruning but still use enhanced pruning to decide whether to execute $k$-agent low-level search, combining the benefits of searching a smaller ICT and performing fewer $k$-agent searches.
 	
