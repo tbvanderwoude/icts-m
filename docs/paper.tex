@@ -197,7 +197,7 @@
 	
 	In practice, joint MDDs are not explicitly constructed but instead, a depth-first search is used to search joint MDDs. This has the benefit of finding a path to the bottom of the joint MDD fast if one exists, while not constructing more of the joint MDD than is necessary for finding a solution, which can get rather large.
 	\subsubsection{ICTS with Independence Detection}
-	Like other MAPF algorithms, ICTS can be embedded in the Independence Detection (ID) framework introduced by Standley in \cite{standley2010}. ID starts by assuming each agent is a group that can be assigned an optimal path independent of other groups. If group paths do conflict, they become one group that is planned together using a MAPF algorithm, in this case, ICTS, until no conflicts between groups occur. The goal of ID is to minimize $k'$, the size of the largest group that has to be planned. Optionally, a conflict avoidance table (CAT) can be maintained for use during the planning of groups. This records the paths planned by other groups and can facilitate tie-breaking in search that minimizes the number of conflicts; the CAT is omitted from Algorithm \ref{id-algo} for brevity but was implemented and used in experiments.
+	Like other MAPF algorithms, ICTS can be embedded in the Independence Detection (ID) framework introduced by Standley \cite{standley2010}. ID starts by assuming each agent is a group that can be assigned an optimal path independent of other groups. If group paths do conflict, they become one group that is planned together using a MAPF algorithm, in this case, ICTS, until no conflicts between groups occur. The goal of ID is to minimize $k'$, the size of the largest group that has to be planned. Optionally, a conflict avoidance table (CAT) can be maintained for use during the planning of groups. This records the paths planned by other groups and can facilitate tie-breaking in search that minimizes the number of conflicts; the CAT is omitted from Algorithm \ref{id-algo} for brevity but was implemented and used in experiments.
 	\begin{algorithm}
 		\begin{algorithmic}[1]
 			\State \text{Assign each agent to a singleton group}
@@ -215,13 +215,13 @@
 	\end{algorithm}
 	\subsubsection{Pruning in ICTS}
 	\label{pruning}
-	In \cite{sharon2013}, in addition to the basic two-level solver, three pruning methods to speed up search are discussed, two of which were used in this work. These methods rely on the fact that if no solution exists for any combination of $j$ out of $k$ agents with $j < k$, no solution exists for all $k$ agents. If any such combination is found for a node, there is no need to search the $k$-agent MDD so the next ICT node can be considered. The three pruning methods are as follows.
+	In addition to ID, three pruning methods can be used to speed up ICTS \cite{sharon2013}, two of which are used in this work. These methods rely on the fact that if no solution exists for any combination of $j$ out of $k$ agents with $j < k$, no solution exists for all $k$ agents. If any such combination is found for a node, there is no need to search the $k$-agent MDD so the next ICT node can be considered. The three pruning methods are as follows.
 	\begin{enumerate}
 		\item Simple pruning: for all combinations of $j$ out of $k$ agents, the $j$-agent MDD is searched using DFS for a solution.
 		\item Enhanced pruning: for all combinations of $j$ out of $k$ agents, the $j$-agent MDD is searched using BFS and when children are generated, for each agent, all children that do not appear in any unified node are removed from the MDD. In \ref{fig:mdds}, the $C$ node of $MDD_1$ would be removed as it cannot be unified with any node of $MDD_2$ at that level.
 		\item Repeated enhanced pruning: the enhanced pruning procedure is repeated until a fixed point is reached, which is when no child node is removed from any of the agent MDDs in an iteration. This was not used in this work. 
 	\end{enumerate}
-	The full ICTS algorithm including a pruning step as described above is given by Algorithm \ref{icts-algo}. It is reproduced from \cite{sharon2013} for completeness. In this work, triple-pruning ($j=3$) was used and enhanced triple-pruning was taken as a baseline, as the conclusion in \cite{sharon2013} is that this often outperforms other variants.
+	The full ICTS algorithm including a pruning step as described above is given by Algorithm \ref{icts-algo}. It is reproduced from \cite{sharon2013} for completeness. In this work, triple-pruning ($j=3$) was used and enhanced triple-pruning was taken as a baseline, as this often outperforms other variants \cite{sharon2013}.
 	\begin{algorithm}
 		\begin{algorithmic}[1]
 			\Procedure{ICT-search}{MAPF instance}
@@ -514,7 +514,7 @@
 	
 	%The most straightforward way would be to use an algorithm for MAPF at leaf nodes but algorithms for MAPFM could be used to solve (small) branches. 
 	
-	Another possibility would be to use the lower-bound on solution SIC to improve ICTS-m by only executing the $k$-agent low-level search for nodes that satisfy this bound. Lower-bounding in ICTS-m could then be further improved by finding the optimal SIC for the anonymous MAPF instance corresponding to each team using an approach similar to those described in \cite{baauw2021}. As long as there is a team that does not meet its bound, branching only on agents within this team is possible without losing optimality. 
+	Another possibility would be to use the lower-bound on solution SIC to improve ICTS-m by only executing the $k$-agent low-level search for nodes that satisfy this bound. The lower-bounding in ICTS-m could then be further improved by finding the optimal SIC for the anonymous MAPF instance corresponding to each team using an approach similar to those described in \cite{baauw2021}. As long as there is a team that does not meet its bound, branching only on agents within this team is possible without losing optimality. 
 	
 	A related observation is that the algorithms introduced in this work do not rely on the property of agents and goals having one color. Both exhaustive ICTS and ICTS-m could easily be adapted to support one or more colors (teams) for each agent and goal while still guaranteeing optimality, in contrast to CBM \cite{ma2016} and its SIC adaptation \cite{baauw2021} which specifically use this property to plan single teams in polynomial time. Future research could study the multi-color MAPFM generalization and the application of methods described in this work to that problem. 
 	
