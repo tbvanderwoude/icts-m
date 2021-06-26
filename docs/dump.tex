@@ -24,7 +24,45 @@
 	\maketitle
 
 	\section{Introduction}
+					
+			%Comparatively little research has been done on MAPFM and solving it optimally. 
+			%For MAPFM with a makespan objective instead of SIC, known as the combined target-assignment and pathfinding (TAPF) problem, there is the Conflict-Based Min-Cost-Flow (CBM) algorithm by Ma and Koenig \cite{ma2016} and a similar approach described in \cite{henkel2019}.
+			%Ma and Koenig's method uses the Meta-Agent variant of CBS \cite{sharon2015} as a high-level search framework; in the low-level search, single teams are planned in polynomial time as constrained anonymous MAPF instances using a max-flow approach \cite{yu2013}. 
 			
+			%The TAPF problem \cite{ma2016} combines the target-assignment and the pathfinding problems into one optimization problem, the objective being minimal makespan.
+			
+			%In order to find the
+			
+			%but this comes at the price of optimality
+			
+			%have teams of agents with a pool of goals assigned to them. 
+			
+			%targets are often given to teams of agents in real-world applications such as warehouse robotics 
+			
+			%In a MAPF instance, each agent is assigned a single goal to navigate to. However, w
+			
+			
+			
+			
+			
+			
+			
+			%This means that to prevent conflicts, agents have to be planned 
+			%
+			% g underpins many real-world
+			%The single-agent pathfinding
+			%Multi-agent pathfinding (MAPF) is the problem 
+			%The Dutch Railways company (NS) needs to clean and service their fleet of trains during the night in shunting yards so that they can properly bring passengers from A to B during the day. 
+			%The problem of scheduling the trains and personnel to achieve this is called the Train Unit Shunting and Servicing (TUSS) problem \cite{mulderij2020}. 
+			%It is an NP-hard problem with many different subproblems in addition to the basic train unit routing, such as the timetabling of personnel and coupling and decoupling of train units entering and leaving the yard. 
+			% introduce heuristics here.
+			
+			%In practical scenarios, only heuristic methods can solve TUSS instances \cite{geiger2018}. Such a heuristic is used at NS to determine the capacity of shunting yards, which is the number of units a yard can serve in a day. 
+			%This is done by defining a set of instances for the yard and determining the number of units for which 95\% of instances can be solved by the heuristic within a set time-out \cite{ven2019}. 
+			%A problem is that a subset of feasible TUSS instances is not solved by the heuristic, meaning that the found capacity can be lower than the true capacity. 
+			%Combined with the fact that current upper-bounds for capacity are highly optimistic, this makes it difficult to decide when to expand shunting infrastructure. 
+			%Mulderij et al. propose the multi-agent pathfinding (MAPF) problem, as described in \cite{stern2019}, extended with a matching subproblem (hereafter MAPFM) as a suitable relaxation of (discretised) TUSS for finding better upper-bounds for capacity using an approach analogous to that outlined above \cite{mulderij2020}.
+			%For this to succeed, a way to optimally solve MAPFM instances is needed, where optimal is defined as minimizing the Sum of Individual Costs (SIC) objective.
 		
 		
 		each give (loose) upper bounds on the optimal solution cost for each instance.

@@ -28,7 +28,38 @@
 	school  = {University of Alberta, Department of Computing Science},
 	year    = {1999}
 }
-
+@inproceedings{broch1998,
+	author = {Broch, Josh and Maltz, David A. and Johnson, David B. and Hu, Yih-Chun and Jetcheva, Jorjeta},
+	title = {A Performance Comparison of Multi-Hop Wireless Ad Hoc Network Routing Protocols},
+	year = {1998},
+	isbn = {158113035X},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	url = {https://doi.org/10.1145/288235.288256},
+	doi = {10.1145/288235.288256},
+	booktitle = {Proceedings of the 4th Annual ACM/IEEE International Conference on Mobile Computing and Networking},
+	pages = {85–97},
+	numpages = {13},
+	location = {Dallas, Texas, USA},
+	series = {MobiCom '98}
+}
+@inproceedings{li2020,
+	author = {Li, Jiaoyang and Tinka, Andrew and Kiesel, Scott and Durham, Joseph W. and Kumar, T. K. Satish and Koenig, Sven},
+	title = {Lifelong Multi-Agent Path Finding in Large-Scale Warehouses},
+	year = {2020},
+	isbn = {9781450375184},
+	publisher = {International Foundation for Autonomous Agents and Multiagent Systems},
+	address = {Richland, SC},
+	abstract = {Multi-Agent Path Finding (MAPF) is the problem of moving a team of agents from their start locations to their goal locations without collisions. We study the lifelong variant of MAPF where agents are constantly engaged with new goal locations, such as in warehouses. We propose a new framework for solving lifelong MAPF by decomposing the problem into a sequence of Windowed MAPF instances, where a Windowed MAPF solver resolves collisions among the paths of agents only within a finite time horizon and ignores collisions beyond it. Our framework is particularly well suited to generating pliable plans that adapt to continually arriving new goal locations. We evaluate our framework with a variety of MAPF solvers and show that it can produce high-quality solutions for up to 1,000 agents, significantly outperforming existing methods.},
+	booktitle = {Proceedings of the 19th International Conference on Autonomous Agents and MultiAgent Systems},
+	pages = {1898–1900},
+	numpages = {3},
+	keywords = {multi-agent path finding, agent coordination, multi-agent planning},
+	location = {Auckland, New Zealand},
+	series = {AAMAS '20}
+}
+@article{sturtevant2010, title={A Comparison of High-Level Approaches for Speeding Up Pathfinding}, volume={6}, url={https://ojs.aaai.org/index.php/AIIDE/article/view/12400}, abstractNote={ &lt;p&gt; Most games being shipped today use some form of high-level abstraction such as a navmesh or waypoint graph for path planning. These structures can generally be represented in a form which is compact enough to meet the tight memory constraints in a game. But, when such a graph grows too large, finding paths can still be a complex task. This challenge was faced in Dragon Age: Origins and solved by adding an additional level of abstraction.In the last few years a variety of novel approaches have been developed for finding optimal paths through graphs with specific design applications for road networks. Currently these techniques cannot be feasibly applied to the lowest detail of movement possible in a game map, but can be applied to the high-level abstractions which are commonly found in games.In this paper we describe the pathfinding challenge faced before shipping the title Dragon Age: Origins and perform a postmortem analysis on the extended abstraction that was used in comparison to building more advanced heuristics or the use of contraction hierarchies. We show that contraction hierarchies and abstractions have similar overhead and performance and are both useful approaches for high-level planning in games. &lt;/p&gt; }, number={1}, journal={Proceedings of the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment}, author={Sturtevant, Nathan and Geisberger, Robert}, year={2010}, month={Oct.}, pages={76-82} 
+}
 @inproceedings{ven2019,
 	title = "Determining capacity of shunting yards by combining graph classification with local search",
 	abstract = "Dutch Railways (NS) uses a shunt plan simulator to determine capacities of shunting yards. Central to this simulator is a local search heuristic. Solving this capacity determination problem is very time consuming, as it requires to solve an NP-hard shunting planning problem, and furthermore, the capacity has to determined for a large number of possible scenarios at over 30 shunting yards in The Netherlands. In this paper, we propose to combine machine learning with local search in order to speed up finding shunting plans in the capacity determination problem. The local search heuristic models the activities that take place on the shunting yard as nodes in an activity graph with precedence relations. Consequently, we apply the Deep Graph Convolutional Neural Network, which is a graph classification method, to predict whether local search will find a feasible shunt plan given an initial solution. Our experimental results show our approach can significantly reduce the simulation time in determining the capacity of a given shunting yard. This study demonstrates how machine learning can be used to boost optimization algorithms in an industrial application.",
@@ -218,6 +249,12 @@
 	booktitle={IJCAI},
 	year={2011}
 }
+@conference {morris2016,
+	title = {Planning, Scheduling and Monitoring for Airport Surface Operations},
+	booktitle = {AAAI-16 Workshop on Planning for Hybrid Systems (PlanHS)},
+	year = {2016},
+	author = {Robert Morris and Corina Pasareanu and Kasper Luckow and Waqar Malik and Hang Ma and T. K. Satish Kumar and Sven Koenig}
+}
 @inproceedings{felner2017,
 	title={Search-Based Optimal Solvers for the Multi-Agent Pathfinding Problem: Summary and Challenges},
 	author={Ariel Felner and Roni Stern and S. E. Shimony and Eli Boyarski and Meir Goldenberg and G. Sharon and Nathan R Sturtevant and Glenn Wagner and Pavel Surynek},
@@ -231,6 +268,12 @@
 	eprint={1612.05693},
 	archivePrefix={arXiv},
 	primaryClass={cs.AI}
+}
+@inproceedings{ma2016b,
+	author = {Hang Ma and Sven Koenig and Nora Ayanian and Liron Cohen and Wolfgang H\"{o}nig and T. K. Satish Kumar and Tansel Uras and Hong Xu and C. Tovey and G. Sharon},
+	booktitle = {{IJCAI}-16 Workshop on Multi-Agent Path Finding},
+	title = {Overview: Generalizations of Multi-Agent Path Finding to Real-World Scenarios},
+	year = {2016}
 }
 @Article{Artigues2014,
 	author={Artigues, Christian
@@ -288,6 +331,7 @@
 	abstract="This paper connects multi-agent path planning on graphs (roadmaps) to network flow problems, showing that the former can be reduced to the latter, therefore enabling the application of combinatorial network flow algorithms, as well as general linear program techniques, tomulti-agent path planning problems on graphs. Exploiting this connection, we show that when the goals are permutation invariant, the problem always has a feasible solution path set with a longest finish time of no more than n + V - 1 steps, in which n is the number of agents and V is the number of vertices of the underlying graph.We then give a complete algorithm that finds such a solution in O(nVE) time, with E being the number of edges of the graph. Taking a further step, we study time and distance optimality of the feasible solutions, show that they have a pairwise Pareto optimal structure, and again provide efficient algorithms for optimizing two of these practical objectives.",
 	isbn="978-3-642-36279-8"
 }
+
 @inproceedings{wurman2007,
 	author = {Wurman, Peter R. and D'Andrea, Raffaello and Mountz, Mick},
 	title = {Coordinating Hundreds of Cooperative, Autonomous Vehicles in Warehouses},
