@@ -58,7 +58,7 @@
 	
 	Nonetheless, CBS successfully being used to solve TAPF raises two questions: Can MAPF algorithms other than CBS be used to solve TAPF? Can CBS or other MAPF algorithms be used to solve TAPF minimizing the SIC instead of the makespan? For this latter problem that will be referred to as Multi-agent Pathfinding with Matching (MAPFM), no methods are described in the literature. 
 	
-	This work presents two types of algorithms based on ICTS \cite{sharon2011} that optimally solve MAPFM, and is part of a study in which other algorithms in addition to ICTS were taken as starting points for MAPFM algorithms. Those of the first type exhaustively enumerate matchings and use a variant of ICTS as a subroutine; those of the second type are based on an extension of ICTS itself to support matching, ICTS-m. The properties of both classes of algorithms as well as ICTS more generally are discussed, followed by experiments in which a selection of algorithm variants is compared. Additionally, one exhaustive ICTS algorithm is compared to MAPFM algorithms based on CBM \cite{ma2016}, M*\cite{wagner2011}, A*+OD+ID\cite{standley2010} and EPEA*\cite{goldenberg2014}. 
+	This work presents two types of algorithms based on ICTS \cite{sharon2011} that optimally solve MAPFM, and is part of a study in which other algorithms in addition to ICTS were taken as starting points for MAPFM algorithms. Those of the first type exhaustively enumerate matchings and use a variant of ICTS as a subroutine; those of the second type are based on an extension of ICTS itself to support matching, ICTS-m. The properties of both classes of algorithms as well as ICTS more generally are discussed, followed by experiments in which a selection of algorithm variants is compared. Additionally, one exhaustive ICTS algorithm is compared to MAPFM algorithms based on CBM \cite{ma2016}, M* \cite{wagner2011}, A*+OD+ID \cite{standley2010} and EPEA* \cite{goldenberg2014}. 
 	
 	
 	
@@ -145,7 +145,7 @@
 	In this section, taking ICTS for MAPF as a starting point, two methods to use ICTS for MAPFM are described. The first method relies on a reduction from MAPFM to repeated MAPF: an optimal solution to MAPFM corresponds to a matching of agents to goals, so by exhaustively enumerating all matchings and solving these as MAPF instances, an optimal solution to the MAPFM instance can be found. In the second method, the ICT search itself is modified to allow an agent $a_j^i$ to be matched to any $g_k^i$.
 	\subsection{Increasing Cost Tree Search}
 	\label{icts}
-	In Increasing Cost Tree Search\cite{sharon2011}, the two-step mapping from path combination to SIC described in Section \ref{mapfm} is reversed to search for a solution with minimal SIC. This is done by searching for cost vectors corresponding to increasing SIC at the top level and searching for non-conflicting path combinations (solutions) for each cost vector at the bottom level. 
+	In Increasing Cost Tree Search \cite{sharon2011}, the two-step mapping from path combination to SIC described in Section \ref{mapfm} is reversed to search for a solution with minimal SIC. This is done by searching for cost vectors corresponding to increasing SIC at the top level and searching for non-conflicting path combinations (solutions) for each cost vector at the bottom level. 
 	
 	\subsubsection{Top-level search}
 	In the top-level search, all possible cost vectors for a given SIC are evaluated by searching an Increasing Cost Tree as depicted in Figure \ref{fig:ict}, starting from $C^* = \sum_i c^*_i$ corresponding to a single root cost vector $(c^*_1,c^*_2,\ldots,c^*_k)$. This root has $k$ children $(c^*_1 + 1,c^*_2,\ldots,c^*_k),(c^*_1,c^*_2 + 1,\ldots,c^*_k),\ldots,(c^*_1,c^*_2,\ldots,c^*_k + 1)$ all of cost $C = C^* + 1$. Searching this ICT breadth-first corresponds to evaluating all possible cost vectors corresponding to increasing cost $C$ starting with $C^*$, guaranteeing optimality of a found solution. When searching up to  cost $C^* + \Delta$, $\mathcal{O}(k^\Delta)$ cost vectors are evaluated. Node evaluation corresponds to performing a low-level search for a solution $(\pi_1,\ldots,\pi_k)$ corresponding to the node cost vector $(c_1,\ldots,c_k)$.
@@ -453,7 +453,7 @@
 	
 	The second experiments comparing the different MAPFM algorithms within the peer group were run on a server with a virtualized Intel Xeon E5-2683 dodecacore operating at 2.0GHz with 8GiB of RAM. All 200 maps were used for each setting.
 	
-	All algorithms are implemented in Python 3.9 to avoid performance differences as often seen between interpreted versus compiled languages; however, CBM\cite{baauw2021} in experiment 2 does use an SSP solver implemented in C++ as a subroutine. The comparison in this experiment is more coarse-grained as performance differences are sometimes subtle and could potentially be explained by slight implementation optimizations rather than algorithmic properties.
+	All algorithms are implemented in Python 3.9 to avoid performance differences as often seen between interpreted versus compiled languages; however, CBM \cite{baauw2021} in experiment 2 does use an SSP solver implemented in C++ as a subroutine. The comparison in this experiment is more coarse-grained as performance differences are sometimes subtle and could potentially be explained by slight implementation optimizations rather than algorithmic properties.
 	
 	\subsection{Experiment 1: ICTS-based MAPFM algorithms}
 	To investigate the relative performance of various algorithms discussed in Section \ref{section:icts-matching}, a selection of both exhaustive and ICTS-m variants was made. Their performance in terms of fraction of problems solved within a timeout of 120s is shown in Figure \ref{fig:i-probs}. The meaning of the abbreviations used in the legend are as follows:
@@ -480,13 +480,13 @@
 	\begin{itemize}
 		\begin{minipage}{0.45\linewidth}
 			\item ICTS with approximate sorted exhaustive matching (Exh+E+B+O)
-			\item A*+ID+OD with matching ID and sorted exhaustive matching\cite{bruin2021}
-			\item EPEA* with matching ID and sorted exhaustive matching\cite{jong2021}
+			\item A*+ID+OD with matching ID and sorted exhaustive matching \cite{bruin2021}
+			\item EPEA* with matching ID and sorted exhaustive matching \cite{jong2021}
 		\end{minipage}
 		\hspace{1cm}
 		\begin{minipage}{0.40\linewidth}
-			\item M* with sorted exhaustive matching\cite{donszelmann2021}
-			\item CBM adapted to use SIC, using the successive shortest path algorithm (SSP) \cite{goldberg1987} as subroutine for solving teams\cite{baauw2021}.
+			\item M* with sorted exhaustive matching \cite{donszelmann2021}
+			\item CBM adapted to use SIC, using the successive shortest path algorithm (SSP) \cite{goldberg1987} as subroutine for solving teams \cite{baauw2021}.
 		\end{minipage}
 	\end{itemize}
 	With exception of CBM, all methods described use a variant of sorted exhaustive matching. This is because from each family of algorithms one of the best performing algorithms was chosen, which always was such an exhaustive method as opposed to a generalization of the base algorithm to MAPFM (ICTS-m in this work). A*+ID+OD and EPEA* also make use of matching ID, which is ID applied to the MAPFM instance using the respective exhaustive algorithm as MAPFM solver. The initial groups are here the teams, which is why in single team scenarios (Subfigures \ref{fig:r-25-1-p},\ref{fig:r-75-1-p}) matching ID has no effect. Hypothetically, matching ID could explain why both A*+ID+OD and EPEA* outperform the methods using just sorted exhaustive matching in maps with 75\% wall and 3 teams (\ref{fig:r-75-3-p}).
