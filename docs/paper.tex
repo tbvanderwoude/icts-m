@@ -58,7 +58,7 @@
 	
 	Nonetheless, CBS successfully being used to solve TAPF raises two questions: Can MAPF algorithms other than CBS be used to solve TAPF? Can CBS or other MAPF algorithms be used to solve TAPF minimizing the SIC instead of the makespan? For this latter problem that will be referred to as Multi-agent Pathfinding with Matching (MAPFM), no methods are described in the literature. 
 	
-	This work presents two types of algorithms based on ICTS \cite{sharon2013} that optimally solve MAPFM, and is part of a study in which other algorithms in addition to ICTS were taken as starting points for MAPFM algorithms. Those of the first type exhaustively enumerate matchings and use a variant of ICTS as a subroutine; those of the second type are based on an extension of ICTS itself to support matching, ICTS-m. The properties of both classes of algorithms as well as ICTS more generally are discussed, followed by experiments in which a selection of algorithm variants is compared. Additionally, one exhaustive ICTS algorithm is compared to MAPFM algorithms based on CBM \cite{ma2016}, M* \cite{wagner2011}, A*+OD+ID \cite{standley2010} and EPEA* \cite{goldenberg2014}. 
+	This work presents two types of algorithms based on ICTS \cite{sharon2013} that optimally solve MAPFM, and is part of a study in which other algorithms in addition to ICTS were taken as starting points for MAPFM algorithms. Those of the first type exhaustively enumerate matchings and use a variant of ICTS as a subroutine; those of the second type are based on an extension of ICTS itself to support matching, ICTS-m. The properties of both classes of algorithms as well as ICTS more generally are discussed, followed by an experiment in which a selection of algorithm variants is compared. Additionally, one exhaustive ICTS algorithm is compared to MAPFM algorithms based on CBM \cite{ma2016}, M* \cite{wagner2011}, A*+OD+ID \cite{standley2010} and EPEA* \cite{goldenberg2014}. 
 	
 	
 	
@@ -110,7 +110,7 @@
 			\label{fig:conflictsb}
 		\end{minipage}
 		\vspace{-10pt}
-		\caption{Two types of conflict between agents (from Fig. 1 in \cite{stern2019})}\label{fig:conflicts}
+		\caption{Two types of conflict between agents (from Fig. 1 in \cite{stern2019}).}\label{fig:conflicts}
 	\end{wrapfigure}
 	
 	Multi-agent pathfinding with matching is a generalization of multi-agent pathfinding, the problem of finding paths for multiple agents without any conflicts. 
@@ -127,7 +127,7 @@
 		\vspace{-10pt}
 		\centering
 		\includegraphics[width=\linewidth]{img/symmetries}
-		\caption{Symmetric paths on a 4-connected grid \cite{harabor2010}}
+		\caption{Symmetric paths on a 4-connected grid \cite{harabor2010}.}
 		\label{fig:symmetries}
 	\end{wrapfigure}
 	
@@ -153,7 +153,7 @@
 	\begin{figure}[t]
 		\centering
 		\includegraphics[width=0.5\linewidth]{img/ict}
-		\caption{Increasing Cost Tree for three agents \cite{sharon2013}}
+		\caption{Increasing Cost Tree for three agents \cite{sharon2013}.}
 		\label{fig:ict}
 		\vspace{-30pt}
 	\end{figure}
@@ -167,25 +167,25 @@
 		\begin{subfigure}{0.2\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/mdds1}
-			\caption{An example problem}
+			\caption{An example problem.}
 			\label{fig:problem}
 		\end{subfigure}
 		\hfill
 		\begin{subfigure}{0.3\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/ict2}
-			\caption{The corresponding ICT with solution node $(3,2)$}
+			\caption{The corresponding ICT with solution node $(3,2)$.}
 			\label{fig:ict2}
 		\end{subfigure}
 		\hfill
 		\begin{subfigure}{0.4\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/mdds}
-			\caption{MDDs for the agents are found and combined}
+			\caption{MDDs for the agents are found and combined.}
 			\label{fig:mdds}
 		\end{subfigure}
 		
-		\caption{Example of using ICTS to solve MAPF from \cite{sharon2013}}
+		\caption{Example of using ICTS to solve MAPF from \cite{sharon2013}.}
 		\label{fig:bottom}
 	\end{figure}
 	\subsubsection{Bottom-level search}
@@ -319,10 +319,12 @@
 	\subsubsection{MDD generation for matching}
 	To generate MDDs for MAPFM, each agent also has to consider not one goal but all matching goals. To do this, the MDD construction following the breadth-first search has to be changed: each goal becomes an endpoint from which paths to the start node are traced, resulting in an MDD with one start node and one or more terminal nodes.
 	\begin{wrapfigure}{R}{.35\textwidth}
+		\vspace{-10pt}
 		\centering
 		\includegraphics[width=\linewidth]{img/path}
-		\caption{Pathological case for ICTS-m}
+		\caption{Pathological case for ICTS-m. The squares represent agents and the flags represent goals.}
 		\label{fig:path}
+		\vspace{-10pt}
 	\end{wrapfigure}
 	\subsubsection{Pathological case}
 	\label{pathology}
@@ -361,16 +363,16 @@
 		\begin{subfigure}{0.40\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/counter-example-ep-2}
-			\caption{Instance}
+			\caption{Counter-example instance.}
 			\label{fig:counter-example:a}
 		\end{subfigure}
 		\begin{subfigure}{0.49\textwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/counter-example-tree}
-			\caption{Pruned ICT that is traversed}
+			\caption{Pruned ICT that is traversed.}
 			\label{fig:counter-example:b}
 		\end{subfigure}
-		\caption{Counter-example for enhanced pruning combined with child pruning}
+		\caption{Counter-example for enhanced pruning combined with child pruning. If the black and green agent pair is considered last, an ICT is traversed while solving the instance that does not contain an optimal solution.}
 		\label{fig:counter-example}
 	\end{figure}
 	\begin{proof}
@@ -386,28 +388,28 @@
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-1-p}
-			\caption{25\% wall, one team}
+			\caption{25\% wall, one team.}
 			\label{fig:i-25-1-p}
 		\end{subfigure}
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-3-p}
-			\caption{25\% wall, three teams}
+			\caption{25\% wall, three teams.}
 			\label{fig:i-25-3-p}
 		\end{subfigure}
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-1-p}
-			\caption{75\% wall, one team}
+			\caption{75\% wall, one team.}
 			\label{fig:i-75-1-p}
 		\end{subfigure}
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-3-p}
-			\caption{75\% wall, three teams}
+			\caption{75\% wall, three teams.}
 			\label{fig:i-75-3-p}
 		\end{subfigure}
-		\caption{Fraction solved out of 50 maps by different ICTS-based algorithms}
+		\caption{Fraction solved out of 50 instances by different ICTS-based algorithms.}
 		\label{fig:i-probs}
 	\end{figure*}
 	\begin{figure*}[b]
@@ -415,28 +417,28 @@
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-1-p}
-			\caption{25\% wall, one team}
+			\caption{25\% wall, one team.}
 			\label{fig:r-25-1-p}
 		\end{subfigure}
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/25-3-p}
-			\caption{25\% wall, three teams}
+			\caption{25\% wall, three teams.}
 			\label{fig:r-25-3-p}
 		\end{subfigure}
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-1-p}
-			\caption{75\% wall, one team}
+			\caption{75\% wall, one team.}
 			\label{fig:r-75-1-p}
 		\end{subfigure}
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/relative-comparison/75-3-p}
-			\caption{75\% wall, three teams}
+			\caption{75\% wall, three teams.}
 			\label{fig:r-75-3-p}
 		\end{subfigure}
-		\caption{Fraction solved out of 200 maps by MAPFM algorithms}
+		\caption{Fraction solved out of 200 instances by MAPFM algorithms.}
 		\label{fig:r-probs}
 	\end{figure*}
 	
@@ -475,9 +477,9 @@
 	
 	
 	
-	The first experiments were performed on a 2.2GHz Intel i7-8750H hexacore with 16GiB of memory. For each setting, a fixed subset of 50 out of 200 maps was used. %Hyperthreading was used in experiments, but because agent-settings were solved in sequence as batches, it is expected that this has affected experimental outcomes equally.
+	The first experiments were performed on a 2.2GHz Intel i7-8750H hexacore with 16GiB of memory. For each setting, a fixed subset of 50 out of 200 instances was used. %Hyperthreading was used in experiments, but because agent-settings were solved in sequence as batches, it is expected that this has affected experimental outcomes equally.
 	
-	The second experiments comparing the different MAPFM algorithms within the peer group were run on a server with a virtualized Intel Xeon E5-2683 dodecacore operating at 2.0GHz with 8GiB of RAM. All 200 maps were used for each setting.
+	The second experiments comparing the different MAPFM algorithms within the peer group were run on a server with a virtualized Intel Xeon E5-2683 dodecacore operating at 2.0GHz with 8GiB of RAM. All 200 instances were used for each setting.
 	
 	All algorithms are implemented in Python 3.9 to avoid performance differences as often seen between interpreted versus compiled languages; however, CBM \cite{baauw2021} in experiment 2 does use an SSP solver implemented in C++ as a subroutine. The comparison in this experiment is more coarse-grained as performance differences are sometimes subtle and could potentially be explained by slight implementation optimizations rather than algorithmic properties.
 	
@@ -499,7 +501,7 @@
 	
 	Between exhaustive variants, with exception of the ID variant, a type of hierarchy can be distinguished, best illustrated by \ref{fig:i-25-3-p}; almost without exception, Exh+S+C+B+O outperforms Exh+E+B+O which outperforms Exh+E+B which in turn outperforms Exh+E. Bounded search outperforms unbounded search as expected, given that the former does as much work as the latter and often less. Approximate ordering outperforming unordered enumeration is not as obvious from a theoretical standpoint, as discussed in \ref{ordered-enum}, and simply indicates that ordered enumeration works well in practice. Simple pruning with child pruning outperforms enhanced pruning but this needs to be qualified. Comparing Exh+S+B+O with Exh+E+B+O shows that part of the difference can be explained by the use of simple pruning instead of enhanced pruning. Nonetheless, in instances with 75\% wall (\ref{fig:i-75-1-p},\ref{fig:i-75-3-p}) there appears to be a real benefit to searching a smaller ICT. Across ICTS-m variants, similar trends can be observed but the differences across pruning strategies are too slight to draw any conclusions from. As discussed in Section \ref{future}, more work is needed to compare simple child pruning with other pruning methods for ICTS.
 	
-	The benefit of using ID together with ordered enumeration is less clear. Ordered enumeration with ID performs much better in \ref{fig:i-75-3-p}, a setting with more obstacles and more teams, but ordered enumeration without ID on the other hand is superior in an open setting with a single team (\ref{fig:i-25-1-p}). The overhead associated with the various planning and merging steps (see Algorithm \ref{id-algo}) could be the cause the slowdown observed once $M$ grows large (\ref{fig:i-25-1-p},\ref{fig:i-75-1-p}); once the upper bound is tightened, ICTs only have to be searched shallowly so there is no point in going through the steps of ID. This explains why no speedup is seen, as between ICTS-m and ICTS-m+ID. Another factor is that if all agents belong to the same team, it is unlikely that there will be a significant benefit to using ID, as agents from the same team planned independently often route to the same goal.
+	The benefit of using ID together with ordered enumeration is not clear. Ordered enumeration with ID performs much better in \ref{fig:i-75-3-p}, a setting with more obstacles and more teams, but ordered enumeration without ID on the other hand is superior in an open setting with a single team (\ref{fig:i-25-1-p}). The overhead associated with the various planning and merging steps (see Algorithm \ref{id-algo}) could be the cause of the slowdown observed once $M$ grows large (\ref{fig:i-25-1-p},\ref{fig:i-75-1-p}); once the upper-bound is tightened, ICTs only have to be searched shallowly so there is no point in going through the steps of ID. This explains why no speedup is seen, as between ICTS-m and ICTS-m+ID. Another factor is that if all agents belong to the same team, it is unlikely that there will be a significant benefit to using ID, as agents from the same team planned independently often route to the same goal.
 	
 	\subsection{Experiment 2: Algorithms for MAPFM}
 	From the variants discussed and compared above, the Exh+E+B+O variant was selected for comparison with various other algorithms for MAPFM. This results in the following set of algorithms whose performance is shown in Figure \ref{fig:r-probs}.
@@ -549,7 +551,7 @@
 	%Given that simple pruning is somewhat cheap computationally, it might also be possible to prune the child generation using simple child pruning but still use enhanced pruning to decide whether to execute $k$-agent low-level search, combining the benefits of searching a smaller ICT and performing fewer $k$-agent searches.
 	
 	\section{Reproducibility}
-	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository.\footnote{\url{https://github.com/tbvanderwoude/icts-m}} Included is also code for benchmarking different configurations of the ICTS solver and the maps that were used in the benchmarks reported above. The benchmarks and maps used in the relative comparison of MAPFM algorithms are also available in the code and data repository of \cite{donszelmann2021}.\footnote{\url{https://github.com/jonay2000/research-project}}
+	The implementation of the ICTS-based algorithms described in this work is publicly available online in the form of a Github repository.\footnote{\url{https://github.com/tbvanderwoude/icts-m}} Included is also code for benchmarking different configurations of the ICTS solver and the instances that were used in the benchmarks reported above. The benchmarks and instances used in the relative comparison of MAPFM algorithms are also available in the code and data repository of \cite{donszelmann2021}.\footnote{\url{https://github.com/jonay2000/research-project}}
 	
 	\printbibliography
 	\newpage
@@ -558,28 +560,28 @@
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-1}
-			\caption{25\% wall, one team}
+			\caption{25\% wall, one team.}
 			\label{fig:i-25-1}
 		\end{subfigure}
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/25-3}
-			\caption{25\% wall, three teams}
+			\caption{25\% wall, three teams.}
 			\label{fig:i-25-3}
 		\end{subfigure}
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-1}
-			\caption{75\% wall, one team}
+			\caption{75\% wall, one team.}
 			\label{fig:i-75-1}
 		\end{subfigure}
 		\begin{subfigure}{\graphwidth}
 			\centering
 			\includegraphics[width=\linewidth]{img/results/icts-comparison/75-3}
-			\caption{75\% wall, three teams}
+			\caption{75\% wall, three teams.}
 			\label{fig:i-75-3}
 		\end{subfigure}
-		\caption{Average solving time of different ICTS-based algorithms with a timeout of 120s}
+		\caption{Average solving time of different ICTS-based algorithms with a timeout of 120s.}
 		\label{fig:i-times}
 	\end{figure*}
 	\begin{figure*}[b]
@@ -608,7 +610,7 @@
 			\caption{75\% wall, three teams}
 			\label{fig:r-75-3}
 		\end{subfigure}
-		\caption{Average solving time of MAPFM algorithms with a timeout of 120s}
+		\caption{Average solving time of MAPFM algorithms with a timeout of 120s.}
 		\label{fig:r-times}
 	\end{figure*}
 	
