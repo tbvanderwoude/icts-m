@@ -65,7 +65,7 @@
 			\label{fig:conflictsb}
 		\end{minipage}
 		\vspace{-10pt}
-		\caption{Two types of conflict between agents from \cite{stern2019}.}\label{fig:conflicts}
+		\caption{Two types of conflicts between agents from \cite{stern2019}.}\label{fig:conflicts}
 	\end{wrapfigure}
 	Ma and Koenig \cite{ma2016} formulate the joint problem of finding the optimal makespan solution across all possible matchings as the combined target-assignment and pathfinding (TAPF) problem. They also present the Conflict-Based Min-Cost-Flow (CBM) algorithm for solving TAPF. 
 	In CBM, the Meta-Agent variant of CBS \cite{sharon2015} is used as a high-level search framework; in the low-level search, single teams are planned in polynomial time as constrained anonymous MAPF instances using a max-flow approach \cite{yu2013}. The experimental results reported in \cite{ma2016} indicate that CBM scales well as the number of agents and the sizes of teams increase; although in addition to grid instances with 10\% of tiles being blocked, Kiva \cite{wurman2007} instances are also solved, it remains to be seen how CBM performs in scenarios with more obstacles and more maze-like scenarios such as the Moving AI maps \cite{sturtevant2012}.
@@ -115,35 +115,39 @@
 	\label{mapfm}
 
 	
-	A MAPF instance can be defined as follows. Let $G = (V,E)$ be an undirected graph, with each $v\in V$ representing an obstacle-free tile on a 4-connected grid and each $e = (u,v)\in E$ representing a legal move between two such tiles. Let there be $k$ agents $a_1,\ldots,a_k$ with starting locations $s_1,\ldots,s_k$ and goals $g_1,\ldots,g_k$. For each agent $a_i$, a path $\pi_i$ from $s_i$ to $g_i$ is to be found such that all agents' paths $\pi_i$ taken together are non-conflicting and therefore are a solution. In this work, non-conflicting means, in the conflict-terminology of \cite{stern2019}, that there are no vertex conflicts and no edge conflicts, as shown in Figure \ref{fig:conflicts}. Letting $\pi_i^t$ denote the $t$'th node of path $\pi_i$, this means that for $i\neq j$, for all $t$, $\pi_i^t\neq \pi_j^t$ and $(\pi_i^t \neq \pi_j^{t + 1})\lor(\pi_i^{t+1} \neq \pi_j^t)$. To achieve this, each agent $a_i$ may also wait ($\pi_i^t = \pi_i^{t+1}$) instead of moving to a grid neighbor. Given a solution $(\pi_1,\ldots,\pi_k)$, a vector of per-agent costs $(c_1,\ldots,c_k)$ can be found. For $\pi_i$, $c_i$ is defined as the time at which $a_i$ reaches $g_i$ for the last time, meaning that for $t \geq c_i$, $\pi_i^{t} = g_i$. 
-	For each $c_i$, $c_i \geq c^*_i$ where $c^*_i$ is defined as the cost of a shortest path from $s_i$ to $g_i$. 
+	A MAPF instance can be defined as follows. Let $G = (V,E)$ be an undirected graph, with each $v\in V$ representing an obstacle-free tile on a 4-connected grid and each $e = (u,v)\in E$ representing a legal move between two such tiles. Let there be $k$ agents $a_1,\ldots,a_k$ with starting locations $s_1,\ldots,s_k$ and goals $g_1,\ldots,g_k$. For each agent $a_i$, a path $\pi_i$ from $s_i$ to $g_i$ is to be found such that all agents' paths $\pi_i$ taken together are non-conflicting and therefore are a solution. In this work, non-conflicting means, in the conflict-terminology of \cite{stern2019}, that there are no vertex conflicts and no edge conflicts, as shown in Figure \ref{fig:conflicts}. Letting $\pi_i^t$ denote the $t$'th node of path $\pi_i$, this means that for $i\neq j$, for all $t$, $\pi_i^t\neq \pi_j^t$ and $(\pi_i^t \neq \pi_j^{t + 1})\lor(\pi_i^{t+1} \neq \pi_j^t)$. To achieve this, each agent $a_i$ may wait during any time step $t$ so that $\pi_i^t = \pi_i^{t+1}$ instead of moving to a grid neighbor. Given a solution $(\pi_1,\ldots,\pi_k)$, a vector of per-agent costs $(c_1,\ldots,c_k)$ can be found. For $\pi_i$, $c_i$ is defined as the time at which $a_i$ reaches $g_i$ for the last time, meaning that for $t \geq c_i$, $\pi_i^{t} = g_i$. 
+	For each $c_i$, $c_i \geq c^*_i$ where $c^*_i$ is defined as the cost of a shortest path from $s_i$ to $g_i$.
+	
+		 \begin{wrapfigure}[9]{r}{.35\textwidth}
+		\vspace{-10pt}
+		\centering
+		\includegraphics[width=\linewidth]{img/symmetries}
+		\caption{Symmetric paths on a 4-connected grid \cite{harabor2010}.}
+		\label{fig:symmetries}
+	\end{wrapfigure} 
 	\subsection{Objectives for MAPF}
-	 
+
 	Using the established terminology, the two common objectives for MAPF can be restated as follows:
+
 	\begin{itemize}
 		\item Makespan: $\max_{i} c_i$
 		\item Sum of individual costs (SIC): $\sum_i c_i$
 	\end{itemize}
 	In this work, an optimal solution is defined as having minimal SIC.
 	
-	\begin{wrapfigure}[10]{R}{.35\textwidth}
-		\vspace{-10pt}
-		\centering
-		\includegraphics[width=\linewidth]{img/symmetries}
-		\caption{Symmetric paths on a 4-connected grid \cite{harabor2010}.}
-		\label{fig:symmetries}
-	\end{wrapfigure}
+
 	The mapping from $(\pi_1,\ldots,\pi_k)$ to a SIC is surjective: many cost vectors $(c'_1,\ldots,c'_k)$ might add up to the same SIC as $(c_1,\ldots,c_k)$ and for a given agent $a_i$, there might be many equivalent paths $\pi'_i$ to the goal with cost $c_i$. On uniform-cost 4-grids in particular, there are often many equivalent and symmetrical paths \cite{harabor2010} (see Figure \ref{fig:symmetries}), which is why in single-agent pathfinding, symmetry-breaking methods such as Jump Point Search \cite{harabor2011} are used to speed up the search. In multi-agent pathfinding, having multiple paths per agent of the same cost can, in contrast, be a boon: it means that there are potentially more non-conflicting ways to combine paths of different agents.
 	
 	\subsection{Extending MAPF with matching}
-	With the multi-agent pathfinding problem defined, the matching extension of MAPF (MAPFM) that is the subject of this work can be described.
+	With the multi-agent pathfinding problem defined, the MAPFM problem that is the subject of this work can be described as an extension of MAPF.
 	
 	Let there be $K$ teams $t_1,\ldots, t_K$, where $t_i$ consists of $k_i$ agents with start positions $s_1^i,\ldots,s_{k_i}^i$ together with an equal number of team goals $g_1^i,\ldots,g_{k_i}^i$. Within each team $t_i$, agents $a_j^i$ are to be \textit{matched} to a unique goal $g_k^i$, so that exactly one agent is assigned to each goal within team $i$; once all agents are matched with goals, for each agent $a_j^i$ matched with $g_k^i$, a path from $s_j^i$ to $g_k^i$ is to be found such that all agents' paths taken together are non-conflicting and therefore make up a solution, similarly defined as for MAPF.
 	
-	As discussed in \cite{ma2016}, MAPFM generalizes both MAPF and anonymous MAPF, which is MAPF allowing an agent to move to any goal, a problem that can be solved in polynomial time.
+	MAPFM, being TAPF with a SIC objective, generalizes both MAPF and anonymous MAPF \cite{ma2016}, which is MAPF allowing an agent to move to any goal, a problem that can be solved in polynomial time.
+	
 	\section{Solving MAPF with Matching using ICTS} % Your contribution
 	\label{section:icts-matching}
-	In this section, taking ICTS for MAPF as a starting point, two methods to use ICTS for MAPFM are described. The first method relies on a reduction from MAPFM to repeated MAPF: an optimal solution to MAPFM corresponds to a matching of agents to goals, so by exhaustively enumerating all matchings and solving these as MAPF instances, an optimal solution to the MAPFM instance can be found. In the second method, the ICT search itself is modified to allow an agent $a_j^i$ to be matched to any $g_k^i$.
+	In this section, taking ICTS for MAPF as a starting point, two methods to use ICTS to solve MAPFM are described. The first method relies on a reduction from MAPFM to repeated MAPF: an optimal solution to MAPFM corresponds to a matching of agents to goals, so by exhaustively enumerating all matchings and solving these as MAPF instances, an optimal solution to the MAPFM instance can be found. In the second method, the ICT search itself is modified to allow an agent $a_j^i$ to be matched to any $g_k^i$.
 	\subsection{Increasing Cost Tree Search}
 	\label{icts}
 	In Increasing Cost Tree Search \cite{sharon2013}, the two-step mapping from path combination to SIC described in Section \ref{mapfm} is reversed to search for a solution with minimal SIC. This is done by searching for cost vectors corresponding to increasing SIC at the top level and searching for non-conflicting path combinations (solutions) for each cost vector at the bottom level. 
