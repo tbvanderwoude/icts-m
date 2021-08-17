@@ -6,7 +6,7 @@ from problem import Problem
 from solver import solve_problem
 
 def evaluate(node: BBNode):
-    return node.lower_bound + node.__hash__() % 1000
+    return node.lower_bound + node.__hash__() % 100
 
 def branch_and_bound(costs,root: BBNode) -> List[Tuple[int, int]]:
     ls: List[BBNode] = [root]
@@ -19,7 +19,7 @@ def branch_and_bound(costs,root: BBNode) -> List[Tuple[int, int]]:
             seen.add(n)
             if n.is_leaf():
                 c = evaluate(n)
-                print("Leaf node with lower-bound {} evaluated to {}".format(n.lower_bound,c))
+                print("Leaf node with lower-bound {} evaluated to {} (current upper: {})".format(n.lower_bound,c,min_cost))
                 if not min_cost or c < min_cost:
                     min_cost = c
                 # return list(map(lambda loc: expand_location(loc), n.get_directions()))
@@ -36,13 +36,15 @@ def branch_and_bound(costs,root: BBNode) -> List[Tuple[int, int]]:
 
 if __name__ == "__main__":
     costs = [
-        [90, 80, 75, 70],
-        [35, 85, 55, 65],
-        [125, 95, 90, 95],
-        [45, 110, 95, 115],
+        [90, 80, 75, 70,10,30],
+        [35, 85, 55, 65,50,10],
+        [125, 95, 90, 95,30,15],
+        [45, 110, 180, 115,20,30],
+        [50, 120, 95, 115, 10,5],
+        [5, 20, 5, 15, 100,15],
     ]
-    team_id = [0, 0, 0, 0]
-    team_tasks = [{0, 1, 2,3}]
+    team_id = [0, 0, 0, 0,0,0]
+    team_tasks = [{0, 1, 2,3,4,5}]
     problem = Problem(team_id, team_tasks, len(team_tasks), len(costs), len(costs[0]))
     root_cost = solve_problem(costs,problem)
     root = BBNode(None,problem,root_cost)
