@@ -6,9 +6,9 @@ from problem import Problem
 from solver import solve_problem
 
 def evaluate(node: BBNode):
-    return node.lower_bound + node.__hash__() % 400
+    return node.lower_bound + node.__hash__() % 1000
 
-def astar(costs,root: BBNode) -> List[Tuple[int, int]]:
+def branch_and_bound(costs,root: BBNode) -> List[Tuple[int, int]]:
     ls: List[BBNode] = [root]
     heapq.heapify(ls)
     seen: Set[BBNode] = set()
@@ -24,9 +24,13 @@ def astar(costs,root: BBNode) -> List[Tuple[int, int]]:
                     min_cost = c
                 # return list(map(lambda loc: expand_location(loc), n.get_directions()))
             else:
-                for sub_problem in n.problem.generate_subproblems():
-                    sub_cost = solve_problem(costs,sub_problem)
-                    heapq.heappush(ls, BBNode(n, sub_problem, sub_cost))
+                children = n.problem.generate_subproblems()
+                if len(children) == 1:
+                    heapq.heappush(ls, BBNode(n, children[0], n.lower_bound))
+                else:
+                    for sub_problem in n.problem.generate_subproblems():
+                        sub_cost = solve_problem(costs,sub_problem)
+                        heapq.heappush(ls, BBNode(n, sub_problem, sub_cost))
     return []
 
 
@@ -42,7 +46,7 @@ if __name__ == "__main__":
     problem = Problem(team_id, team_tasks, len(team_tasks), len(costs), len(costs[0]))
     root_cost = solve_problem(costs,problem)
     root = BBNode(None,problem,root_cost)
-    astar(costs,root)
+    branch_and_bound(costs,root)
     # solve_problem(costs, problem)
     # for subproblem in problem.generate_subproblems():
     #     print(subproblem)
