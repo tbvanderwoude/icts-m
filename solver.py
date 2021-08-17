@@ -3,41 +3,35 @@ from typing import Optional
 from ortools.linear_solver import pywraplp
 
 from problem import Problem
-
-solver = pywraplp.Solver.CreateSolver('SCIP')
-
+from ortools.graph import pywrapgraph
 from ortools.linear_solver import pywraplp
 
 def solve_problem(costs, problem: Problem) -> int:
-    x = {}
-    for i in range(problem.num_workers):
-        for j in range(problem.num_tasks):
-            x[i, j] = solver.IntVar(0, 1, '')
-    # Each worker is assigned to exactly 1 task.
-    for i in range(problem.num_workers):
-        solver.Add(solver.Sum([x[i, j] for j in problem.team_tasks[problem.team_ids[i]]]) == 1)
+    # x = {}
+    rows = len(costs)
+    cols = len(costs[0])
 
-    # Each task is assigned to exactly one worker.
-    for j in range(problem.num_tasks):
-        solver.Add(solver.Sum([x[i, j] for i in range(problem.num_workers)]) == 1)
-
-    objective_terms = []
-    for i in range(problem.num_workers):
-        for j in range(problem.num_tasks):
-            objective_terms.append(costs[i][j] * x[i, j])
-    solver.Minimize(solver.Sum(objective_terms))
-
-    status = solver.Solve()
-    if status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE:
-        total_cost = solver.Objective().Value()
-        # print('Total cost = ', total_cost, '\n')
-        # for i in range(problem.num_workers):
-        #     for j in range(problem.num_tasks):
-        #         # Test if x[i,j] is 1 (with tolerance for floating point arithmetic).
-        #         if x[i, j].solution_value() > 0.5:
-        #             print('Worker %d assigned to task %d.  Cost = %d' %
-        #                   (i, j, costs[i][j]))
+    assignment = pywrapgraph.LinearSumAssignment()
+    for worker in range(rows):
+        for task in problem.team_tasks[problem.team_ids[worker]]:
+            if costs[worker][task]:
+                assignment.AddArcWithCost(worker, task, costs[worker][task])
+    solve_status = assignment.Solve()
+    if solve_status == pywraplp.Solver.OPTIMAL:
+        total_cost = assignment.OptimalCost()
+        # print('Total cost = ', assignment.OptimalCost())
+        # print()
+        # for i in range(0, assignment.NumNodes()):
+        #     print('Worker %d assigned to task %d.  Cost = %d' % (
+        #         i,
+        #         assignment.RightMate(i),
+        #         assignment.AssignmentCost(i)))
         return total_cost
+    elif solve_status == assignment.INFEASIBLE:
+        print('No assignment is possible.')
+    elif solve_status == assignment.POSSIBLE_OVERFLOW:
+        print('Some input costs are too large and may cause an integer overflow.')
+
 
 
 if __name__ == "__main__":

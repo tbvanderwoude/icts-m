@@ -6,7 +6,7 @@ from problem import Problem
 from solver import solve_problem
 
 def evaluate(node: BBNode):
-    return node.lower_bound + node.__hash__() % 100
+    return node.lower_bound + node.__hash__() % 10000
 
 def branch_and_bound(costs,root: BBNode) -> List[Tuple[int, int]]:
     ls: List[BBNode] = [root]
