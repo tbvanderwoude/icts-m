@@ -8,7 +8,7 @@ solver = pywraplp.Solver.CreateSolver('SCIP')
 
 from ortools.linear_solver import pywraplp
 
-def solve_problem(costs, problem: Problem):
+def solve_problem(costs, problem: Problem) -> int:
     x = {}
     for i in range(problem.num_workers):
         for j in range(problem.num_tasks):
@@ -29,36 +29,16 @@ def solve_problem(costs, problem: Problem):
 
     status = solver.Solve()
     if status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.FEASIBLE:
-        print('Total cost = ', solver.Objective().Value(), '\n')
-        for i in range(problem.num_workers):
-            for j in range(problem.num_tasks):
-                # Test if x[i,j] is 1 (with tolerance for floating point arithmetic).
-                if x[i, j].solution_value() > 0.5:
-                    print('Worker %d assigned to task %d.  Cost = %d' %
-                          (i, j, costs[i][j]))
+        total_cost = solver.Objective().Value()
+        # print('Total cost = ', total_cost, '\n')
+        # for i in range(problem.num_workers):
+        #     for j in range(problem.num_tasks):
+        #         # Test if x[i,j] is 1 (with tolerance for floating point arithmetic).
+        #         if x[i, j].solution_value() > 0.5:
+        #             print('Worker %d assigned to task %d.  Cost = %d' %
+        #                   (i, j, costs[i][j]))
+        return total_cost
 
-
-# class BBNode(object):
-#     def __init__(self):
-#         self.parent: Optional[BBNode] =
-#         self.bound: int =
-#
-#     def __hash__(self):
-#         return hash(self.loc)
-#
-#     def is_root(self):
-#         return self.parent is None
-#
-#     def is_goal(self, goal: CompactLocation) -> bool:
-#         return self.loc == goal
-#
-#     def get_directions(self):
-#         if self.is_root():
-#             return [self.loc]
-#         else:
-#             par_dirs = self.parent.get_directions()
-#             par_dirs.append(self.loc)
-#             return par_dirs
 
 if __name__ == "__main__":
     costs = [
@@ -68,6 +48,9 @@ if __name__ == "__main__":
         [45, 110, 95, 115],
     ]
     team_id = [0, 0, 1, 2]
-    team_tasks = [{0, 1}, {2}, {3}]
-    problem = Problem(team_id, 3,team_tasks, 4, 4)
+    team_tasks = [{0, 1}, {2},{3}]
+    problem = Problem(team_id, team_tasks, 3, 4, 4)
     solve_problem(costs, problem)
+    for subproblem in problem.generate_subproblems():
+        print(subproblem)
+        solve_problem(costs, subproblem)
