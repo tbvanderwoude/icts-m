@@ -3,3 +3,4 @@ matplotlib==3.3.4
 graphviz==0.16
 requests==2.25.1
 mapfmclient==0.2.5
+hungarian-algorithm==0.1.11
