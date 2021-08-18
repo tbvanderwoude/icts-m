@@ -8,29 +8,35 @@ from ictsm.maze import Maze
 from branch_and_bound.bbnode import BBNode
 from branch_and_bound.assignment_solver import solve_problem
 from ictsm.compact_location import MarkedCompactLocation, compact_location
+from branch_and_bound.assignment_problem import AssignmentProblem
 
 
 def evaluate(node: BBNode):
     return node.lower_bound + node.__hash__() % 100
 
 def solve_bb(problem: Problem):
-    print(problem)
-    print(problem.starts)
+    # translates MAPFM problem to assignment problem (relaxation
     k = len(problem.starts)
     costs = [[0 for j in range(k)] for i in range(k)]
-    # paths: List[List[Tuple[int, int]]] = []
+    # makes sure that the K teams are numbered without gaps as 0...(K-1)
+    reverse_map = enumerate(sorted(set(map(lambda x: x.color, problem.starts))))
+    color_map = dict([(sub[1], sub[0]) for sub in reverse_map])
+    K = len(color_map)
+    print(color_map)
+    print("There are {} agents in {} teams".format(k,K))
     agents: List[MarkedCompactLocation] = list(
         map(
-            lambda marked: (compact_location(marked.x, marked.y), marked.color),
+            lambda marked: (compact_location(marked.x, marked.y), color_map[marked.color]),
             problem.starts,
         )
     )
     goals: List[MarkedCompactLocation] = list(
         map(
-            lambda marked: (compact_location(marked.x, marked.y), marked.color),
+            lambda marked: (compact_location(marked.x, marked.y), color_map[marked.color]),
             problem.goals,
         )
     )
+    print(agents,goals)
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
     for (i,(al,ac)) in enumerate(agents):
         for (j,(gl,gc)) in enumerate(goals):
@@ -38,9 +44,7 @@ def solve_bb(problem: Problem):
                 shortest_path = astar(maze, al, gl)
                 c = len(shortest_path) - 1
                 costs[i][j] = c
-
     print(costs)
-    return None
     # costs = [
     #     [90, 80, 75, 70, 10, 30],
     #     [35, 85, 55, 65, 50, 10],
@@ -49,13 +53,15 @@ def solve_bb(problem: Problem):
     #     [50, 120, 95, 115, 10, 5],
     #     [5, 20, 5, 15, 100, 15],
     # ]
-    # team_id = [0, 0, 0, 0, 0, 0]
-    # team_tasks = [{0, 1, 2, 3, 4, 5}]
+    team_id = [x[1] for x in agents]
+    team_tasks =dict([(team, set([g[0] for g in enumerate(goals) if g[1][1] == team])) for team in range(K)])
 
-    # problem = Problem(team_id, team_tasks, len(team_tasks), len(costs), len(costs[0]))
-    # root_cost = solve_problem(costs, problem)
-    # root = BBNode(None, problem, root_cost)
-    #
+    print(team_id,team_tasks)
+    root_problem = AssignmentProblem(team_id, team_tasks, K, k, k)
+    root_cost = solve_problem(costs, root_problem)
+    root = BBNode(None, root_problem, root_cost)
+    print(root_cost)
+    return None
     # ls: List[BBNode] = [root]
     # heapq.heapify(ls)
     # seen: Set[BBNode] = set()
@@ -83,18 +89,18 @@ def solve_bb(problem: Problem):
     # return []
 
 
-if __name__ == "__main__":
-    costs = [
-        [90, 80, 75, 70, 10, 30],
-        [35, 85, 55, 65, 50, 10],
-        [125, 95, 90, 95, 30, 15],
-        [45, 110, 180, 115, 20, 30],
-        [50, 120, 95, 115, 10, 5],
-        [5, 20, 5, 15, 100, 15],
-    ]
-    team_id = [0, 0, 0, 0, 0, 0]
-    team_tasks = [{0, 1, 2, 3, 4, 5}]
-    problem = Problem(team_id, team_tasks, len(team_tasks), len(costs), len(costs[0]))
-    root_cost = solve_problem(costs, problem)
-    root = BBNode(None, problem, root_cost)
-    branch_and_bound(costs, root)
+# if __name__ == "__main__":
+#     costs = [
+#         [90, 80, 75, 70, 10, 30],
+#         [35, 85, 55, 65, 50, 10],
+#         [125, 95, 90, 95, 30, 15],
+#         [45, 110, 180, 115, 20, 30],
+#         [50, 120, 95, 115, 10, 5],
+#         [5, 20, 5, 15, 100, 15],
+#     ]
+#     team_id = [0, 0, 0, 0, 0, 0]
+#     team_tasks = [{0, 1, 2, 3, 4, 5}]
+#     problem = AssignmentProblem(team_id, team_tasks, K, len(costs), len(costs[0]))
+#     root_cost = solve_problem(costs, problem)
+#     root = BBNode(None, problem, root_cost)
+#     branch_and_bound(costs, root)

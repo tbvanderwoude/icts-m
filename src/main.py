@@ -15,7 +15,7 @@ def run_custom(token, p_id):
     )
     assert r.status_code == 200, print(r.content)
     j = r.json()
-    print(j)
+    # print(j)
     problem_json = j
     problem = Problem(
         problem_json["grid"],
