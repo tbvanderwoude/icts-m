@@ -2,7 +2,7 @@ from copy import copy, deepcopy
 from typing import Optional
 from ortools.linear_solver import pywraplp
 
-from assignment_problem import AssignmentProblem
+from .assignment_problem import AssignmentProblem
 from ortools.graph import pywrapgraph
 from ortools.linear_solver import pywraplp
 

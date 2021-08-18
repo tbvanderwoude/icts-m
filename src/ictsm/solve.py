@@ -9,7 +9,6 @@ from .solver_config import SolverConfig
 def solve_api(problem: Problem) -> Solution:
     return solve(problem)[0]
 
-
 def solve_api_enum(problem: Problem) -> Solution:
     print(problem)
     return solve_enum_sorted(problem)[0]

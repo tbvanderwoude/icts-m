@@ -3,14 +3,43 @@ from typing import List, Tuple, Set
 
 from mapfmclient import Problem
 
-from bbnode import BBNode
-from assignment_solver import solve_problem
+from ictsm.astar import astar
+from ictsm.maze import Maze
+from branch_and_bound.bbnode import BBNode
+from branch_and_bound.assignment_solver import solve_problem
+from ictsm.compact_location import MarkedCompactLocation, compact_location
+
 
 def evaluate(node: BBNode):
     return node.lower_bound + node.__hash__() % 100
 
 def solve_bb(problem: Problem):
     print(problem)
+    print(problem.starts)
+    k = len(problem.starts)
+    costs = [[0 for j in range(k)] for i in range(k)]
+    # paths: List[List[Tuple[int, int]]] = []
+    agents: List[MarkedCompactLocation] = list(
+        map(
+            lambda marked: (compact_location(marked.x, marked.y), marked.color),
+            problem.starts,
+        )
+    )
+    goals: List[MarkedCompactLocation] = list(
+        map(
+            lambda marked: (compact_location(marked.x, marked.y), marked.color),
+            problem.goals,
+        )
+    )
+    maze: Maze = Maze(problem.grid, problem.width, problem.height)
+    for (i,(al,ac)) in enumerate(agents):
+        for (j,(gl,gc)) in enumerate(goals):
+            if ac == gc:
+                shortest_path = astar(maze, al, gl)
+                c = len(shortest_path) - 1
+                costs[i][j] = c
+
+    print(costs)
     return None
     # costs = [
     #     [90, 80, 75, 70, 10, 30],

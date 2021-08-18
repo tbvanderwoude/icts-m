@@ -1,11 +1,10 @@
 import sys
 
-from pprint import pprint
-
 import requests
 from mapfmclient import MapfBenchmarker, Problem, MarkedLocation
 
-from ictsm.solve import solve, solve_api, solve_api_enum
+from bbsolver import solve_bb
+from ictsm.solve import solve_api, solve_api_enum
 
 
 def run_custom(token, p_id):
@@ -25,8 +24,8 @@ def run_custom(token, p_id):
         [MarkedLocation.from_dict(i) for i in problem_json["starts"]],
         [MarkedLocation.from_dict(i) for i in problem_json["goals"]],
     )
-    solution = solve_api(problem)
-    pprint(solution.serialize())
+    solution = solve_bb(problem)
+    # pprint(solution.serialize())
 
 
 def str_to_bool(s):

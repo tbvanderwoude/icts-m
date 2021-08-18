@@ -1,6 +1,6 @@
 from typing import Optional
 
-from assignment_problem import AssignmentProblem
+from .assignment_problem import AssignmentProblem
 
 
 class BBNode(object):
