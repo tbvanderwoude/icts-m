@@ -2,11 +2,11 @@ from copy import copy, deepcopy
 from typing import Optional
 from ortools.linear_solver import pywraplp
 
-from problem import Problem
+from assignment_problem import AssignmentProblem
 from ortools.graph import pywrapgraph
 from ortools.linear_solver import pywraplp
 
-def solve_problem(costs, problem: Problem) -> int:
+def solve_problem(costs, problem: AssignmentProblem) -> int:
     # x = {}
     rows = len(costs)
     cols = len(costs[0])
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     ]
     team_id = [0, 0, 1, 2]
     team_tasks = [{0, 1}, {2},{3}]
-    problem = Problem(team_id, team_tasks, 3, 4, 4)
+    problem = AssignmentProblem(team_id, team_tasks, 3, 4, 4)
     solve_problem(costs, problem)
     for subproblem in problem.generate_subproblems():
         print(subproblem)

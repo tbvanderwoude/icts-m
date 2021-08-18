@@ -11,6 +11,7 @@ def solve_api(problem: Problem) -> Solution:
 
 
 def solve_api_enum(problem: Problem) -> Solution:
+    print(problem)
     return solve_enum_sorted(problem)[0]
 
 def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int,Optional[int]]:

@@ -1,12 +1,12 @@
 from typing import Optional
 
-from problem import Problem
+from assignment_problem import AssignmentProblem
 
 
 class BBNode(object):
-    def __init__(self, parent, problem: Problem, lower_bound: int):
+    def __init__(self, parent, problem: AssignmentProblem, lower_bound: int):
         self.parent: Optional[BBNode] = parent
-        self.problem: Problem = problem
+        self.problem: AssignmentProblem = problem
         self.lower_bound: int = lower_bound
         self.children = None
 

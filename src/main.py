@@ -11,12 +11,13 @@ from ictsm.solve import solve, solve_api, solve_api_enum
 def run_custom(token, p_id):
     headers = {"X-API-Token": token}
     data = {"algorithm": "ICTS", "version": "0.2.2", "debug": True}
-    r = requests.post(
+    r = requests.get(
         "https://mapf.nl/api/benchmark/{}".format(p_id), headers=headers, json=data
     )
     assert r.status_code == 200, print(r.content)
     j = r.json()
-    problem_json = j["problems"][0]
+    print(j)
+    problem_json = j
     problem = Problem(
         problem_json["grid"],
         problem_json["width"],
@@ -24,7 +25,7 @@ def run_custom(token, p_id):
         [MarkedLocation.from_dict(i) for i in problem_json["starts"]],
         [MarkedLocation.from_dict(i) for i in problem_json["goals"]],
     )
-    solution = solve(problem)
+    solution = solve_api(problem)
     pprint(solution.serialize())
 
 

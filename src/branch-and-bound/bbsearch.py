@@ -2,8 +2,8 @@ import heapq
 from typing import List, Tuple, Set
 
 from bbnode import BBNode
-from problem import Problem
-from solver import solve_problem
+from assignment_problem import AssignmentProblem
+from assignment_solver import solve_problem
 
 
 def evaluate(node: BBNode):
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     ]
     team_id = [0, 0, 0, 0, 0, 0]
     team_tasks = [{0, 1, 2, 3, 4, 5}]
-    problem = Problem(team_id, team_tasks, len(team_tasks), len(costs), len(costs[0]))
+    problem = AssignmentProblem(team_id, team_tasks, len(team_tasks), len(costs), len(costs[0]))
     root_cost = solve_problem(costs, problem)
     root = BBNode(None, problem, root_cost)
     branch_and_bound(costs, root)
