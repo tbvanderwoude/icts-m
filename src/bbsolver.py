@@ -1,14 +1,16 @@
 import heapq
 from typing import List, Tuple, Set, Generator
 
-from mapfmclient import Problem
+from mapfmclient import Problem, Solution
 
 from ictsm.astar import astar
 from ictsm.maze import Maze
 from branch_and_bound.bbnode import BBNode
 from branch_and_bound.assignment_solver import solve_problem
-from ictsm.compact_location import MarkedCompactLocation, compact_location
+from ictsm.compact_location import MarkedCompactLocation, compact_location, expand_location
 from branch_and_bound.assignment_problem import AssignmentProblem
+from ictsm.solver import Solver
+from ictsm.solver_config import SolverConfig
 
 
 def evaluate(node: BBNode):
@@ -26,7 +28,7 @@ def murty_gen(costs, root):
                 # c = evaluate(n)
                 # print("{} Leaf node with lower-bound {} evaluated to {} (current upper: {})".format(index,n.lower_bound, c,
                 #                                                                                  min_cost))
-                yield n;
+                yield n
                 # index+=1
                 # if not min_cost or c < min_cost:
                 #     min_cost = c
@@ -39,16 +41,18 @@ def murty_gen(costs, root):
                         sub_cost = solve_problem(costs, sub_problem)
                         heapq.heappush(ls, BBNode(n, sub_problem, sub_cost))
 
+def solve_bb_api(problem: Problem):
+    return solve_bb(problem)[0]
+
 def solve_bb(problem: Problem):
-    # translates MAPFM problem to assignment problem (relaxation
+    paths: List[List[Tuple[int, int]]] = []
+    # translates MAPFM problem to assignment problem (relaxation)
     k = len(problem.starts)
     costs = [[0 for _ in range(k)] for _ in range(k)]
     # makes sure that the K teams are numbered without gaps as 0...(K-1)
     reverse_map = enumerate(sorted(set(map(lambda x: x.color, problem.starts))))
     color_map = dict([(sub[1], sub[0]) for sub in reverse_map])
     K = len(color_map)
-    # print(color_map)
-    print("There are {} agents in {} teams".format(k,K))
     agents: List[MarkedCompactLocation] = list(
         map(
             lambda marked: (compact_location(marked.x, marked.y), color_map[marked.color]),
@@ -61,48 +65,70 @@ def solve_bb(problem: Problem):
             problem.goals,
         )
     )
-    # print(agents,goals)
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
+    print("Computing shortest paths")
     for (i,(al,ac)) in enumerate(agents):
         for (j,(gl,gc)) in enumerate(goals):
             if ac == gc:
                 shortest_path = astar(maze, al, gl)
                 c = len(shortest_path) - 1
                 costs[i][j] = c
-    # print(costs)
-    # costs = [
-    #     [90, 80, 75, 70, 10, 30],
-    #     [35, 85, 55, 65, 50, 10],
-    #     [125, 95, 90, 95, 30, 15],
-    #     [45, 110, 180, 115, 20, 30],
-    #     [50, 120, 95, 115, 10, 5],
-    #     [5, 20, 5, 15, 100, 15],
-    # ]
+
     team_id = [x[1] for x in agents]
     team_tasks =[set([g[0] for g in enumerate(goals) if g[1][1] == team]) for team in range(K)]
-
-    # print(team_id,team_tasks)
     root_problem = AssignmentProblem(team_id, team_tasks, K, k, k)
+    print("Computing BB root cost")
     root_cost = solve_problem(costs, root_problem)
     root = BBNode(None, root_problem, root_cost)
     matching_generator = murty_gen(costs, root)
+
+    matching_agents = list(map(lambda x: (x[1][0], x[0]), enumerate(agents)))
+    team_agent_indices = dict(map(lambda x: (x[0], {x[0]}), enumerate(agents)))
+    print("Creating solver")
+
+    config = SolverConfig(
+        combs=3,
+        prune=True,
+        enhanced=False,
+        pruned_child_gen=True,
+        id=True,
+        conflict_avoidance=True,
+        enumerative=True,
+        sort_matchings=True,
+        debug=False,
+        budget_search=True,
+    )
+    solver = Solver(config, problem)
+    min_sol = None
+    ub = -1
+    print("Generating bb nodes")
     for bb_node in matching_generator:
-        print(bb_node.problem.assignments,bb_node.lower_bound)
-    return None
-
-
-# if __name__ == "__main__":
-#     costs = [
-#         [90, 80, 75, 70, 10, 30],
-#         [35, 85, 55, 65, 50, 10],
-#         [125, 95, 90, 95, 30, 15],
-#         [45, 110, 180, 115, 20, 30],
-#         [50, 120, 95, 115, 10, 5],
-#         [5, 20, 5, 15, 100, 15],
-#     ]
-#     team_id = [0, 0, 0, 0, 0, 0]
-#     team_tasks = [{0, 1, 2, 3, 4, 5}]
-#     problem = AssignmentProblem(team_id, team_tasks, K, len(costs), len(costs[0]))
-#     root_cost = solve_problem(costs, problem)
-#     root = BBNode(None, problem, root_cost)
-#     branch_and_bound(costs, root)
+        if min_sol and bb_node.lower_bound >= min_sol.sic:
+            break
+        print(bb_node.problem.assignments,bb_node.lower_bound,ub)
+        team_goals = dict(map(lambda x: (x[0], {goals[x[1]][0]}), enumerate(bb_node.problem.assignments)))
+        sol = solver.solve_tapf_instance(matching_agents, team_agent_indices, team_goals)
+        if sol:
+            if not min_sol or min_sol.sic > sol.sic:
+                min_sol = sol
+                if solver.config.budget_search:
+                    ub = min_sol.sic
+                    solver.update_budget(min_sol.sic)
+    if min_sol:
+        # print("Min sol was found")
+        subsols = list(zip(*min_sol.solution))
+        # print(indices)
+        # indexed_subsols = list(enumerate(subsols))
+        # indexed_subsols.sort(key=lambda x: index_map[x[0]])
+        # print(indexed_subsols)
+        # print(indexed_subsols)
+        for (i, subsol) in enumerate(subsols):
+            paths.append(list(map(lambda loc: expand_location(loc), subsol)))
+        return (
+            Solution.from_paths(paths),
+            solver.ict_searcher.max_delta,
+            solver.max_k_solved,
+            min_sol.sic
+        )
+    else:
+        return None, solver.ict_searcher.max_delta, solver.max_k_solved, None

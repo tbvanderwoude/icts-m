@@ -3,7 +3,7 @@ import sys
 import requests
 from mapfmclient import MapfBenchmarker, Problem, MarkedLocation
 
-from bbsolver import solve_bb
+from bbsolver import solve_bb, solve_bb_api
 from ictsm.solve import solve_api, solve_api_enum
 
 
@@ -49,10 +49,10 @@ if __name__ == "__main__":
             benchmark = MapfBenchmarker(
                 token=token,
                 benchmark=p_id,
-                algorithm="ICTS (exhaustive with sorting)",
+                algorithm="ICTS (branch-and-bound)",
                 version="0.2.7",
                 debug=debug,
-                solver=solve_api_enum,
+                solver=solve_bb_api,
                 cores=8,
             )
             benchmark.run()

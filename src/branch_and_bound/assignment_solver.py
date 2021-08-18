@@ -14,8 +14,7 @@ def solve_problem(costs, problem: AssignmentProblem) -> int:
     assignment = pywrapgraph.LinearSumAssignment()
     for worker in range(rows):
         for task in problem.team_tasks[problem.team_ids[worker]]:
-            if costs[worker][task]:
-                assignment.AddArcWithCost(worker, task, costs[worker][task])
+            assignment.AddArcWithCost(worker, task, costs[worker][task])
     solve_status = assignment.Solve()
     if solve_status == pywraplp.Solver.OPTIMAL:
         total_cost = assignment.OptimalCost()

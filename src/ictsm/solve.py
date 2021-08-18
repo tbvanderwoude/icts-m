@@ -5,7 +5,6 @@ from mapfmclient import Problem, Solution
 from .solver import Solver
 from .solver_config import SolverConfig
 
-
 def solve_api(problem: Problem) -> Solution:
     return solve(problem)[0]
 
