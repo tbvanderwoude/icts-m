@@ -22,17 +22,7 @@ class BBNode(object):
     def __eq__(self, other) -> bool:
         return self.lower_bound == other.lower_bound
 
-    def __ne__(self, other) -> bool:
-        return self.lower_bound != other.lower_bound
-
-    def __ge__(self, other) -> bool:
-        return self.lower_bound >= other.lower_bound
-
     def __lt__(self, other) -> bool:
+        if self.lower_bound == other.lower_bound:
+            return len(self.problem.assignments) > len(other.problem.assignments)
         return self.lower_bound < other.lower_bound
-
-    def __gt__(self, other) -> bool:
-        return self.lower_bound > other.lower_bound
-
-    def __le__(self, other) -> bool:
-        return self.lower_bound <= other.lower_bound

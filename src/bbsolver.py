@@ -12,26 +12,16 @@ from branch_and_bound.assignment_problem import AssignmentProblem
 from ictsm.solver import Solver
 from ictsm.solver_config import SolverConfig
 
-
-def evaluate(node: BBNode):
-    return node.lower_bound + node.__hash__() % 100
-
 def murty_gen(costs, root):
     ls: List[BBNode] = [root]
     heapq.heapify(ls)
     seen: Set[BBNode] = set()
     while ls:
         n: BBNode = heapq.heappop(ls)
-        if n not in seen: # and (not min_cost or n.lower_bound < min_cost):
+        if n not in seen:
             seen.add(n)
             if n.is_leaf():
-                # c = evaluate(n)
-                # print("{} Leaf node with lower-bound {} evaluated to {} (current upper: {})".format(index,n.lower_bound, c,
-                #                                                                                  min_cost))
                 yield n
-                # index+=1
-                # if not min_cost or c < min_cost:
-                #     min_cost = c
             else:
                 children = n.problem.generate_subproblems()
                 if len(children) == 1:
@@ -40,6 +30,8 @@ def murty_gen(costs, root):
                     for sub_problem in n.problem.generate_subproblems():
                         sub_cost = solve_problem(costs, sub_problem)
                         heapq.heappush(ls, BBNode(n, sub_problem, sub_cost))
+        else:
+            print("Already seen?")
 
 def solve_bb_api(problem: Problem):
     return solve_bb(problem)[0]
@@ -103,9 +95,9 @@ def solve_bb(problem: Problem):
     ub = -1
     print("Generating bb nodes")
     for bb_node in matching_generator:
+        print(bb_node.problem.assignments,bb_node.lower_bound,ub)
         if min_sol and bb_node.lower_bound >= min_sol.sic:
             break
-        print(bb_node.problem.assignments,bb_node.lower_bound,ub)
         team_goals = dict(map(lambda x: (x[0], {goals[x[1]][0]}), enumerate(bb_node.problem.assignments)))
         sol = solver.solve_tapf_instance(matching_agents, team_agent_indices, team_goals)
         if sol:
@@ -115,13 +107,7 @@ def solve_bb(problem: Problem):
                     ub = min_sol.sic
                     solver.update_budget(min_sol.sic)
     if min_sol:
-        # print("Min sol was found")
         subsols = list(zip(*min_sol.solution))
-        # print(indices)
-        # indexed_subsols = list(enumerate(subsols))
-        # indexed_subsols.sort(key=lambda x: index_map[x[0]])
-        # print(indexed_subsols)
-        # print(indexed_subsols)
         for (i, subsol) in enumerate(subsols):
             paths.append(list(map(lambda loc: expand_location(loc), subsol)))
         return (
