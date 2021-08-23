@@ -126,6 +126,9 @@ class Solver:
         self.max_k_solved = 0
         self.path_cache = dict()
 
+    def call_stripped(self, problem: Problem, upper_bound: Optional[int]) -> Optional[Solution]:
+        return self(problem,upper_bound)[0]
+
     # Assumes that agents are sorted in increasing order of teams
     def __call__(self, problem: Problem, upper_bound: Optional[int]) -> Tuple[Optional[Solution], List[int], int, Optional[int]]:
         # Initialize solver with upper bound provided in call

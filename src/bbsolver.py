@@ -1,5 +1,5 @@
 import heapq
-from typing import List, Set
+from typing import List, Set, Optional, Callable
 
 from mapfmclient import Problem, Solution, MarkedLocation
 
@@ -13,6 +13,7 @@ from ictsm.solver import Solver
 from ictsm.solver_config import SolverConfig
 
 
+# Stand-alone generator of assignments in increasing order of cost
 def murty_gen(costs, root):
     ls: List[BBNode] = [root]
     heapq.heapify(ls)
@@ -36,9 +37,22 @@ def murty_gen(costs, root):
 
 
 def solve_bb_api(problem: Problem):
-    return solve_bb(problem)
+    config = SolverConfig(
+        combs=3,
+        prune=True,
+        enhanced=False,
+        pruned_child_gen=True,
+        id=True,
+        conflict_avoidance=True,
+        enumerative=True,
+        sort_matchings=True,
+        debug=False,
+        budget_search=True,
+    )
+    solver = Solver(config)
+    return solve_bb(problem,solver.call_stripped)
 
-
+# Constructs a branch-and-bound root node
 def create_root(agents, goals, costs, K, k) -> BBNode:
     team_id = [x[1] for x in agents]
     team_tasks = [set([g[0] for g in enumerate(goals) if g[1][1] == team]) for team in range(K)]
@@ -48,12 +62,8 @@ def create_root(agents, goals, costs, K, k) -> BBNode:
     root = BBNode(None, root_problem, root_cost)
     return root
 
-
-def mapf_problem_from_assignment():
-    pass
-
-
-def solve_bb(problem: Problem):
+# High-level function that takes an existing (bounded) MAPFM solver and uses it in a branch-and-bound approach
+def solve_bb(problem: Problem, solver: Callable[[Problem,Optional[int]],Optional[Solution]]):
     # translates MAPFM problem to assignment problem (relaxation)
     k = len(problem.starts)
     # makes sure that the K teams are numbered without gaps as 0...(K-1)
@@ -83,21 +93,7 @@ def solve_bb(problem: Problem):
                 costs[i][j] = c
 
     root: BBNode = create_root(agents, goals, costs, K, k)
-    print("Creating solver")
 
-    config = SolverConfig(
-        combs=3,
-        prune=True,
-        enhanced=False,
-        pruned_child_gen=True,
-        id=True,
-        conflict_avoidance=True,
-        enumerative=True,
-        sort_matchings=True,
-        debug=False,
-        budget_search=True,
-    )
-    solver = Solver(config)
     min_sic = None
     min_sol = None
     print("Generating bb nodes")
@@ -127,7 +123,7 @@ def solve_bb(problem: Problem):
                 )
                 leaf_p: Problem = Problem(problem.grid, problem.width, problem.height, leaf_p_agents,
                                           leaf_p_goals)
-                sol: Solution = solver(leaf_p, min_sic)[0]
+                sol: Solution = solver(leaf_p, min_sic)
                 if sol:
                     c: int = compute_sol_cost(sol)
                     if not min_sic or min_sic > c:
@@ -144,7 +140,8 @@ def solve_bb(problem: Problem):
                             heapq.heappush(ls, BBNode(n, sub_problem, sub_cost))
     return min_sol
 
-
+# Computes the SIC of a solution
+# Differs k from an alternative definition
 def compute_sol_cost(sol: Solution) -> int:
     sic = 0
     for path in sol.paths:
