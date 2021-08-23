@@ -121,13 +121,16 @@ class Solver:
         "path_cache",
     ]
 
-    def __init__(self, config: SolverConfig, problem: Problem):
+    def __init__(self, config: SolverConfig):
         self.config: SolverConfig = config
         self.max_k_solved = 0
         self.path_cache = dict()
+
+    # Assumes that agents are sorted in increasing order of teams
+    def __call__(self, problem: Problem, upper_bound: Optional[int]) -> Tuple[Optional[Solution], List[int], int, Optional[int]]:
+        # Initialize solver with upper bound provided in call
         self.problem = problem
         self.k = len(problem.starts)
-
         self.maze: Maze = Maze(problem.grid, problem.width, problem.height)
         self.ict_searcher = ICTSearcher(
             self.maze,
@@ -137,11 +140,10 @@ class Solver:
             self.config.pruned_child_gen,
             self.k,
             self.config.debug,
-            self.config.mem_limit
+            self.config.mem_limit,
+            upper_bound
         )
 
-    # Assumes that agents are sorted in increasing order of teams
-    def __call__(self) -> Tuple[Optional[Solution], List[int], int, Optional[int]]:
         paths: List[List[Tuple[int, int]]] = []
         agents: List[MarkedCompactLocation] = list(
             map(
