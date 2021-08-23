@@ -1,6 +1,5 @@
 import heapq
-from copy import copy
-from typing import List, Tuple, Set, Generator
+from typing import List, Set
 
 from mapfmclient import Problem, Solution, MarkedLocation
 
@@ -8,10 +7,11 @@ from ictsm.astar import astar
 from ictsm.maze import Maze
 from branch_and_bound.bbnode import BBNode
 from branch_and_bound.assignment_solver import solve_problem
-from ictsm.compact_location import MarkedCompactLocation, compact_location, expand_location
+from ictsm.compact_location import MarkedCompactLocation, compact_location
 from branch_and_bound.assignment_problem import AssignmentProblem
 from ictsm.solver import Solver
 from ictsm.solver_config import SolverConfig
+
 
 def murty_gen(costs, root):
     ls: List[BBNode] = [root]
@@ -34,12 +34,14 @@ def murty_gen(costs, root):
         else:
             print("Already seen?")
 
+
 def solve_bb_api(problem: Problem):
     return solve_bb(problem)
 
+
 def create_root(agents, goals, costs, K, k) -> BBNode:
     team_id = [x[1] for x in agents]
-    team_tasks =[set([g[0] for g in enumerate(goals) if g[1][1] == team]) for team in range(K)]
+    team_tasks = [set([g[0] for g in enumerate(goals) if g[1][1] == team]) for team in range(K)]
     root_problem = AssignmentProblem(team_id, team_tasks, K, k, k)
     print("Computing BB root cost")
     root_cost = solve_problem(costs, root_problem)
@@ -73,16 +75,14 @@ def solve_bb(problem: Problem):
     maze: Maze = Maze(problem.grid, problem.width, problem.height)
     print("Computing shortest paths")
     costs = [[0 for _ in range(k)] for _ in range(k)]
-    for (i,(al,ac)) in enumerate(agents):
-        for (j,(gl,gc)) in enumerate(goals):
+    for (i, (al, ac)) in enumerate(agents):
+        for (j, (gl, gc)) in enumerate(goals):
             if ac == gc:
                 shortest_path = astar(maze, al, gl)
                 c = len(shortest_path) - 1
                 costs[i][j] = c
 
-    root: BBNode = create_root(agents,goals,costs,K,k)
-    matching_agents = list(map(lambda x: (x[1][0], x[0]), enumerate(agents)))
-    team_agent_indices = dict(map(lambda x: (x[0], {x[0]}), enumerate(agents)))
+    root: BBNode = create_root(agents, goals, costs, K, k)
     print("Creating solver")
 
     config = SolverConfig(
@@ -106,10 +106,12 @@ def solve_bb(problem: Problem):
     heapq.heapify(ls)
     seen: Set[BBNode] = set()
 
-    leaf_p_agents = list(
-        map(lambda x: MarkedLocation(color=x[1], x=expand_location(x[0])[0], y=expand_location(x[0])[1]), matching_agents))
-
-    print(leaf_p_agents)
+    leaf_p_goals = list(
+        map(
+            lambda marked: MarkedLocation(x=marked[1].x, y=marked[1].y, color=marked[0]),
+            enumerate(problem.goals),
+        )
+    )
 
     while ls:
         n: BBNode = heapq.heappop(ls)
@@ -117,20 +119,20 @@ def solve_bb(problem: Problem):
             seen.add(n)
             if n.is_leaf():
                 print(n.problem.assignments, n.lower_bound, min_sic)
-                leaf_p_goals = list(
+                leaf_p_agents = list(
                     map(
-                        lambda marked: MarkedLocation(x = marked[1].x, y = marked[1].y,color=marked[0]),
-                        zip(n.problem.assignments,problem.goals),
+                        lambda marked: MarkedLocation(x=marked[1].x, y=marked[1].y, color=marked[0]),
+                        zip(n.problem.assignments, problem.starts),
                     )
                 )
-                leaf_p: Problem = Problem(problem.grid,problem.width,problem.height,copy(leaf_p_agents),copy(leaf_p_goals))
-                sol: Solution = solver(leaf_p,min_sic)[0]
+                leaf_p: Problem = Problem(problem.grid, problem.width, problem.height, leaf_p_agents,
+                                          leaf_p_goals)
+                sol: Solution = solver(leaf_p, min_sic)[0]
                 if sol:
                     c: int = compute_sol_cost(sol)
                     if not min_sic or min_sic > c:
                         min_sol = sol
-                        if solver.config.budget_search:
-                            min_sic = c
+                        min_sic = c
             else:
                 children = n.problem.generate_subproblems()
                 if len(children) == 1:
@@ -141,6 +143,7 @@ def solve_bb(problem: Problem):
                         if not min_sol or sub_cost < min_sic:
                             heapq.heappush(ls, BBNode(n, sub_problem, sub_cost))
     return min_sol
+
 
 def compute_sol_cost(sol: Solution) -> int:
     sic = 0
