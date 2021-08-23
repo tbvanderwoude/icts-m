@@ -180,7 +180,7 @@ class Solver:
                 heapq.heapify(ls)
                 while ls:
                     ranked_matching: RankedMatching = heapq.heappop(ls)
-                    print(ranked_matching)
+                    # print(ranked_matching)
                     team_goals = dict(map(lambda x: (x[0], {x[1]}), enumerate(ranked_matching.matching)))
                     sol = self.solve_tapf_instance(matching_agents, team_agent_indices, team_goals)
                     if sol:

@@ -42,19 +42,31 @@ if __name__ == "__main__":
     profile = str_to_bool(sys.argv[2])
     debug = str_to_bool(sys.argv[3])
     enumerative = str_to_bool(sys.argv[4])
+    branch_and_bound = str_to_bool(sys.argv[5])
     if profile:
         run_custom(token, p_id)
     else:
         if enumerative:
-            benchmark = MapfBenchmarker(
-                token=token,
-                benchmark=p_id,
-                algorithm="ICTS (branch-and-bound)",
-                version="0.2.7",
-                debug=debug,
-                solver=solve_bb_api,
-                cores=8,
-            )
+            if branch_and_bound:
+                benchmark = MapfBenchmarker(
+                    token=token,
+                    benchmark=p_id,
+                    algorithm="ICTS (branch-and-bound)",
+                    version="0.1.0",
+                    debug=debug,
+                    solver=solve_bb_api,
+                    cores=8,
+                )
+            else:
+                benchmark = MapfBenchmarker(
+                    token=token,
+                    benchmark=p_id,
+                    algorithm="ICTS (exhaustive)",
+                    version="0.2.7",
+                    debug=debug,
+                    solver=solve_api_enum,
+                    cores=8,
+                )
             benchmark.run()
         else:
             benchmark = MapfBenchmarker(
