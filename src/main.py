@@ -31,13 +31,14 @@ def run_custom(token, p_id):
 def str_to_bool(s):
     return s == "true" or s == "True"
 
+
 import json
 
 if __name__ == "__main__":
-    secrets_filename = 'token'
-    with open(secrets_filename, 'r') as f:
+    secrets_filename = "token"
+    with open(secrets_filename, "r") as f:
         tokens = json.loads(f.read())
-    token = tokens['SERVER_TOKEN']
+    token = tokens["SERVER_TOKEN"]
     p_id = int(sys.argv[1])
     profile = str_to_bool(sys.argv[2])
     debug = str_to_bool(sys.argv[3])

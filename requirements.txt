@@ -4,3 +4,5 @@ graphviz==0.16
 requests==2.25.1
 mapfmclient==0.2.5
 hungarian-algorithm==0.1.11
+mapf-branch-and-bound==0.0.2
+mapf-util

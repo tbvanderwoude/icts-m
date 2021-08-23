@@ -2,7 +2,7 @@ import itertools
 from collections import deque
 from typing import List, Tuple, Iterable, Any, Union, Set, Optional
 
-from .compact_location import CompactLocation
+from mapf_util.compact_location import CompactLocation
 from .conflicts import (
     is_invalid_move,
     has_edge_collisions,
@@ -97,10 +97,12 @@ def seek_solution_in_joint_mdd(
         )
         return solution
     elif unfold:
-        return joint_mdd_bfs(mdds,(roots,0),max(depths),unfold,accumulator,context)
+        return joint_mdd_bfs(
+            mdds, (roots, 0), max(depths), unfold, accumulator, context
+        )
     else:
         found_path, _ = joint_mdd_dfs(
-        mdds, (roots, 0), max(depths), visited, unfold, accumulator, context
+            mdds, (roots, 0), max(depths), visited, unfold, accumulator, context
         )
         return found_path
 
@@ -117,6 +119,7 @@ def get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, conte
         )
 
     return children
+
 
 def joint_mdd_bfs(
     mdds: List[MDD],
@@ -137,9 +140,12 @@ def joint_mdd_bfs(
             visited.add(curr)
             if is_goal_state(mdds, curr_nodes, curr_depth):
                 return True
-            children = get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, context)
-            frontier.extend(list(map(lambda x: (x,curr_depth + 1),children)))
+            children = get_sorted_children(
+                mdds, curr_nodes, curr_depth, unfold, accumulator, context
+            )
+            frontier.extend(list(map(lambda x: (x, curr_depth + 1), children)))
     return False
+
 
 def joint_mdd_dfs(
     mdds: List[MDD],
@@ -157,7 +163,9 @@ def joint_mdd_dfs(
     visited.add(curr)
     if is_goal_state(mdds, curr_nodes, curr_depth):
         return True, visited
-    children = get_sorted_children(mdds, curr_nodes, curr_depth, unfold, accumulator, context)
+    children = get_sorted_children(
+        mdds, curr_nodes, curr_depth, unfold, accumulator, context
+    )
     for node in children:
         child = (node, curr_depth + 1)
         found_path, visited = joint_mdd_dfs(

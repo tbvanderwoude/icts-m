@@ -4,12 +4,12 @@ from typing import Optional, DefaultDict, Tuple, Set, Iterable, Deque, Dict
 from graphviz import Digraph
 from matplotlib import pyplot as plt
 
-from .compact_location import (
+from mapf_util.compact_location import (
     CompactLocation,
     expand_location,
     CompactLocationDepth,
 )
-from .maze import Maze
+from mapf_util.maze import Maze
 
 TimeExpandedGraph = DefaultDict[CompactLocationDepth, Set[CompactLocationDepth]]
 MDDGraph = Optional[TimeExpandedGraph]

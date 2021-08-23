@@ -13,16 +13,18 @@ class MatchingTest(unittest.TestCase):
         for goal in goals:
             goal_teams[goal[1]].append(goal[0])
         matchings = list(matching_gen(goal_teams))
-        self.assertEqual(len(matchings),6)
+        self.assertEqual(len(matchings), 6)
+
     def test_four_agents_two_teams(self):
-        goals = [(36875, 0), (73731, 0), (45073, 1),(36875, 1)]
+        goals = [(36875, 0), (73731, 0), (45073, 1), (36875, 1)]
         goal_teams = defaultdict(list)
         for goal in goals:
             goal_teams[goal[1]].append(goal[0])
         matchings = list(matching_gen(goal_teams))
-        self.assertEqual(len(matchings),4)
+        self.assertEqual(len(matchings), 4)
+
     def test_many_matches(self):
-        goals = [(i,0) for i in range(12)]
+        goals = [(i, 0) for i in range(12)]
         goal_teams = defaultdict(list)
         for goal in goals:
             goal_teams[goal[1]].append(goal[0])

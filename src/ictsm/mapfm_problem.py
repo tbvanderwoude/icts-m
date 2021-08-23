@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from .compact_location import MarkedCompactLocation
+from mapf_util.compact_location import MarkedCompactLocation
 
 
 class MAPFMProblem:
@@ -13,7 +13,8 @@ class MAPFMProblem:
         "n_teams",
         "teams",
     ]
-    def __init__(self,agents,team_agent_indices: Dict[int, List[int]],team_goals):
+
+    def __init__(self, agents, team_agent_indices: Dict[int, List[int]], team_goals):
         self.agents: List[MarkedCompactLocation] = agents
         self.team_agent_indices = team_agent_indices
         self.team_goals = team_goals

@@ -3,6 +3,7 @@ KiloByte = Byte * 1024
 MegaByte = KiloByte * 1024
 GigaByte = MegaByte * 1024
 
+
 class SolverConfig:
     __slots__ = [
         "name",
@@ -16,7 +17,7 @@ class SolverConfig:
         "budget_search",
         "sort_matchings",
         "pruned_child_gen",
-        "mem_limit"
+        "mem_limit",
     ]
 
     def __init__(
@@ -32,7 +33,7 @@ class SolverConfig:
         budget_search: bool = True,
         sort_matchings: bool = True,
         name: str = "unnamed",
-        mem_limit: float = 3.0
+        mem_limit: float = 3.0,
     ):
         self.name = name
         self.combs = combs
