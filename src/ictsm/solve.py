@@ -16,6 +16,7 @@ def solve_api_enum(problem: Problem) -> Solution:
 
 def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int, Optional[int]]:
     config = SolverConfig(
+        name="ICTS-m+ID+S+C",
         combs=3,
         prune=True,
         enhanced=False,
@@ -23,7 +24,8 @@ def solve(problem: Problem) -> Tuple[Optional[Solution], List[int], int, Optiona
         id=True,
         conflict_avoidance=True,
         enumerative=False,
-        debug=True,
+        debug=False,
+        sort_matchings=False,
     )
     return Solver(config)(problem)
 

@@ -299,7 +299,7 @@ class Solver:
     def compute_root_m(self, agents, team_goals):
         root_list = []
         for agent in agents:
-            min_c = None
+            min_c = float("inf")
             start = agent[0]
             for goal in team_goals[agent[1]]:
                 if not (start, goal) in self.path_cache:
@@ -308,7 +308,7 @@ class Solver:
                         return None
                     self.path_cache[(start, goal)] = len(shortest_path) - 1
                 c = self.path_cache[(start, goal)]
-                if not min_c or c < min_c:
+                if c < min_c:
                     min_c = c
             root_list.append(min_c)
         return tuple(root_list)
