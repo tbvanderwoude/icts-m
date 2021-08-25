@@ -4,17 +4,18 @@ import shutil
 from tqdm import tqdm
 from gen.map_generator import MapGenerator
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     raw_dir = pathlib.Path("new-maps")
     if raw_dir.exists():
         shutil.rmtree(raw_dir)
     raw_dir.mkdir()
     map_generator = MapGenerator("new-maps")
-    for K in [1,3]:
+    for K in [1, 3]:
         for k in tqdm(range(1, 17)):
             map_generator.generate_even_batch(
                 200,  # number of maps
-                20, 20,  # size
+                20,
+                20,  # size
                 k,  # number of agents
                 K,  # number of teams
                 prefix="25",
@@ -24,7 +25,8 @@ if __name__ == '__main__':
             )
             map_generator.generate_even_batch(
                 200,  # number of maps
-                20, 20,  # size
+                20,
+                20,  # size
                 k,  # number of agents
                 K,  # number of teams
                 prefix="75",

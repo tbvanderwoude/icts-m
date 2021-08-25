@@ -3,12 +3,12 @@ from collections import deque
 from itertools import combinations
 from typing import List, Tuple, Optional, Dict, Deque
 
-from .compact_location import MarkedCompactLocation
+from mapf_util.compact_location import MarkedCompactLocation
+from mapf_util.maze import Maze
 from .id_context import IDContext
 from .mapfm_problem import MAPFMProblem
-from .maze import Maze
 from .mdd import MDD
-from .mdd_search import (JointSolution,seek_solution_in_joint_mdd,JointTimedSolution)
+from .mdd_search import JointSolution, seek_solution_in_joint_mdd, JointTimedSolution
 from .solver_config import MegaByte
 
 
@@ -20,8 +20,6 @@ class ICTSolution:
     def __init__(self, solution: JointSolution, sic: int):
         self.solution = solution
         self.sic = sic
-
-
 
 
 class ICTSearcher(object):
@@ -40,7 +38,7 @@ class ICTSearcher(object):
         "other_sum",
         "mdd_cache",
         "mem_limit",
-        "mem_check_tick"
+        "mem_check_tick",
     ]
 
     def __init__(
@@ -53,7 +51,7 @@ class ICTSearcher(object):
         max_k: int,
         debug: bool,
         mem_limit: Optional[int] = None,
-        budget: Optional[int] = None
+        budget: Optional[int] = None,
     ):
         self.maze = maze
         self.max_delta: List[int] = [0] * (max_k + 1)
@@ -79,7 +77,9 @@ class ICTSearcher(object):
             self.mem_check_tick = 0
             usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
             if self.debug:
-                print(f"{usage / MegaByte} megabytes used out of {self.mem_limit / MegaByte}")
+                print(
+                    f"{usage / MegaByte} megabytes used out of {self.mem_limit / MegaByte}"
+                )
             return usage < self.mem_limit
         else:
             self.mem_check_tick += 1
@@ -122,7 +122,10 @@ class ICTSearcher(object):
                     skip = False
                     for team_i in c:
                         filtered_agents = list(
-                            filter(lambda x: x in problem.agents, problem.team_agent_indices[team_i])
+                            filter(
+                                lambda x: x in problem.agents,
+                                problem.team_agent_indices[team_i],
+                            )
                         )
                         if not filtered_agents:
                             skip = True
@@ -146,7 +149,7 @@ class ICTSearcher(object):
         k: int,
         accumulator: List = [],
         context: Optional[IDContext] = None,
-        agents: Optional[List[MarkedCompactLocation]] =None,
+        agents: Optional[List[MarkedCompactLocation]] = None,
     ):
         if k > self.combs:
             if agents:
@@ -159,17 +162,17 @@ class ICTSearcher(object):
                             break
 
                     if not skip and not seek_solution_in_joint_mdd(
-                            [mdds[i] for i in c],
-                            False,
-                            self.enhanced,
-                            accumulator,
-                            context,
+                        [mdds[i] for i in c],
+                        False,
+                        self.enhanced,
+                        accumulator,
+                        context,
                     ):
                         return c
             else:
                 for c in combinations(range(k), self.combs):
                     if not seek_solution_in_joint_mdd(
-                            [mdds[i] for i in c], False, self.enhanced, accumulator, context
+                        [mdds[i] for i in c], False, self.enhanced, accumulator, context
                     ):
                         return c
         else:
@@ -198,7 +201,11 @@ class ICTSearcher(object):
                     )
                 else:
                     self.mdd_cache[(i, c)] = MDD(
-                        self.maze, i, problem.agents[i][0], problem.team_goals[problem.agents[i][1]], c
+                        self.maze,
+                        i,
+                        problem.agents[i][0],
+                        problem.team_goals[problem.agents[i][1]],
+                        c,
                     )
             mdds.append(self.mdd_cache[(i, c)])
         return mdds
@@ -207,10 +214,7 @@ class ICTSearcher(object):
         self.mdd_cache = dict()
 
     def search_tapf(
-        self,
-        problem: MAPFMProblem,
-        root,
-        context: Optional[IDContext] = None
+        self, problem: MAPFMProblem, root, context: Optional[IDContext] = None
     ) -> Optional[ICTSolution]:
         self.clear_cache()
         k = problem.k
@@ -256,18 +260,24 @@ class ICTSearcher(object):
 
                         if not conflict_combination:
                             conflict_team_comb = None
-                            if False and len(problem.team_agent_indices) > self.team_combs:
+                            if (
+                                False
+                                and len(problem.team_agent_indices) > self.team_combs
+                            ):
                                 conflict_team_comb = self.check_team_combinations(
                                     problem, mdds, accumulator, context
                                 )
                             if not conflict_team_comb:
                                 if self.lower_sic_bound <= node_sum:
-                                    solution: JointTimedSolution = seek_solution_in_joint_mdd(
-                                        mdds, True, False, [], context
+                                    solution: JointTimedSolution = (
+                                        seek_solution_in_joint_mdd(
+                                            mdds, True, False, [], context
+                                        )
                                     )
                                     if solution:
                                         return ICTSolution(
-                                            list(map(lambda x: x[0], solution)), sum(node)
+                                            list(map(lambda x: x[0], solution)),
+                                            sum(node),
                                         )
                                 for (i, c) in enumerate(node):
                                     node_list = list(node)
@@ -317,17 +327,24 @@ class ICTSearcher(object):
 
                             if not conflict_combination:
                                 conflict_team_comb = None
-                                if False and len(problem.team_agent_indices) > self.team_combs:
+                                if (
+                                    False
+                                    and len(problem.team_agent_indices)
+                                    > self.team_combs
+                                ):
                                     conflict_team_comb = self.check_team_combinations(
                                         problem, mdds, accumulator, context
                                     )
                                 if not conflict_team_comb:
-                                    solution: JointTimedSolution = seek_solution_in_joint_mdd(
-                                        mdds, True, False, [], context
+                                    solution: JointTimedSolution = (
+                                        seek_solution_in_joint_mdd(
+                                            mdds, True, False, [], context
+                                        )
                                     )
                                     if solution:
                                         return ICTSolution(
-                                            list(map(lambda x: x[0], solution)), sum(node)
+                                            list(map(lambda x: x[0], solution)),
+                                            sum(node),
                                         )
                 for (i, p, c) in accumulator:
                     mdds[i].mdd[p].add(c)

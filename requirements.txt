@@ -3,3 +3,6 @@ matplotlib==3.3.4
 graphviz==0.16
 requests==2.25.1
 mapfmclient==0.2.5
+hungarian-algorithm==0.1.11
+mapf-branch-and-bound==0.0.3
+mapf-util==0.0.1

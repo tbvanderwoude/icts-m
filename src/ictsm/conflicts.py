@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import List, Optional, Tuple, Iterable, TypeVar, Sized, DefaultDict, Set
 
-from .compact_location import CompactLocation
+from mapf_util.compact_location import CompactLocation
 
 # early-exit variant of the version below. Intuitively, it should be faster
 # https://stackoverflow.com/questions/5278122/checking-if-all-elements-in-a-list-are-unique
@@ -70,6 +70,7 @@ def edge_collisions_constructive(curr_locs, next_locs) -> Optional[Conflict]:
             if ei == ej:
                 return i, j
     return None
+
 
 def find_conflict(curr_locs, next_locs) -> Optional[Conflict]:
     all_diff = all_different_constructive(curr_locs)
